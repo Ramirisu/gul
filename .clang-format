@@ -1,0 +1,8 @@
+Language: Cpp
+BasedOnStyle: WebKit
+ColumnLimit: 80
+AlignAfterOpenBracket: Align
+AllowShortFunctionsOnASingleLine: Empty
+AlwaysBreakTemplateDeclarations: Yes
+BinPackParameters: false
+IndentRequires: true

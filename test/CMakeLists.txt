@@ -1,0 +1,9 @@
+file(GLOB_RECURSE DS_TESTS_SOURCE_FILES "*_test.cpp")
+
+foreach(file ${DS_TESTS_SOURCE_FILES})
+  get_filename_component(file_name ${file} NAME)
+  string(REPLACE ".cpp" "" target_name ${file_name})
+  add_executable(${target_name} ${file})
+  target_link_libraries(${target_name} PRIVATE ds)
+  add_test(${target_name} ${target_name})
+endforeach()
