@@ -7,6 +7,8 @@ project(
 
 option(DS_BUILD_TESTS "Build tests" ON)
 
+include(cmake/CPM.cmake)
+
 if(NOT DEFINED CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 11)
   set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -16,6 +18,8 @@ add_library(ds INTERFACE)
 target_include_directories(ds INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 if(DS_BUILD_TESTS)
+  cpmaddpackage("gh:doctest/doctest@2.4.9")
+
   enable_testing()
   add_subdirectory(test)
 endif()
