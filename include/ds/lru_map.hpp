@@ -20,6 +20,8 @@ class lru_map {
 
   template <bool Const>
   class iterator_impl {
+    friend class lru_map;
+
     using parent_iterator =
         typename std::conditional<Const,
                                   typename map_type::const_iterator,
@@ -242,6 +244,54 @@ public:
     }
 
     return false;
+  }
+
+  iterator erase(iterator pos)
+  {
+    if (pos == end()) {
+      return pos;
+    }
+
+    recently_used_.erase(pos.curr_->second);
+    return iterator(map_.erase(pos.curr_));
+  }
+
+  const_iterator erase(const_iterator pos)
+  {
+    if (pos == cend()) {
+      return pos;
+    }
+
+    recently_used_.erase(pos.curr_->second);
+    return const_iterator(map_.erase(pos.curr_));
+  }
+
+  iterator erase(iterator first, iterator last)
+  {
+    if (first == last) {
+      return first;
+    }
+
+    for (auto pos = first.curr_; pos != last.curr_;) {
+      recently_used_.erase(pos->second);
+      pos = map_.erase(pos);
+    }
+
+    return last;
+  }
+
+  const_iterator erase(const_iterator first, const_iterator last)
+  {
+    if (first == last) {
+      return first;
+    }
+
+    for (auto pos = first.curr_; pos != last.curr_;) {
+      recently_used_.erase(pos->second);
+      pos = map_.erase(pos);
+    }
+
+    return last;
   }
 
   void clear() noexcept

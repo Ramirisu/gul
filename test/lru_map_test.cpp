@@ -116,6 +116,39 @@ TEST_CASE("upsert")
   CHECK_EQ(m.at(2), 20);
 }
 
+TEST_CASE("erase iterator")
+{
+  {
+    ds::lru_map<int, int> m(4, { { 1, 10 }, { 2, 20 }, { 3, 30 }, { 4, 40 } });
+    CHECK_EQ(m.erase(m.end()), m.end());
+    CHECK_EQ(m.erase(m.cend()), m.cend());
+  }
+  {
+    ds::lru_map<int, int> m(4, { { 1, 10 }, { 2, 20 }, { 3, 30 }, { 4, 40 } });
+    auto it = std::next(m.begin(), 1);
+    auto it_next = std::next(it, 1);
+    CHECK_EQ(m.erase(it), it_next);
+  }
+  {
+    ds::lru_map<int, int> m(4, { { 1, 10 }, { 2, 20 }, { 3, 30 }, { 4, 40 } });
+    auto it = std::next(m.cbegin(), 1);
+    auto it_next = std::next(it, 1);
+    CHECK_EQ(m.erase(it), it_next);
+  }
+  {
+    ds::lru_map<int, int> m(4, { { 1, 10 }, { 2, 20 }, { 3, 30 }, { 4, 40 } });
+    auto it = std::next(m.begin(), 1);
+    auto it_next = std::next(it, 2);
+    CHECK_EQ(m.erase(it, it_next), it_next);
+  }
+  {
+    ds::lru_map<int, int> m(4, { { 1, 10 }, { 2, 20 }, { 3, 30 }, { 4, 40 } });
+    auto it = std::next(m.cbegin(), 1);
+    auto it_next = std::next(it, 2);
+    CHECK_EQ(m.erase(it, it_next), it_next);
+  }
+}
+
 TEST_CASE("iterator")
 {
   {
