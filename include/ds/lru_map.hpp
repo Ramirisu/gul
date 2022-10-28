@@ -126,13 +126,15 @@ public:
   lru_map(size_type capacity)
       : capacity_(capacity)
   {
+    DS_ASSERT(capacity > 0);
   }
 
   lru_map(size_type capacity, std::initializer_list<value_type> init)
       : capacity_(capacity)
   {
+    DS_ASSERT(capacity > 0);
     for (auto& value : init) {
-      insert(std::move(value));
+      insert(std::move(value.first), std::move(value.second));
     }
   }
 
@@ -142,8 +144,9 @@ public:
       : capacity_(capacity)
       , map_(std::move(comp))
   {
+    DS_ASSERT(capacity > 0);
     for (auto& value : init) {
-      insert(std::move(value));
+      insert(std::move(value.first), std::move(value.second));
     }
   }
 
@@ -151,8 +154,10 @@ public:
   lru_map(size_type capacity, InputIt first, InputIt last)
       : capacity_(capacity)
   {
+    DS_ASSERT(capacity > 0);
     for (auto it = first; it != last; ++it) {
-      insert(*it);
+      using std::get;
+      insert(get<0>(*it), get<1>(*it));
     }
   }
 
@@ -170,6 +175,7 @@ public:
       recently_used_ = other.recently_used_;
       rebuild_map();
     }
+
     return *this;
   }
 
@@ -177,9 +183,10 @@ public:
 
   lru_map& operator=(lru_map&&) = default;
 
-  bool insert(const value_type& value)
+  template <typename Key2, typename T2>
+  bool insert(Key2&& key, T2&& value)
   {
-    if (map_.find(value.first) != map_.end()) {
+    if (map_.find(key) != map_.end()) {
       return false;
     }
 
@@ -187,9 +194,41 @@ public:
       remove_least_recently_used();
     }
 
-    recently_used_.push_front(value);
-    auto it = recently_used_.begin();
-    map_[it->first] = it;
+    recently_used_.push_front({ key, std::forward<T2>(value) });
+    map_[std::forward<Key2>(key)] = recently_used_.begin();
+    return true;
+  }
+
+  template <typename T2>
+  bool update(const key_type& key, T2&& value)
+  {
+    auto it = map_.find(key);
+    if (it != map_.end()) {
+      it->second->second = std::forward<T2>(value);
+      update_recently_used(key);
+      return true;
+    }
+
+    return false;
+  }
+
+  // return true if insertion took place
+  template <typename Key2, typename T2>
+  bool upsert(Key2&& key, T2&& value)
+  {
+    auto it = map_.find(key);
+    if (it != map_.end()) {
+      it->second->second = std::forward<T2>(value);
+      update_recently_used(key);
+      return false;
+    }
+
+    if (recently_used_.size() == capacity_) {
+      remove_least_recently_used();
+    }
+
+    recently_used_.push_front({ key, std::forward<T2>(value) });
+    map_[std::forward<Key2>(key)] = recently_used_.begin();
     return true;
   }
 
@@ -205,7 +244,7 @@ public:
     return false;
   }
 
-  void clear()
+  void clear() noexcept
   {
     recently_used_.clear();
     map_.clear();
