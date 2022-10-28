@@ -3,6 +3,7 @@
 #include <ds/lru_map.hpp>
 
 #include <random>
+#include <type_traits>
 
 TEST_SUITE_BEGIN("lru_map");
 
@@ -12,6 +13,7 @@ TEST_CASE("basic")
   CHECK_EQ(m.size(), 0);
   CHECK_EQ(m.capacity(), 2);
   CHECK(m.insert({ 1, 10 }));
+  CHECK(!m.empty());
   CHECK_EQ(m.size(), 1);
   CHECK_EQ(m.at(1), 10);
   CHECK_EQ(m[1], 10);
@@ -27,8 +29,18 @@ TEST_CASE("basic")
   CHECK_EQ(m[3], 30);
   CHECK(!m.insert({ 3, 30 }));
   CHECK(!m.contains(1));
+  CHECK(m.contains(2));
+  CHECK(m.contains(3));
+  CHECK(!m.erase(1));
+  CHECK(m.contains(2));
+  CHECK(m.contains(3));
+  CHECK(m.erase(2));
+  CHECK(!m.contains(2));
+  CHECK(m.contains(3));
   m.clear();
   CHECK_EQ(m.size(), 0);
+  CHECK(m.empty());
+  CHECK(!m.contains(1));
   CHECK(!m.contains(2));
   CHECK(!m.contains(3));
 }
@@ -58,14 +70,68 @@ TEST_CASE("copy =")
 
 TEST_CASE("iterator")
 {
-  std::map<int, int> exp({ { 1, 10 }, { 2, 20 }, { 3, 30 }, { 4, 40 } });
-  const ds::lru_map<int, int> m(4,
-                                { { 1, 10 }, { 2, 20 }, { 3, 30 }, { 4, 40 } });
-  for (auto it = m.begin(); it != m.end(); ++it) {
-    CHECK_EQ(exp.at(it->first), it->second);
-    exp.erase(it->first);
+  {
+    std::map<int, int> exp({ { 1, 10 }, { 2, 20 }, { 3, 30 }, { 4, 40 } });
+    ds::lru_map<int, int> m(4, { { 1, 10 }, { 2, 20 }, { 3, 30 }, { 4, 40 } });
+    for (auto it = m.begin(); it != m.end(); ++it) {
+      static_assert_same<decltype(*it), std::pair<int, int>&> {};
+      CHECK_EQ(exp.at(it->first), it->second);
+      exp.erase(it->first);
+    }
+    CHECK(exp.empty());
   }
-  CHECK(exp.empty());
+  {
+    std::map<int, int> exp({ { 1, 10 }, { 2, 20 }, { 3, 30 }, { 4, 40 } });
+    const ds::lru_map<int, int> m(
+        4, { { 1, 10 }, { 2, 20 }, { 3, 30 }, { 4, 40 } });
+    for (auto it = m.begin(); it != m.end(); ++it) {
+      static_assert_same<decltype(*it), const std::pair<int, int>&> {};
+      CHECK_EQ(exp.at(it->first), it->second);
+      exp.erase(it->first);
+    }
+    CHECK(exp.empty());
+  }
+  {
+    std::map<int, int> exp({ { 1, 10 }, { 2, 20 }, { 3, 30 }, { 4, 40 } });
+    ds::lru_map<int, int> m(4, { { 1, 10 }, { 2, 20 }, { 3, 30 }, { 4, 40 } });
+    for (auto it = m.cbegin(); it != m.cend(); ++it) {
+      static_assert_same<decltype(*it), const std::pair<int, int>&> {};
+      CHECK_EQ(exp.at(it->first), it->second);
+      exp.erase(it->first);
+    }
+    CHECK(exp.empty());
+  }
+  {
+    std::map<int, int> exp({ { 1, 10 }, { 2, 20 }, { 3, 30 }, { 4, 40 } });
+    ds::lru_map<int, int> m(4, { { 1, 10 }, { 2, 20 }, { 3, 30 }, { 4, 40 } });
+    for (auto it = m.rbegin(); it != m.rend(); ++it) {
+      static_assert_same<decltype(*it), std::pair<int, int>&> {};
+      CHECK_EQ(exp.at(it->first), it->second);
+      exp.erase(it->first);
+    }
+    CHECK(exp.empty());
+  }
+  {
+    std::map<int, int> exp({ { 1, 10 }, { 2, 20 }, { 3, 30 }, { 4, 40 } });
+    const ds::lru_map<int, int> m(
+        4, { { 1, 10 }, { 2, 20 }, { 3, 30 }, { 4, 40 } });
+    for (auto it = m.rbegin(); it != m.rend(); ++it) {
+      static_assert_same<decltype(*it), const std::pair<int, int>&> {};
+      CHECK_EQ(exp.at(it->first), it->second);
+      exp.erase(it->first);
+    }
+    CHECK(exp.empty());
+  }
+  {
+    std::map<int, int> exp({ { 1, 10 }, { 2, 20 }, { 3, 30 }, { 4, 40 } });
+    ds::lru_map<int, int> m(4, { { 1, 10 }, { 2, 20 }, { 3, 30 }, { 4, 40 } });
+    for (auto it = m.crbegin(); it != m.crend(); ++it) {
+      static_assert_same<decltype(*it), const std::pair<int, int>&> {};
+      CHECK_EQ(exp.at(it->first), it->second);
+      exp.erase(it->first);
+    }
+    CHECK(exp.empty());
+  }
 }
 
 TEST_CASE("random test")

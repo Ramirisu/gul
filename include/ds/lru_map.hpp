@@ -8,6 +8,7 @@
 #include <list>
 #include <map>
 #include <memory>
+#include <type_traits>
 #include <utility>
 
 namespace ds {
@@ -16,37 +17,58 @@ class lru_map {
   using list_type = std::list<std::pair<Key, T>>;
   using map_type = std::map<Key, typename list_type::iterator>;
 
-public:
-  class const_iterator {
+  template <bool Const>
+  class iterator_impl {
+    using parent_iterator =
+        typename std::conditional<Const,
+                                  typename map_type::const_iterator,
+                                  typename map_type::iterator>::type;
+
   public:
-    using iterator_category = std::forward_iterator_tag;
-    using value_type = typename list_type::value_type;
+    using iterator_category = std::bidirectional_iterator_tag;
+    using value_type =
+        typename std::conditional<Const,
+                                  const typename list_type::value_type,
+                                  typename list_type::value_type>::type;
     using reference = value_type&;
     using const_reference = const value_type&;
     using pointer = value_type*;
     using difference_type = std::ptrdiff_t;
 
-    const_iterator(typename map_type::const_iterator curr)
+    iterator_impl(parent_iterator curr)
         : curr_(std::move(curr))
     {
     }
 
-    const_iterator operator++(int) noexcept
+    iterator_impl operator++(int) noexcept
     {
       auto it = *this;
       ++*this;
       return it;
     }
 
-    const_iterator& operator++() noexcept
+    iterator_impl& operator++() noexcept
     {
       ++curr_;
       return *this;
     }
 
+    iterator_impl operator--(int) noexcept
+    {
+      auto it = *this;
+      --*this;
+      return it;
+    }
+
+    iterator_impl& operator--() noexcept
+    {
+      --curr_;
+      return *this;
+    }
+
     reference operator*() const noexcept
     {
-      return *(curr_->second);
+      return *curr_->second;
     }
 
     pointer operator->() const noexcept
@@ -54,20 +76,21 @@ public:
       return &*curr_->second;
     }
 
-    friend bool operator==(const const_iterator& lhs, const const_iterator& rhs)
+    friend bool operator==(const iterator_impl& lhs, const iterator_impl& rhs)
     {
       return lhs.curr_ == rhs.curr_;
     }
 
-    friend bool operator!=(const const_iterator& lhs, const const_iterator& rhs)
+    friend bool operator!=(const iterator_impl& lhs, const iterator_impl& rhs)
     {
       return lhs.curr_ != rhs.curr_;
     }
 
   private:
-    typename map_type::const_iterator curr_;
+    parent_iterator curr_;
   };
 
+public:
   using key_type = Key;
   using mapped_type = T;
   using value_type = std::pair<const Key, T>;
@@ -75,6 +98,10 @@ public:
   using difference_Type = std::ptrdiff_t;
   using reference = value_type&;
   using const_reference = const value_type&;
+  using iterator = iterator_impl<false>;
+  using const_iterator = iterator_impl<true>;
+  using reverse_iterator = std::reverse_iterator<iterator>;
+  using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
   lru_map(size_type capacity)
       : capacity_(capacity)
@@ -112,7 +139,7 @@ public:
 
   bool insert(const value_type& value)
   {
-    if (map_.find(value.first) != std::end(map_)) {
+    if (map_.find(value.first) != map_.end()) {
       return false;
     }
 
@@ -124,6 +151,18 @@ public:
     auto it = recently_used_.begin();
     map_[it->first] = it;
     return true;
+  }
+
+  bool erase(const key_type& key)
+  {
+    auto it = map_.find(key);
+    if (it != map_.end()) {
+      recently_used_.erase(it->second);
+      map_.erase(it);
+      return true;
+    }
+
+    return false;
   }
 
   void clear()
@@ -148,12 +187,17 @@ public:
 
   bool contains(const key_type& key) const noexcept
   {
-    return map_.find(key) != std::end(map_);
+    return map_.find(key) != map_.end();
   }
 
   size_type capacity() const noexcept
   {
     return capacity_;
+  }
+
+  bool empty() const noexcept
+  {
+    return map_.empty();
   }
 
   size_type size() const noexcept
@@ -166,14 +210,64 @@ public:
     return std::numeric_limits<size_type>::max();
   }
 
+  iterator begin()
+  {
+    return iterator(map_.begin());
+  }
+
   const_iterator begin() const
   {
-    return const_iterator(std::begin(map_));
+    return const_iterator(map_.begin());
+  }
+
+  const_iterator cbegin() const
+  {
+    return const_iterator(map_.cbegin());
+  }
+
+  reverse_iterator rbegin()
+  {
+    return reverse_iterator(map_.rbegin());
+  }
+
+  const_reverse_iterator rbegin() const
+  {
+    return const_reverse_iterator(map_.rbegin());
+  }
+
+  const_reverse_iterator crbegin() const
+  {
+    return const_reverse_iterator(map_.crbegin());
+  }
+
+  iterator end()
+  {
+    return iterator(map_.end());
   }
 
   const_iterator end() const
   {
-    return const_iterator(std::end(map_));
+    return const_iterator(map_.end());
+  }
+
+  const_iterator cend() const
+  {
+    return const_iterator(map_.cend());
+  }
+
+  reverse_iterator rend()
+  {
+    return reverse_iterator(map_.rend());
+  }
+
+  const_reverse_iterator rend() const
+  {
+    return const_reverse_iterator(map_.rend());
+  }
+
+  const_reverse_iterator crend() const
+  {
+    return const_reverse_iterator(map_.crend());
   }
 
 private:
@@ -196,8 +290,7 @@ private:
   void rebuild_map()
   {
     map_.clear();
-    for (auto it = std::begin(recently_used_); it != std::end(recently_used_);
-         ++it) {
+    for (auto it = recently_used_.begin(); it != recently_used_.end(); ++it) {
       map_[it->first] = it;
     }
   }
