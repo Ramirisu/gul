@@ -12,10 +12,11 @@
 #include <utility>
 
 namespace ds {
-template <typename Key, typename T>
+template <typename Key, typename T, typename Compare = std::less<Key>>
 class lru_map {
+  using value_type_impl = std::pair<Key, T>;
   using list_type = std::list<std::pair<Key, T>>;
-  using map_type = std::map<Key, typename list_type::iterator>;
+  using map_type = std::map<Key, typename list_type::iterator, Compare>;
 
   template <bool Const>
   class iterator_impl {
@@ -90,12 +91,31 @@ class lru_map {
     parent_iterator curr_;
   };
 
+  class value_compare_impl {
+  public:
+    value_compare_impl(Compare compare)
+        : compare_(std::move(compare))
+    {
+    }
+
+    bool operator()(const value_type_impl& lhs,
+                    const value_type_impl& rhs) const
+    {
+      return compare_(lhs.first, rhs.first);
+    }
+
+  private:
+    Compare compare_;
+  };
+
 public:
   using key_type = Key;
   using mapped_type = T;
-  using value_type = std::pair<const Key, T>;
+  using value_type = value_type_impl;
   using size_type = std::size_t;
   using difference_Type = std::ptrdiff_t;
+  using key_compare = Compare;
+  using value_compare = value_compare_impl;
   using reference = value_type&;
   using const_reference = const value_type&;
   using iterator = iterator_impl<false>;
@@ -109,10 +129,30 @@ public:
   }
 
   lru_map(size_type capacity, std::initializer_list<value_type> init)
-      : lru_map(capacity)
+      : capacity_(capacity)
   {
     for (auto& value : init) {
       insert(std::move(value));
+    }
+  }
+
+  lru_map(size_type capacity,
+          std::initializer_list<value_type> init,
+          Compare comp)
+      : capacity_(capacity)
+      , map_(std::move(comp))
+  {
+    for (auto& value : init) {
+      insert(std::move(value));
+    }
+  }
+
+  template <typename InputIt>
+  lru_map(size_type capacity, InputIt first, InputIt last)
+      : capacity_(capacity)
+  {
+    for (auto it = first; it != last; ++it) {
+      insert(*it);
     }
   }
 
@@ -268,6 +308,16 @@ public:
   const_reverse_iterator crend() const
   {
     return const_reverse_iterator(map_.crend());
+  }
+
+  key_compare key_comp() const
+  {
+    return map_.key_comp();
+  }
+
+  value_compare value_comp() const
+  {
+    return value_compare(key_comp());
   }
 
 private:

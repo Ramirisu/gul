@@ -2,6 +2,7 @@
 
 #include <ds/lru_map.hpp>
 
+#include <functional>
 #include <random>
 #include <type_traits>
 
@@ -43,6 +44,36 @@ TEST_CASE("basic")
   CHECK(!m.contains(1));
   CHECK(!m.contains(2));
   CHECK(!m.contains(3));
+}
+
+TEST_CASE("Compare")
+{
+  struct compare {
+    bool operator()(int lhs, int rhs) const noexcept
+    {
+      return lhs > rhs;
+    }
+  };
+
+  compare comp;
+  ds::lru_map<int, int, compare> m {
+    10, { { 3, 10 }, { 2, 50 }, { 4, 30 }, { 1, 20 }, { 0, 0 } }, comp
+  };
+  int temp = 5;
+  for (const auto& kv : m) {
+    CHECK(kv.first < temp);
+    temp = kv.first;
+  }
+}
+
+TEST_CASE("range ctor")
+{
+  const std::vector<std::pair<int, int>> v(
+      { { 1, 10 }, { 2, 20 }, { 3, 30 }, { 4, 40 } });
+  ds::lru_map<int, int> m(2, v.begin(), v.end());
+  CHECK_EQ(m.size(), 2);
+  CHECK_EQ(m.at(3), 30);
+  CHECK_EQ(m.at(4), 40);
 }
 
 TEST_CASE("copy ctor")
