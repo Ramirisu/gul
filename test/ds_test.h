@@ -6,6 +6,7 @@
 #include <type_traits>
 
 template <typename L, typename R>
-struct static_assert_same {
+void static_assert_same()
+{
   static_assert(std::is_same<L, R>::value, "");
 };

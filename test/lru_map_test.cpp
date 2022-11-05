@@ -100,7 +100,7 @@ TEST_CASE("peek|cpeek")
 {
   {
     ds::lru_map<int, int> m(4, { { 1, 10 }, { 2, 20 } });
-    static_assert_same<decltype(m.peek(1)), ds::optional<int&>> {};
+    static_assert_same<decltype(m.peek(1)), ds::optional<int&>>();
     int v = 10;
     CHECK_EQ(m.peek(1), ds::optional<int&>(v));
     m.peek(1).value() = 100;
@@ -109,13 +109,13 @@ TEST_CASE("peek|cpeek")
   }
   {
     const ds::lru_map<int, int> m(4, { { 1, 10 }, { 2, 20 } });
-    static_assert_same<decltype(m.peek(1)), ds::optional<const int&>> {};
+    static_assert_same<decltype(m.peek(1)), ds::optional<const int&>>();
     int v = 10;
     CHECK_EQ(m.peek(1), ds::optional<const int&>(v));
   }
   {
     ds::lru_map<int, int> m(4, { { 1, 10 }, { 2, 20 } });
-    static_assert_same<decltype(m.cpeek(1)), ds::optional<const int&>> {};
+    static_assert_same<decltype(m.cpeek(1)), ds::optional<const int&>>();
     int v = 10;
     CHECK_EQ(m.cpeek(1), ds::optional<const int&>(v));
   }
@@ -124,8 +124,8 @@ TEST_CASE("peek|cpeek")
 TEST_CASE("get|cget")
 {
   ds::lru_map<int, int> m(4, { { 1, 10 }, { 2, 20 } });
-  static_assert_same<decltype(m.get(1)), ds::optional<int&>> {};
-  static_assert_same<decltype(m.cget(1)), ds::optional<const int&>> {};
+  static_assert_same<decltype(m.get(1)), ds::optional<int&>>();
+  static_assert_same<decltype(m.cget(1)), ds::optional<const int&>>();
   m.get(1);
   CHECK_NE(m.peek_lru(),
            ds::optional<std::pair<int, int>>(std::pair<int, int> { 1, 10 }));
@@ -196,7 +196,7 @@ TEST_CASE("iterator")
     std::map<int, int> exp({ { 1, 10 }, { 2, 20 }, { 3, 30 }, { 4, 40 } });
     ds::lru_map<int, int> m(4, { { 1, 10 }, { 2, 20 }, { 3, 30 }, { 4, 40 } });
     for (auto it = m.begin(); it != m.end(); ++it) {
-      static_assert_same<decltype(*it), std::pair<int, int>&> {};
+      static_assert_same<decltype(*it), std::pair<int, int>&>();
       CHECK_EQ(exp.at(it->first), it->second);
       exp.erase(it->first);
     }
@@ -207,7 +207,7 @@ TEST_CASE("iterator")
     const ds::lru_map<int, int> m(
         4, { { 1, 10 }, { 2, 20 }, { 3, 30 }, { 4, 40 } });
     for (auto it = m.begin(); it != m.end(); ++it) {
-      static_assert_same<decltype(*it), const std::pair<int, int>&> {};
+      static_assert_same<decltype(*it), const std::pair<int, int>&>();
       CHECK_EQ(exp.at(it->first), it->second);
       exp.erase(it->first);
     }
@@ -217,7 +217,7 @@ TEST_CASE("iterator")
     std::map<int, int> exp({ { 1, 10 }, { 2, 20 }, { 3, 30 }, { 4, 40 } });
     ds::lru_map<int, int> m(4, { { 1, 10 }, { 2, 20 }, { 3, 30 }, { 4, 40 } });
     for (auto it = m.cbegin(); it != m.cend(); ++it) {
-      static_assert_same<decltype(*it), const std::pair<int, int>&> {};
+      static_assert_same<decltype(*it), const std::pair<int, int>&>();
       CHECK_EQ(exp.at(it->first), it->second);
       exp.erase(it->first);
     }
@@ -227,7 +227,7 @@ TEST_CASE("iterator")
     std::map<int, int> exp({ { 1, 10 }, { 2, 20 }, { 3, 30 }, { 4, 40 } });
     ds::lru_map<int, int> m(4, { { 1, 10 }, { 2, 20 }, { 3, 30 }, { 4, 40 } });
     for (auto it = m.rbegin(); it != m.rend(); ++it) {
-      static_assert_same<decltype(*it), std::pair<int, int>&> {};
+      static_assert_same<decltype(*it), std::pair<int, int>&>();
       CHECK_EQ(exp.at(it->first), it->second);
       exp.erase(it->first);
     }
@@ -238,7 +238,7 @@ TEST_CASE("iterator")
     const ds::lru_map<int, int> m(
         4, { { 1, 10 }, { 2, 20 }, { 3, 30 }, { 4, 40 } });
     for (auto it = m.rbegin(); it != m.rend(); ++it) {
-      static_assert_same<decltype(*it), const std::pair<int, int>&> {};
+      static_assert_same<decltype(*it), const std::pair<int, int>&>();
       CHECK_EQ(exp.at(it->first), it->second);
       exp.erase(it->first);
     }
@@ -248,7 +248,7 @@ TEST_CASE("iterator")
     std::map<int, int> exp({ { 1, 10 }, { 2, 20 }, { 3, 30 }, { 4, 40 } });
     ds::lru_map<int, int> m(4, { { 1, 10 }, { 2, 20 }, { 3, 30 }, { 4, 40 } });
     for (auto it = m.crbegin(); it != m.crend(); ++it) {
-      static_assert_same<decltype(*it), const std::pair<int, int>&> {};
+      static_assert_same<decltype(*it), const std::pair<int, int>&>();
       CHECK_EQ(exp.at(it->first), it->second);
       exp.erase(it->first);
     }
