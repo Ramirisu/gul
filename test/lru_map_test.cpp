@@ -16,18 +16,15 @@ TEST_CASE("basic")
   CHECK(m.try_insert(1, 10));
   CHECK(!m.empty());
   CHECK_EQ(m.size(), 1);
-  CHECK_EQ(m.at(1), 10);
-  CHECK_EQ(m[1], 10);
+  CHECK_EQ(m.peek(1), ds::optional<int>(10));
   CHECK(!m.try_insert(1, 10));
   CHECK(m.try_insert(2, 20));
   CHECK_EQ(m.size(), 2);
-  CHECK_EQ(m.at(2), 20);
-  CHECK_EQ(m[2], 20);
+  CHECK_EQ(m.peek(2), ds::optional<int>(20));
   CHECK(!m.try_insert(2, 20));
   CHECK(m.try_insert(3, 30));
   CHECK_EQ(m.size(), 2);
-  CHECK_EQ(m.at(3), 30);
-  CHECK_EQ(m[3], 30);
+  CHECK_EQ(m.peek(3), ds::optional<int>(30));
   CHECK(!m.try_insert(3, 30));
   CHECK(!m.contains(1));
   CHECK(m.contains(2));
@@ -66,28 +63,28 @@ TEST_CASE("Compare")
   }
 }
 
-TEST_CASE("range ctor")
+TEST_CASE("range constructor")
 {
   const std::vector<std::pair<int, int>> v(
       { { 1, 10 }, { 2, 20 }, { 3, 30 }, { 4, 40 } });
   ds::lru_map<int, int> m(2, v.begin(), v.end());
   CHECK_EQ(m.size(), 2);
-  CHECK_EQ(m.at(3), 30);
-  CHECK_EQ(m.at(4), 40);
+  CHECK_EQ(m.peek(3), ds::optional<int>(30));
+  CHECK_EQ(m.peek(4), ds::optional<int>(40));
 }
 
-TEST_CASE("copy ctor")
+TEST_CASE("copy constructor")
 {
   ds::lru_map<int, int> m(2, { { 1, 10 }, { 2, 20 } });
   ds::lru_map<int, int> c(m);
   m.clear();
   CHECK_EQ(c.capacity(), 2);
   CHECK_EQ(c.size(), 2);
-  CHECK_EQ(c.at(1), 10);
-  CHECK_EQ(c.at(2), 20);
+  CHECK_EQ(c.peek(1), ds::optional<int>(10));
+  CHECK_EQ(c.peek(2), ds::optional<int>(20));
 }
 
-TEST_CASE("copy =")
+TEST_CASE("copy assignment operator")
 {
   ds::lru_map<int, int> m(2, { { 1, 10 }, { 2, 20 } });
   ds::lru_map<int, int> c(2, { { 3, 30 }, { 4, 40 } });
@@ -95,15 +92,59 @@ TEST_CASE("copy =")
   m.clear();
   CHECK_EQ(c.capacity(), 2);
   CHECK_EQ(c.size(), 2);
-  CHECK_EQ(c.at(1), 10);
-  CHECK_EQ(c.at(2), 20);
+  CHECK_EQ(c.peek(1), ds::optional<int>(10));
+  CHECK_EQ(c.peek(2), ds::optional<int>(20));
+}
+
+TEST_CASE("peek|cpeek")
+{
+  {
+    ds::lru_map<int, int> m(4, { { 1, 10 }, { 2, 20 } });
+    static_assert_same<decltype(m.peek(1)), ds::optional<int&>> {};
+    int v = 10;
+    CHECK_EQ(m.peek(1), ds::optional<int&>(v));
+    m.peek(1).value() = 100;
+    v = 100;
+    CHECK_EQ(m.peek(1), ds::optional<int&>(v));
+  }
+  {
+    const ds::lru_map<int, int> m(4, { { 1, 10 }, { 2, 20 } });
+    static_assert_same<decltype(m.peek(1)), ds::optional<const int&>> {};
+    int v = 10;
+    CHECK_EQ(m.peek(1), ds::optional<const int&>(v));
+  }
+  {
+    ds::lru_map<int, int> m(4, { { 1, 10 }, { 2, 20 } });
+    static_assert_same<decltype(m.cpeek(1)), ds::optional<const int&>> {};
+    int v = 10;
+    CHECK_EQ(m.cpeek(1), ds::optional<const int&>(v));
+  }
+}
+
+TEST_CASE("get|cget")
+{
+  ds::lru_map<int, int> m(4, { { 1, 10 }, { 2, 20 } });
+  static_assert_same<decltype(m.get(1)), ds::optional<int&>> {};
+  static_assert_same<decltype(m.cget(1)), ds::optional<const int&>> {};
+  m.get(1);
+  CHECK_NE(m.peek_lru(),
+           ds::optional<std::pair<int, int>>(std::pair<int, int> { 1, 10 }));
+  m.get(2);
+  CHECK_NE(m.peek_lru(),
+           ds::optional<std::pair<int, int>>(std::pair<int, int> { 2, 20 }));
+  m.cget(1);
+  CHECK_NE(m.peek_lru(),
+           ds::optional<std::pair<int, int>>(std::pair<int, int> { 1, 10 }));
+  m.cget(2);
+  CHECK_NE(m.peek_lru(),
+           ds::optional<std::pair<int, int>>(std::pair<int, int> { 2, 20 }));
 }
 
 TEST_CASE("try_assign")
 {
   ds::lru_map<int, int> m(2, { { 1, 10 } });
   CHECK(m.try_assign(1, 100));
-  CHECK_EQ(m.at(1), 100);
+  CHECK_EQ(m.peek(1), ds::optional<int>(100));
   CHECK(!m.try_assign(2, 20));
 }
 
@@ -111,9 +152,9 @@ TEST_CASE("insert_or_assign")
 {
   ds::lru_map<int, int> m(2, { { 1, 10 } });
   CHECK(!m.insert_or_assign(1, 100));
-  CHECK_EQ(m.at(1), 100);
+  CHECK_EQ(m.peek(1), ds::optional<int>(100));
   CHECK(m.insert_or_assign(2, 20));
-  CHECK_EQ(m.at(2), 20);
+  CHECK_EQ(m.peek(2), ds::optional<int>(20));
 }
 
 TEST_CASE("erase iterator")

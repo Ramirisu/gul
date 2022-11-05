@@ -2,6 +2,8 @@
 
 #include <ds/config.hpp>
 
+#include <ds/optional.hpp>
+
 #include <initializer_list>
 #include <iterator>
 #include <limits>
@@ -185,6 +187,67 @@ public:
 
   lru_map& operator=(lru_map&&) = default;
 
+  optional<value_type> peek_lru() const noexcept
+  {
+    if (!recently_used_.empty()) {
+      return recently_used_.back();
+    }
+
+    return nullopt;
+  }
+
+  optional<mapped_type&> peek(const key_type& key) noexcept
+  {
+    auto it = map_.find(key);
+    if (it != map_.end()) {
+      return it->second->second;
+    }
+
+    return nullopt;
+  }
+
+  optional<const mapped_type&> peek(const key_type& key) const noexcept
+  {
+    auto it = map_.find(key);
+    if (it != map_.end()) {
+      return it->second->second;
+    }
+
+    return nullopt;
+  }
+
+  optional<const mapped_type&> cpeek(const key_type& key) const noexcept
+  {
+    auto it = map_.find(key);
+    if (it != map_.end()) {
+      return it->second->second;
+    }
+
+    return nullopt;
+  }
+
+  optional<mapped_type&> get(const key_type& key) noexcept
+  {
+    auto it = map_.find(key);
+    if (it != map_.end()) {
+      update_recently_used(key);
+      return it->second->second;
+    }
+
+    return nullopt;
+  }
+
+  optional<const mapped_type&> cget(const key_type& key) noexcept
+  {
+    auto it = map_.find(key);
+    if (it != map_.end()) {
+      update_recently_used(key);
+      return it->second->second;
+    }
+
+    return nullopt;
+  }
+
   bool try_insert(const key_type& key, const mapped_type& value)
   {
     if (map_.find(key) != map_.end()) {
@@ -295,20 +358,6 @@ public:
   {
     recently_used_.clear();
     map_.clear();
-  }
-
-  mapped_type& operator[](const key_type& key)
-  {
-    DS_ASSERT(contains(key));
-    update_recently_used(key);
-    return map_[key]->second;
-  }
-
-  mapped_type& at(const key_type& key)
-  {
-    DS_ASSERT(contains(key));
-    update_recently_used(key);
-    return map_.at(key)->second;
   }
 
   bool contains(const key_type& key) const noexcept
