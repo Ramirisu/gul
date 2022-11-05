@@ -136,7 +136,7 @@ public:
   {
     DS_ASSERT(capacity > 0);
     for (auto& value : init) {
-      insert(std::move(value.first), std::move(value.second));
+      insert_or_assign(std::move(value.first), std::move(value.second));
     }
   }
 
@@ -148,7 +148,7 @@ public:
   {
     DS_ASSERT(capacity > 0);
     for (auto& value : init) {
-      insert(std::move(value.first), std::move(value.second));
+      insert_or_assign(std::move(value.first), std::move(value.second));
     }
   }
 
@@ -159,7 +159,7 @@ public:
     DS_ASSERT(capacity > 0);
     for (auto it = first; it != last; ++it) {
       using std::get;
-      insert(get<0>(*it), get<1>(*it));
+      insert_or_assign(get<0>(*it), get<1>(*it));
     }
   }
 
@@ -185,8 +185,7 @@ public:
 
   lru_map& operator=(lru_map&&) = default;
 
-  template <typename Key2, typename T2>
-  bool insert(Key2&& key, T2&& value)
+  bool try_insert(const key_type& key, const mapped_type& value)
   {
     if (map_.find(key) != map_.end()) {
       return false;
@@ -196,17 +195,16 @@ public:
       remove_least_recently_used();
     }
 
-    recently_used_.push_front({ key, std::forward<T2>(value) });
-    map_[std::forward<Key2>(key)] = recently_used_.begin();
+    recently_used_.push_front({ key, value });
+    map_[key] = recently_used_.begin();
     return true;
   }
 
-  template <typename T2>
-  bool update(const key_type& key, T2&& value)
+  bool try_assign(const key_type& key, const mapped_type& value)
   {
     auto it = map_.find(key);
     if (it != map_.end()) {
-      it->second->second = std::forward<T2>(value);
+      it->second->second = value;
       update_recently_used(key);
       return true;
     }
@@ -215,12 +213,11 @@ public:
   }
 
   // return true if insertion took place
-  template <typename Key2, typename T2>
-  bool upsert(Key2&& key, T2&& value)
+  bool insert_or_assign(const key_type& key, const mapped_type& value)
   {
     auto it = map_.find(key);
     if (it != map_.end()) {
-      it->second->second = std::forward<T2>(value);
+      it->second->second = value;
       update_recently_used(key);
       return false;
     }
@@ -229,8 +226,8 @@ public:
       remove_least_recently_used();
     }
 
-    recently_used_.push_front({ key, std::forward<T2>(value) });
-    map_[std::forward<Key2>(key)] = recently_used_.begin();
+    recently_used_.push_front({ key, value });
+    map_[key] = recently_used_.begin();
     return true;
   }
 

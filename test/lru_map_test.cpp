@@ -13,22 +13,22 @@ TEST_CASE("basic")
   ds::lru_map<int, int> m(2);
   CHECK_EQ(m.size(), 0);
   CHECK_EQ(m.capacity(), 2);
-  CHECK(m.insert(1, 10));
+  CHECK(m.try_insert(1, 10));
   CHECK(!m.empty());
   CHECK_EQ(m.size(), 1);
   CHECK_EQ(m.at(1), 10);
   CHECK_EQ(m[1], 10);
-  CHECK(!m.insert(1, 10));
-  CHECK(m.insert(2, 20));
+  CHECK(!m.try_insert(1, 10));
+  CHECK(m.try_insert(2, 20));
   CHECK_EQ(m.size(), 2);
   CHECK_EQ(m.at(2), 20);
   CHECK_EQ(m[2], 20);
-  CHECK(!m.insert(2, 20));
-  CHECK(m.insert(3, 30));
+  CHECK(!m.try_insert(2, 20));
+  CHECK(m.try_insert(3, 30));
   CHECK_EQ(m.size(), 2);
   CHECK_EQ(m.at(3), 30);
   CHECK_EQ(m[3], 30);
-  CHECK(!m.insert(3, 30));
+  CHECK(!m.try_insert(3, 30));
   CHECK(!m.contains(1));
   CHECK(m.contains(2));
   CHECK(m.contains(3));
@@ -99,20 +99,20 @@ TEST_CASE("copy =")
   CHECK_EQ(c.at(2), 20);
 }
 
-TEST_CASE("update")
+TEST_CASE("try_assign")
 {
   ds::lru_map<int, int> m(2, { { 1, 10 } });
-  CHECK(m.update(1, 100));
+  CHECK(m.try_assign(1, 100));
   CHECK_EQ(m.at(1), 100);
-  CHECK(!m.update(2, 20));
+  CHECK(!m.try_assign(2, 20));
 }
 
-TEST_CASE("upsert")
+TEST_CASE("insert_or_assign")
 {
   ds::lru_map<int, int> m(2, { { 1, 10 } });
-  CHECK(!m.upsert(1, 100));
+  CHECK(!m.insert_or_assign(1, 100));
   CHECK_EQ(m.at(1), 100);
-  CHECK(m.upsert(2, 20));
+  CHECK(m.insert_or_assign(2, 20));
   CHECK_EQ(m.at(2), 20);
 }
 
@@ -224,7 +224,7 @@ TEST_CASE("random test")
   std::uniform_int_distribution<> dist(0, 96);
   for (int i = 0; i < 65536; ++i) {
     auto key = dist(gen);
-    m.insert(key, i);
+    m.try_insert(key, i);
   }
 }
 
