@@ -43,6 +43,9 @@ using add_lvalue_reference_t = typename add_lvalue_reference<T>::type;
 template <typename T>
 using add_pointer_t = typename add_pointer<T>::type;
 
+template <bool B, typename T, typename F>
+using conditional_t = typename conditional<B, T, F>::type;
+
 template <typename T>
 using decay_t = typename decay<T>::type;
 
@@ -56,6 +59,7 @@ using remove_reference_t = typename remove_reference<T>::type;
 
 using std::add_lvalue_reference_t;
 using std::add_pointer_t;
+using std::conditional_t;
 using std::decay_t;
 using std::enable_if_t;
 using std::remove_reference_t;

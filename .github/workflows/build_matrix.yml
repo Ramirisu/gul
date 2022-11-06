@@ -7,17 +7,17 @@ jobs:
     runs-on: ${{matrix.os}}
     strategy:
       matrix:
-        os: [windows-latest, ubuntu-latest]
-        cxx: [clang++, g++, cl]
+        os: [windows-latest, ubuntu-22.04]
+        cxx: [clang++-14, g++-11, cl]
         std: [11, 14, 17, 20]
         build_type: [Debug]
         generators: [Ninja]
         exclude:
           - os: windows-latest
-            cxx: clang++
+            cxx: clang++-14
           - os: windows-latest
-            cxx: g++
-          - os: ubuntu-latest
+            cxx: g++-11
+          - os: ubuntu-22.04
             cxx: cl
           - cxx: cl
             std: 11

@@ -27,3 +27,8 @@
 #else
 #define DS_CXX17_INLINE static
 #endif
+#ifdef DS_HAS_CXX20
+#define DS_CXX20_EXPLICIT(expr) explicit(expr)
+#else
+#define DS_CXX20_EXPLICIT(expr)
+#endif
