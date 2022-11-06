@@ -17,6 +17,12 @@
 #define DS_HAS_CXX20
 #endif
 
+#if __cpp_exceptions >= 199711
+#define DS_NO_EXCEPTIONS 0
+#else
+#define DS_NO_EXCEPTIONS 1
+#endif
+
 #ifdef DS_HAS_CXX14
 #define DS_CXX14_CONSTEXPR constexpr
 #else

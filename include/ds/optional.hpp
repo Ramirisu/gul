@@ -17,6 +17,33 @@ struct nullopt_t {
 DS_CXX17_INLINE constexpr nullopt_t nullopt { nullopt_t::tag_t {},
                                               nullopt_t::tag_t {} };
 
+#if !DS_NO_EXCEPTIONS
+class bad_optional_access : public std::exception {
+public:
+  bad_optional_access() noexcept = default;
+
+  ~bad_optional_access() noexcept override = default;
+
+  bad_optional_access(const bad_optional_access&) noexcept = default;
+
+  bad_optional_access& operator=(const bad_optional_access&) noexcept = default;
+
+  const char* what() const noexcept override
+  {
+    return "bad optional access";
+  }
+};
+#endif
+
+inline void __throw_bad_optional_access()
+{
+#if DS_NO_EXCEPTIONS
+  std::abort();
+#else
+  throw bad_optional_access();
+#endif
+}
+
 template <typename T, bool = is_trivially_destructible<T>::value>
 struct __optional_destruct_base {
   union {
@@ -33,7 +60,7 @@ struct __optional_destruct_base {
 
   template <typename... Args>
   DS_CXX14_CONSTEXPR explicit __optional_destruct_base(in_place_t,
-                                                       Args&&... args) noexcept
+                                                       Args&&... args)
       : val_(std::forward<Args>(args)...)
       , has_(true)
   {
@@ -66,13 +93,13 @@ struct __optional_destruct_base<T, false> {
 
   template <typename... Args>
   DS_CXX14_CONSTEXPR explicit __optional_destruct_base(in_place_t,
-                                                       Args&&... args) noexcept
+                                                       Args&&... args)
       : val_(std::forward<Args>(args)...)
       , has_(true)
   {
   }
 
-  ~__optional_destruct_base() noexcept
+  ~__optional_destruct_base()
   {
     if (has_) {
       val_.~T();
@@ -121,32 +148,40 @@ struct __optional_storage_base : __optional_destruct_base<T> {
     return std::move(this->val_);
   }
 
-  DS_CXX14_CONSTEXPR T& value() & noexcept
+  DS_CXX14_CONSTEXPR T& value() &
   {
-    DS_ASSERT(this->has_);
+    if (!this->has_) {
+      __throw_bad_optional_access();
+    }
     return this->val_;
   }
 
-  DS_CXX14_CONSTEXPR const T& value() const& noexcept
+  DS_CXX14_CONSTEXPR const T& value() const&
   {
-    DS_ASSERT(this->has_);
+    if (!this->has_) {
+      __throw_bad_optional_access();
+    }
     return this->val_;
   }
 
-  DS_CXX14_CONSTEXPR T&& value() && noexcept
+  DS_CXX14_CONSTEXPR T&& value() &&
   {
-    DS_ASSERT(this->has_);
+    if (!this->has_) {
+      __throw_bad_optional_access();
+    }
     return std::move(this->val_);
   }
 
-  DS_CXX14_CONSTEXPR const T&& value() const&& noexcept
+  DS_CXX14_CONSTEXPR const T&& value() const&&
   {
-    DS_ASSERT(this->has_);
+    if (!this->has_) {
+      __throw_bad_optional_access();
+    }
     return std::move(this->val_);
   }
 
   template <typename... Args>
-  DS_CXX14_CONSTEXPR T& __construct(Args&&... args) noexcept
+  DS_CXX14_CONSTEXPR T& __construct(Args&&... args)
   {
     DS_ASSERT(!this->has_);
     auto& val
@@ -155,7 +190,7 @@ struct __optional_storage_base : __optional_destruct_base<T> {
     return val;
   }
 
-  DS_CXX14_CONSTEXPR void __destroy() noexcept
+  DS_CXX14_CONSTEXPR void __destroy()
   {
     DS_ASSERT(this->has_);
     this->val_.~T();
@@ -163,7 +198,7 @@ struct __optional_storage_base : __optional_destruct_base<T> {
   }
 
   template <typename Other>
-  DS_CXX14_CONSTEXPR void __construct_from(Other&& other) noexcept
+  DS_CXX14_CONSTEXPR void __construct_from(Other&& other)
   {
     if (other.has_value()) {
       __construct(std::forward<Other>(other).value());
@@ -171,7 +206,7 @@ struct __optional_storage_base : __optional_destruct_base<T> {
   }
 
   template <typename Other>
-  DS_CXX14_CONSTEXPR void __assign_from(Other&& other) noexcept
+  DS_CXX14_CONSTEXPR void __assign_from(Other&& other)
   {
     if (this->has_) {
       if (other.has_value()) {
@@ -225,20 +260,24 @@ struct __optional_storage_base<T, true> {
     return std::forward<T>(*valptr_);
   }
 
-  DS_CXX14_CONSTEXPR T& value() const& noexcept
+  DS_CXX14_CONSTEXPR T& value() const&
   {
-    DS_ASSERT(has_value());
+    if (!has_value()) {
+      __throw_bad_optional_access();
+    }
     return *valptr_;
   }
 
-  DS_CXX14_CONSTEXPR T&& value() const&& noexcept
+  DS_CXX14_CONSTEXPR T&& value() const&&
   {
-    DS_ASSERT(has_value());
+    if (!has_value()) {
+      __throw_bad_optional_access();
+    }
     return std::forward<T>(*valptr_);
   }
 
   template <typename U>
-  DS_CXX14_CONSTEXPR T& __construct(U&& u) noexcept
+  DS_CXX14_CONSTEXPR T& __construct(U&& u)
   {
     DS_ASSERT(!has_value());
     valptr_ = std::addressof(u);
@@ -246,7 +285,7 @@ struct __optional_storage_base<T, true> {
   }
 
   template <typename Other>
-  DS_CXX14_CONSTEXPR void __construct_from(Other&& other) noexcept
+  DS_CXX14_CONSTEXPR void __construct_from(Other&& other)
   {
     if (other.has_value()) {
       __construct(std::forward<Other>(other).value());
@@ -254,7 +293,7 @@ struct __optional_storage_base<T, true> {
   }
 
   template <typename Other>
-  DS_CXX14_CONSTEXPR void __assign_from(Other&& other) noexcept
+  DS_CXX14_CONSTEXPR void __assign_from(Other&& other)
   {
     if (has_value()) {
       if (other.has_value()) {
@@ -314,24 +353,32 @@ struct __optional_storage_base<void, B> {
     DS_ASSERT(has_);
   }
 
-  DS_CXX14_CONSTEXPR void value() & noexcept
+  DS_CXX14_CONSTEXPR void value() &
   {
-    DS_ASSERT(has_);
+    if (!has_value()) {
+      __throw_bad_optional_access();
+    }
   }
 
-  DS_CXX14_CONSTEXPR void value() const& noexcept
+  DS_CXX14_CONSTEXPR void value() const&
   {
-    DS_ASSERT(has_);
+    if (!has_value()) {
+      __throw_bad_optional_access();
+    }
   }
 
-  DS_CXX14_CONSTEXPR void value() && noexcept
+  DS_CXX14_CONSTEXPR void value() &&
   {
-    DS_ASSERT(has_);
+    if (!has_value()) {
+      __throw_bad_optional_access();
+    }
   }
 
-  DS_CXX14_CONSTEXPR void value() const&& noexcept
+  DS_CXX14_CONSTEXPR void value() const&&
   {
-    DS_ASSERT(has_);
+    if (!has_value()) {
+      __throw_bad_optional_access();
+    }
   }
 
   DS_CXX14_CONSTEXPR void __construct() noexcept
@@ -356,24 +403,23 @@ template <typename T>
 struct __optional_copy_construct_base<T, false> : __optional_storage_base<T> {
   using __optional_storage_base<T>::__optional_storage_base;
 
-  DS_CXX14_CONSTEXPR __optional_copy_construct_base() noexcept = default;
+  DS_CXX14_CONSTEXPR __optional_copy_construct_base() = default;
 
-  DS_CXX14_CONSTEXPR __optional_copy_construct_base(
-      const __optional_copy_construct_base& other) noexcept
+  DS_CXX14_CONSTEXPR
+  __optional_copy_construct_base(const __optional_copy_construct_base& other)
   {
     this->__construct_from(other);
   }
 
   DS_CXX14_CONSTEXPR
-  __optional_copy_construct_base(__optional_copy_construct_base&&) noexcept
+  __optional_copy_construct_base(__optional_copy_construct_base&&) = default;
+
+  DS_CXX14_CONSTEXPR __optional_copy_construct_base&
+  operator=(const __optional_copy_construct_base&)
       = default;
 
   DS_CXX14_CONSTEXPR __optional_copy_construct_base&
-  operator=(const __optional_copy_construct_base&) noexcept
-      = default;
-
-  DS_CXX14_CONSTEXPR __optional_copy_construct_base&
-  operator=(__optional_copy_construct_base&&) noexcept
+  operator=(__optional_copy_construct_base&&)
       = default;
 };
 
@@ -389,24 +435,24 @@ struct __optional_move_construct_base<T, false>
     : __optional_copy_construct_base<T> {
   using __optional_copy_construct_base<T>::__optional_copy_construct_base;
 
-  DS_CXX14_CONSTEXPR __optional_move_construct_base() noexcept = default;
+  DS_CXX14_CONSTEXPR __optional_move_construct_base() = default;
 
   DS_CXX14_CONSTEXPR
-  __optional_move_construct_base(const __optional_move_construct_base&) noexcept
+  __optional_move_construct_base(const __optional_move_construct_base&)
       = default;
 
-  DS_CXX14_CONSTEXPR __optional_move_construct_base(
-      __optional_move_construct_base&& other) noexcept
+  DS_CXX14_CONSTEXPR
+  __optional_move_construct_base(__optional_move_construct_base&& other)
   {
     this->__construct_from(std::move(other));
   }
 
   DS_CXX14_CONSTEXPR __optional_move_construct_base&
-  operator=(const __optional_move_construct_base&) noexcept
+  operator=(const __optional_move_construct_base&)
       = default;
 
   DS_CXX14_CONSTEXPR __optional_move_construct_base&
-  operator=(__optional_move_construct_base&&) noexcept
+  operator=(__optional_move_construct_base&&)
       = default;
 };
 
@@ -425,24 +471,23 @@ struct __optional_copy_assign_base<T, false>
     : __optional_move_construct_base<T> {
   using __optional_move_construct_base<T>::__optional_move_construct_base;
 
-  DS_CXX14_CONSTEXPR __optional_copy_assign_base() noexcept = default;
+  DS_CXX14_CONSTEXPR __optional_copy_assign_base() = default;
 
   DS_CXX14_CONSTEXPR
-  __optional_copy_assign_base(const __optional_copy_assign_base&) noexcept
-      = default;
+  __optional_copy_assign_base(const __optional_copy_assign_base&) = default;
 
   DS_CXX14_CONSTEXPR
-  __optional_copy_assign_base(__optional_copy_assign_base&&) noexcept = default;
+  __optional_copy_assign_base(__optional_copy_assign_base&&) = default;
 
   DS_CXX14_CONSTEXPR __optional_copy_assign_base&
-  operator=(const __optional_copy_assign_base& other) noexcept
+  operator=(const __optional_copy_assign_base& other)
   {
     this->__assign_from(other);
     return *this;
   }
 
   DS_CXX14_CONSTEXPR __optional_copy_assign_base&
-  operator=(__optional_copy_assign_base&&) noexcept
+  operator=(__optional_copy_assign_base&&)
       = default;
 };
 
@@ -460,21 +505,20 @@ template <typename T>
 struct __optional_move_assign_base<T, false> : __optional_copy_assign_base<T> {
   using __optional_copy_assign_base<T>::__optional_copy_assign_base;
 
-  DS_CXX14_CONSTEXPR __optional_move_assign_base() noexcept = default;
+  DS_CXX14_CONSTEXPR __optional_move_assign_base() = default;
 
   DS_CXX14_CONSTEXPR
-  __optional_move_assign_base(const __optional_move_assign_base&) noexcept
-      = default;
+  __optional_move_assign_base(const __optional_move_assign_base&) = default;
 
   DS_CXX14_CONSTEXPR
-  __optional_move_assign_base(__optional_move_assign_base&&) noexcept = default;
+  __optional_move_assign_base(__optional_move_assign_base&&) = default;
 
   DS_CXX14_CONSTEXPR __optional_move_assign_base&
-  operator=(const __optional_move_assign_base&) noexcept
+  operator=(const __optional_move_assign_base&)
       = default;
 
   DS_CXX14_CONSTEXPR __optional_move_assign_base&
-  operator=(__optional_move_assign_base&& other) noexcept
+  operator=(__optional_move_assign_base&& other)
   {
     this->__assign_from(std::move(other));
     return *this;
@@ -486,7 +530,7 @@ class optional;
 
 template <typename Self, typename F>
 DS_CXX14_CONSTEXPR auto
-__optional_and_then_impl(std::true_type, Self&& self, F&& f) noexcept
+__optional_and_then_impl(std::true_type, Self&& self, F&& f)
     -> remove_cvref_t<decltype(invoke(std::forward<F>(f)))>
 {
   using Opt = remove_cvref_t<invoke_result_t<F>>;
@@ -499,7 +543,7 @@ __optional_and_then_impl(std::true_type, Self&& self, F&& f) noexcept
 
 template <typename Self, typename F>
 DS_CXX14_CONSTEXPR auto
-__optional_and_then_impl(std::false_type, Self&& self, F&& f) noexcept
+__optional_and_then_impl(std::false_type, Self&& self, F&& f)
     -> remove_cvref_t<decltype(invoke(std::forward<F>(f),
                                       std::forward<Self>(self).value()))>
 {
@@ -514,7 +558,7 @@ __optional_and_then_impl(std::false_type, Self&& self, F&& f) noexcept
 
 template <typename Self, typename F>
 DS_CXX14_CONSTEXPR auto
-__optional_transform_impl(std::true_type, Self&& self, F&& f) noexcept
+__optional_transform_impl(std::true_type, Self&& self, F&& f)
     -> optional<remove_cvref_t<decltype(invoke(std::forward<F>(f)))>>
 {
   using Opt = optional<remove_cvref_t<invoke_result_t<F>>>;
@@ -527,7 +571,7 @@ __optional_transform_impl(std::true_type, Self&& self, F&& f) noexcept
 
 template <typename Self, typename F>
 DS_CXX14_CONSTEXPR auto
-__optional_transform_impl(std::false_type, Self&& self, F&& f) noexcept
+__optional_transform_impl(std::false_type, Self&& self, F&& f)
     -> optional<remove_cvref_t<
         decltype(invoke(std::forward<F>(f), std::forward<Self>(self).value()))>>
 {
@@ -542,7 +586,7 @@ __optional_transform_impl(std::false_type, Self&& self, F&& f) noexcept
 
 template <typename Self, typename F>
 DS_CXX14_CONSTEXPR auto
-__optional_or_else_impl(std::true_type, Self&& self, F&& f) noexcept
+__optional_or_else_impl(std::true_type, Self&& self, F&& f)
     -> remove_cvref_t<decltype(invoke(std::forward<F>(f)))>
 {
   using Opt = remove_cvref_t<Self>;
@@ -555,7 +599,7 @@ __optional_or_else_impl(std::true_type, Self&& self, F&& f) noexcept
 
 template <typename Self, typename F>
 DS_CXX14_CONSTEXPR auto
-__optional_or_else_impl(std::false_type, Self&& self, F&& f) noexcept
+__optional_or_else_impl(std::false_type, Self&& self, F&& f)
     -> remove_cvref_t<decltype(invoke(std::forward<F>(f)))>
 {
   using Opt = remove_cvref_t<Self>;
@@ -629,7 +673,7 @@ public:
       enable_if_t<disjunction<is_void<T>, is_constructible<T, Args...>>::value,
                   int>
       = 0>
-  DS_CXX14_CONSTEXPR explicit optional(in_place_t, Args&&... args) noexcept
+  DS_CXX14_CONSTEXPR explicit optional(in_place_t, Args&&... args)
       : __base_type(in_place, std::forward<Args>(args)...)
   {
   }
@@ -644,7 +688,7 @@ public:
           int>
       = 0>
   DS_CXX14_CONSTEXPR
-  optional(in_place_t, std::initializer_list<U> init, Args&&... args) noexcept
+  optional(in_place_t, std::initializer_list<U> init, Args&&... args)
       : __base_type(in_place, init, std::forward<Args>(args)...)
   {
   }
@@ -657,21 +701,23 @@ public:
                               is_constructible<T, U>>::value,
                   int>
       = 0>
-  DS_CXX14_CONSTEXPR optional(U&& val) noexcept
+  DS_CXX14_CONSTEXPR optional(U&& val)
       : __base_type(in_place, std::forward<U>(val))
   {
   }
 
-  DS_CXX14_CONSTEXPR optional(const optional&) noexcept = default;
+  DS_CXX14_CONSTEXPR optional(const optional&) = default;
 
-  DS_CXX14_CONSTEXPR optional(optional&&) noexcept = default;
+  DS_CXX14_CONSTEXPR
+  optional(optional&&) noexcept(is_nothrow_move_constructible<T>::value)
+      = default;
 
   template <typename U,
             enable_if_t<conjunction<is_constructible<T, const U&>,
                                     __check_optional_constructible<U>>::value,
                         int>
             = 0>
-  DS_CXX14_CONSTEXPR optional(const optional<U>& other) noexcept
+  DS_CXX14_CONSTEXPR optional(const optional<U>& other)
   {
     this->__construct_from(other);
   }
@@ -681,7 +727,7 @@ public:
                                     __check_optional_constructible<U>>::value,
                         int>
             = 0>
-  DS_CXX14_CONSTEXPR optional(optional<U>&& other) noexcept
+  DS_CXX14_CONSTEXPR optional(optional<U>&& other)
   {
     this->__construct_from(std::move(other));
   }
@@ -705,7 +751,7 @@ public:
                                   negation<is_same<decay_t<U>, T>>>>::value,
           int>
       = 0>
-  DS_CXX14_CONSTEXPR optional& operator=(U&& u) noexcept
+  DS_CXX14_CONSTEXPR optional& operator=(U&& u)
   {
     if (this->has_value()) {
       this->value() = std::forward<U>(u);
@@ -715,9 +761,12 @@ public:
     return *this;
   }
 
-  DS_CXX14_CONSTEXPR optional& operator=(const optional&) noexcept = default;
+  DS_CXX14_CONSTEXPR optional& operator=(const optional&) = default;
 
-  DS_CXX14_CONSTEXPR optional& operator=(optional&&) noexcept = default;
+  DS_CXX14_CONSTEXPR optional& operator=(optional&&) noexcept(
+      conjunction<is_nothrow_move_assignable<T>,
+                  std::is_nothrow_move_constructible<T>>::value)
+      = default;
 
   template <typename U,
             enable_if_t<
@@ -726,7 +775,7 @@ public:
                             __check_optional_assignable<U>>::value,
                 int>
             = 0>
-  DS_CXX14_CONSTEXPR optional& operator=(const optional<U>& other) noexcept
+  DS_CXX14_CONSTEXPR optional& operator=(const optional<U>& other)
   {
     this->__assign_from(other);
     return *this;
@@ -739,7 +788,7 @@ public:
                               __check_optional_assignable<U>>::value,
                   int>
       = 0>
-  DS_CXX14_CONSTEXPR optional& operator=(optional<U>&& other) noexcept
+  DS_CXX14_CONSTEXPR optional& operator=(optional<U>&& other)
   {
     this->__assign_from(std::move(other));
     return *this;
@@ -769,8 +818,7 @@ public:
   using __base_type::value;
 
   template <typename U>
-  DS_CXX14_CONSTEXPR remove_reference_t<T>
-  value_or(U&& default_value) const& noexcept
+  DS_CXX14_CONSTEXPR remove_reference_t<T> value_or(U&& default_value) const&
   {
     if (this->has_value()) {
       return value();
@@ -780,8 +828,7 @@ public:
   }
 
   template <typename U>
-  DS_CXX14_CONSTEXPR remove_reference_t<T>
-  value_or(U&& default_value) && noexcept
+  DS_CXX14_CONSTEXPR remove_reference_t<T> value_or(U&& default_value) &&
   {
     if (this->has_value()) {
       return std::move(value());
@@ -795,8 +842,7 @@ public:
       enable_if_t<disjunction<is_void<T>, is_constructible<T, Args...>>::value,
                   int>
       = 0>
-  DS_CXX14_CONSTEXPR auto emplace(Args&&... args) noexcept
-      -> add_lvalue_reference_t<T>
+  DS_CXX14_CONSTEXPR auto emplace(Args&&... args) -> add_lvalue_reference_t<T>
   {
     if (this->has_value()) {
       this->reset();
@@ -812,8 +858,7 @@ public:
           is_constructible<T, std::initializer_list<U>&, Args&&...>::value,
           int>
       = 0>
-  DS_CXX14_CONSTEXPR auto emplace(std::initializer_list<U> init,
-                                  Args&&... args) noexcept
+  DS_CXX14_CONSTEXPR auto emplace(std::initializer_list<U> init, Args&&... args)
       -> add_lvalue_reference_t<T>
   {
     if (this->has_value()) {
@@ -826,121 +871,116 @@ public:
   using __base_type::reset;
 
   template <typename F>
-  DS_CXX14_CONSTEXPR auto and_then(F&& f) & noexcept
-      -> decltype(__optional_and_then_impl(is_void<T> {},
-                                           *this,
-                                           std::forward<F>(f)))
+  DS_CXX14_CONSTEXPR auto
+  and_then(F&& f) & -> decltype(__optional_and_then_impl(is_void<T> {},
+                                                         *this,
+                                                         std::forward<F>(f)))
 
   {
     return __optional_and_then_impl(is_void<T> {}, *this, std::forward<F>(f));
   }
 
   template <typename F>
-  DS_CXX14_CONSTEXPR auto and_then(F&& f) const& noexcept
-      -> decltype(__optional_and_then_impl(is_void<T> {},
-                                           *this,
-                                           std::forward<F>(f)))
+  DS_CXX14_CONSTEXPR auto
+  and_then(F&& f) const& -> decltype(__optional_and_then_impl(
+      is_void<T> {}, *this, std::forward<F>(f)))
   {
     return __optional_and_then_impl(is_void<T> {}, *this, std::forward<F>(f));
   }
 
   template <typename F>
-  DS_CXX14_CONSTEXPR auto and_then(F&& f) && noexcept
-      -> decltype(__optional_and_then_impl(is_void<T> {},
-                                           std::move(*this),
-                                           std::forward<F>(f)))
+  DS_CXX14_CONSTEXPR auto
+  and_then(F&& f) && -> decltype(__optional_and_then_impl(is_void<T> {},
+                                                          std::move(*this),
+                                                          std::forward<F>(f)))
   {
     return __optional_and_then_impl(is_void<T> {}, std::move(*this),
                                     std::forward<F>(f));
   }
 
   template <typename F>
-  DS_CXX14_CONSTEXPR auto and_then(F&& f) const&& noexcept
-      -> decltype(__optional_and_then_impl(is_void<T> {},
-                                           std::move(*this),
-                                           std::forward<F>(f)))
+  DS_CXX14_CONSTEXPR auto
+  and_then(F&& f) const&& -> decltype(__optional_and_then_impl(
+      is_void<T> {}, std::move(*this), std::forward<F>(f)))
   {
     return __optional_and_then_impl(is_void<T> {}, std::move(*this),
                                     std::forward<F>(f));
   }
 
   template <typename F>
-  DS_CXX14_CONSTEXPR auto transform(F&& f) & noexcept
-      -> decltype(__optional_transform_impl(is_void<T> {},
-                                            *this,
-                                            std::forward<F>(f)))
+  DS_CXX14_CONSTEXPR auto
+  transform(F&& f) & -> decltype(__optional_transform_impl(is_void<T> {},
+                                                           *this,
+                                                           std::forward<F>(f)))
   {
     return __optional_transform_impl(is_void<T> {}, *this, std::forward<F>(f));
   }
 
   template <typename F>
-  DS_CXX14_CONSTEXPR auto transform(F&& f) const& noexcept
-      -> decltype(__optional_transform_impl(is_void<T> {},
-                                            *this,
-                                            std::forward<F>(f)))
+  DS_CXX14_CONSTEXPR auto
+  transform(F&& f) const& -> decltype(__optional_transform_impl(
+      is_void<T> {}, *this, std::forward<F>(f)))
   {
     return __optional_transform_impl(is_void<T> {}, *this, std::forward<F>(f));
   }
 
   template <typename F>
-  DS_CXX14_CONSTEXPR auto transform(F&& f) && noexcept
-      -> decltype(__optional_transform_impl(is_void<T> {},
-                                            std::move(*this),
-                                            std::forward<F>(f)))
+  DS_CXX14_CONSTEXPR auto
+  transform(F&& f) && -> decltype(__optional_transform_impl(is_void<T> {},
+                                                            std::move(*this),
+                                                            std::forward<F>(f)))
   {
     return __optional_transform_impl(is_void<T> {}, std::move(*this),
                                      std::forward<F>(f));
   }
 
   template <typename F>
-  DS_CXX14_CONSTEXPR auto transform(F&& f) const&& noexcept
-      -> decltype(__optional_transform_impl(is_void<T> {},
-                                            std::move(*this),
-                                            std::forward<F>(f)))
+  DS_CXX14_CONSTEXPR auto
+  transform(F&& f) const&& -> decltype(__optional_transform_impl(
+      is_void<T> {}, std::move(*this), std::forward<F>(f)))
   {
     return __optional_transform_impl(is_void<T> {}, std::move(*this),
                                      std::forward<F>(f));
   }
 
   template <typename F>
-  DS_CXX14_CONSTEXPR auto or_else(F&& f) & noexcept
-      -> decltype(__optional_or_else_impl(is_void<T> {},
-                                          *this,
-                                          std::forward<F>(f)))
+  DS_CXX14_CONSTEXPR auto or_else(F&& f) & -> decltype(__optional_or_else_impl(
+      is_void<T> {}, *this, std::forward<F>(f)))
   {
     return __optional_or_else_impl(is_void<T> {}, *this, std::forward<F>(f));
   }
 
   template <typename F>
-  DS_CXX14_CONSTEXPR auto or_else(F&& f) const& noexcept
-      -> decltype(__optional_or_else_impl(is_void<T> {},
-                                          *this,
-                                          std::forward<F>(f)))
+  DS_CXX14_CONSTEXPR auto
+  or_else(F&& f) const& -> decltype(__optional_or_else_impl(is_void<T> {},
+                                                            *this,
+                                                            std::forward<F>(f)))
   {
     return __optional_or_else_impl(is_void<T> {}, *this, std::forward<F>(f));
   }
 
   template <typename F>
-  DS_CXX14_CONSTEXPR auto or_else(F&& f) && noexcept
-      -> decltype(__optional_or_else_impl(is_void<T> {},
-                                          std::move(*this),
-                                          std::forward<F>(f)))
+  DS_CXX14_CONSTEXPR auto or_else(F&& f) && -> decltype(__optional_or_else_impl(
+      is_void<T> {}, std::move(*this), std::forward<F>(f)))
   {
     return __optional_or_else_impl(is_void<T> {}, std::move(*this),
                                    std::forward<F>(f));
   }
 
   template <typename F>
-  DS_CXX14_CONSTEXPR auto or_else(F&& f) const&& noexcept
-      -> decltype(__optional_or_else_impl(is_void<T> {},
-                                          std::move(*this),
-                                          std::forward<F>(f)))
+  DS_CXX14_CONSTEXPR auto
+  or_else(F&& f) const&& -> decltype(__optional_or_else_impl(
+      is_void<T> {}, std::move(*this), std::forward<F>(f)))
   {
     return __optional_or_else_impl(is_void<T> {}, std::move(*this),
                                    std::forward<F>(f));
   }
 
-  DS_CXX14_CONSTEXPR void swap(optional& other) noexcept
+  DS_CXX14_CONSTEXPR void swap(optional& other)
+#ifdef DS_HAX_CXX17
+      noexcept(conjunction<is_nothrow_move_constructible<T>,
+                           is_nothrow_swappable<T>>::value)
+#endif
   {
     if (this->has_value()) {
       if (other) {
@@ -962,56 +1002,57 @@ public:
     }
   }
 
-  friend DS_CXX14_CONSTEXPR void swap(optional& lhs, optional& rhs) noexcept
+  friend DS_CXX14_CONSTEXPR void
+  swap(optional& lhs, optional& rhs) noexcept(noexcept(lhs.swap(rhs)))
   {
     lhs.swap(rhs);
   }
 
   template <typename T2, enable_if_t<__both_are_void<T2>::value, int> = 0>
   friend DS_CXX14_CONSTEXPR bool operator==(const optional& lhs,
-                                            const optional<T2>& rhs) noexcept
+                                            const optional<T2>& rhs)
   {
     return lhs.has_value() == rhs.has_value();
   }
 
   template <typename T2, enable_if_t<__both_are_void<T2>::value, int> = 0>
   friend DS_CXX14_CONSTEXPR bool operator!=(const optional& lhs,
-                                            const optional<T2>& rhs) noexcept
+                                            const optional<T2>& rhs)
   {
     return lhs.has_value() != rhs.has_value();
   }
 
   template <typename T2, enable_if_t<__both_are_void<T2>::value, int> = 0>
   friend DS_CXX14_CONSTEXPR bool operator<(const optional& lhs,
-                                           const optional<T2>& rhs) noexcept
+                                           const optional<T2>& rhs)
   {
     return !lhs && rhs;
   }
 
   template <typename T2, enable_if_t<__both_are_void<T2>::value, int> = 0>
   friend DS_CXX14_CONSTEXPR bool operator<=(const optional& lhs,
-                                            const optional<T2>& rhs) noexcept
+                                            const optional<T2>& rhs)
   {
     return !lhs || rhs;
   }
 
   template <typename T2, enable_if_t<__both_are_void<T2>::value, int> = 0>
   friend DS_CXX14_CONSTEXPR bool operator>(const optional& lhs,
-                                           const optional<T2>& rhs) noexcept
+                                           const optional<T2>& rhs)
   {
     return lhs && !rhs;
   }
 
   template <typename T2, enable_if_t<__both_are_void<T2>::value, int> = 0>
   friend DS_CXX14_CONSTEXPR bool operator>=(const optional& lhs,
-                                            const optional<T2>& rhs) noexcept
+                                            const optional<T2>& rhs)
   {
     return lhs || !rhs;
   }
 
   template <typename T2, enable_if_t<__both_are_not_void<T2>::value, int> = 0>
   friend DS_CXX14_CONSTEXPR bool operator==(const optional& lhs,
-                                            const optional<T2>& rhs) noexcept
+                                            const optional<T2>& rhs)
   {
     if (lhs.has_value() != rhs.has_value()) {
       return false;
@@ -1026,7 +1067,7 @@ public:
 
   template <typename T2, enable_if_t<__both_are_not_void<T2>::value, int> = 0>
   friend DS_CXX14_CONSTEXPR bool operator!=(const optional& lhs,
-                                            const optional<T2>& rhs) noexcept
+                                            const optional<T2>& rhs)
   {
     if (lhs.has_value() != rhs.has_value()) {
       return true;
@@ -1041,7 +1082,7 @@ public:
 
   template <typename T2, enable_if_t<__both_are_not_void<T2>::value, int> = 0>
   friend DS_CXX14_CONSTEXPR bool operator<(const optional& lhs,
-                                           const optional<T2>& rhs) noexcept
+                                           const optional<T2>& rhs)
   {
     if (!rhs) {
       return false;
@@ -1055,7 +1096,7 @@ public:
 
   template <typename T2, enable_if_t<__both_are_not_void<T2>::value, int> = 0>
   friend DS_CXX14_CONSTEXPR bool operator<=(const optional& lhs,
-                                            const optional<T2>& rhs) noexcept
+                                            const optional<T2>& rhs)
   {
     if (!lhs) {
       return true;
@@ -1069,7 +1110,7 @@ public:
 
   template <typename T2, enable_if_t<__both_are_not_void<T2>::value, int> = 0>
   friend DS_CXX14_CONSTEXPR bool operator>(const optional& lhs,
-                                           const optional<T2>& rhs) noexcept
+                                           const optional<T2>& rhs)
   {
     if (!lhs) {
       return false;
@@ -1083,7 +1124,7 @@ public:
 
   template <typename T2, enable_if_t<__both_are_not_void<T2>::value, int> = 0>
   friend DS_CXX14_CONSTEXPR bool operator>=(const optional& lhs,
-                                            const optional<T2>& rhs) noexcept
+                                            const optional<T2>& rhs)
   {
     if (!rhs) {
       return true;
@@ -1180,85 +1221,73 @@ public:
 #endif
 
   template <typename U, enable_if_t<__not_optional_like<U>::value, int> = 0>
-  friend DS_CXX14_CONSTEXPR bool operator==(const optional& opt,
-                                            const U& val) noexcept
+  friend DS_CXX14_CONSTEXPR bool operator==(const optional& opt, const U& val)
   {
     return opt && opt.value() == val;
   }
 
   template <typename U, enable_if_t<__not_optional_like<U>::value, int> = 0>
-  friend DS_CXX14_CONSTEXPR bool operator==(const U& val,
-                                            const optional& opt) noexcept
+  friend DS_CXX14_CONSTEXPR bool operator==(const U& val, const optional& opt)
   {
     return opt && val == opt.value();
   }
 
   template <typename U, enable_if_t<__not_optional_like<U>::value, int> = 0>
-  friend DS_CXX14_CONSTEXPR bool operator!=(const optional& opt,
-                                            const U& val) noexcept
+  friend DS_CXX14_CONSTEXPR bool operator!=(const optional& opt, const U& val)
   {
     return !opt || opt.value() != val;
   }
 
   template <typename U, enable_if_t<__not_optional_like<U>::value, int> = 0>
-  friend DS_CXX14_CONSTEXPR bool operator!=(const U& val,
-                                            const optional& opt) noexcept
+  friend DS_CXX14_CONSTEXPR bool operator!=(const U& val, const optional& opt)
   {
     return !opt || val != opt.value();
   }
 
   template <typename U, enable_if_t<__not_optional_like<U>::value, int> = 0>
-  friend DS_CXX14_CONSTEXPR bool operator<(const optional& opt,
-                                           const U& val) noexcept
+  friend DS_CXX14_CONSTEXPR bool operator<(const optional& opt, const U& val)
   {
     return !opt || opt.value() < val;
   }
 
   template <typename U, enable_if_t<__not_optional_like<U>::value, int> = 0>
-  friend DS_CXX14_CONSTEXPR bool operator<(const U& val,
-                                           const optional& opt) noexcept
+  friend DS_CXX14_CONSTEXPR bool operator<(const U& val, const optional& opt)
   {
     return opt && val < opt.value();
   }
 
   template <typename U, enable_if_t<__not_optional_like<U>::value, int> = 0>
-  friend DS_CXX14_CONSTEXPR bool operator<=(const optional& opt,
-                                            const U& val) noexcept
+  friend DS_CXX14_CONSTEXPR bool operator<=(const optional& opt, const U& val)
   {
     return !opt || opt.value() <= val;
   }
 
   template <typename U, enable_if_t<__not_optional_like<U>::value, int> = 0>
-  friend DS_CXX14_CONSTEXPR bool operator<=(const U& val,
-                                            const optional& opt) noexcept
+  friend DS_CXX14_CONSTEXPR bool operator<=(const U& val, const optional& opt)
   {
     return opt && val <= opt.value();
   }
 
   template <typename U, enable_if_t<__not_optional_like<U>::value, int> = 0>
-  friend DS_CXX14_CONSTEXPR bool operator>(const optional& opt,
-                                           const U& val) noexcept
+  friend DS_CXX14_CONSTEXPR bool operator>(const optional& opt, const U& val)
   {
     return !(opt <= val);
   }
 
   template <typename U, enable_if_t<__not_optional_like<U>::value, int> = 0>
-  friend DS_CXX14_CONSTEXPR bool operator>(const U& val,
-                                           const optional& opt) noexcept
+  friend DS_CXX14_CONSTEXPR bool operator>(const U& val, const optional& opt)
   {
     return !(val <= opt);
   }
 
   template <typename U, enable_if_t<__not_optional_like<U>::value, int> = 0>
-  friend DS_CXX14_CONSTEXPR bool operator>=(const optional& opt,
-                                            const U& val) noexcept
+  friend DS_CXX14_CONSTEXPR bool operator>=(const optional& opt, const U& val)
   {
     return !(opt < val);
   }
 
   template <typename U, enable_if_t<__not_optional_like<U>::value, int> = 0>
-  friend DS_CXX14_CONSTEXPR bool operator>=(const U& val,
-                                            const optional& opt) noexcept
+  friend DS_CXX14_CONSTEXPR bool operator>=(const U& val, const optional& opt)
   {
     return !(val < opt);
   }
@@ -1272,20 +1301,20 @@ optional(T) -> optional<T>;
 #endif
 
 template <typename T>
-constexpr optional<decay_t<T>> make_optional(T&& value) noexcept
+constexpr optional<decay_t<T>> make_optional(T&& value)
 {
   return optional<decay_t<T>>(std::forward<T>(value));
 }
 
 template <typename T, typename... Args>
-constexpr optional<T> make_optional(Args&&... args) noexcept
+constexpr optional<T> make_optional(Args&&... args)
 {
   return optional<T>(in_place, std::forward<Args>(args)...);
 }
 
 template <typename T, typename U, typename... Args>
 constexpr optional<T> make_optional(std::initializer_list<U> init,
-                                    Args&&... args) noexcept
+                                    Args&&... args)
 {
   return optional<T>(in_place, std::move(init), std::forward<Args>(args)...);
 }

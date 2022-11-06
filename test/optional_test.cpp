@@ -637,6 +637,24 @@ TEST_CASE("value")
   assert_is_same<fn_value, const optional<int&>&, int&>();
   assert_is_same<fn_value, optional<int&>, int&>();
   assert_is_same<fn_value, const optional<int&>, int&>();
+#if !DS_NO_EXCEPTIONS
+  {
+    auto o = optional<void>();
+    CHECK_THROWS_AS(o.value(), bad_optional_access);
+  }
+  {
+    const auto o = optional<void>();
+    CHECK_THROWS_AS(o.value(), bad_optional_access);
+  }
+  {
+    auto o = optional<void>();
+    CHECK_THROWS_AS(std::move(o).value(), bad_optional_access);
+  }
+  {
+    const auto o = optional<void>();
+    CHECK_THROWS_AS(std::move(o).value(), bad_optional_access);
+  }
+#endif
   {
     auto o = optional<int>(1);
     CHECK_EQ(o.value(), 1);
@@ -653,6 +671,24 @@ TEST_CASE("value")
     const auto o = optional<int>(1);
     CHECK_EQ(std::move(o).value(), 1);
   }
+#if !DS_NO_EXCEPTIONS
+  {
+    auto o = optional<int>();
+    CHECK_THROWS_AS(o.value(), bad_optional_access);
+  }
+  {
+    const auto o = optional<int>();
+    CHECK_THROWS_AS(o.value(), bad_optional_access);
+  }
+  {
+    auto o = optional<int>();
+    CHECK_THROWS_AS(std::move(o).value(), bad_optional_access);
+  }
+  {
+    const auto o = optional<int>();
+    CHECK_THROWS_AS(std::move(o).value(), bad_optional_access);
+  }
+#endif
   {
     int val = 1;
     auto o = optional<int&>(val);
@@ -673,6 +709,24 @@ TEST_CASE("value")
     const auto o = optional<int&>(val);
     CHECK_EQ(std::move(o).value(), 1);
   }
+#if !DS_NO_EXCEPTIONS
+  {
+    auto o = optional<int&>();
+    CHECK_THROWS_AS(o.value(), bad_optional_access);
+  }
+  {
+    const auto o = optional<int&>();
+    CHECK_THROWS_AS(o.value(), bad_optional_access);
+  }
+  {
+    auto o = optional<int&>();
+    CHECK_THROWS_AS(std::move(o).value(), bad_optional_access);
+  }
+  {
+    const auto o = optional<int&>();
+    CHECK_THROWS_AS(std::move(o).value(), bad_optional_access);
+  }
+#endif
 }
 
 TEST_CASE("value_or")

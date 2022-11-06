@@ -25,6 +25,8 @@ using std::is_destructible;
 using std::is_lvalue_reference;
 using std::is_member_pointer;
 using std::is_move_constructible;
+using std::is_nothrow_move_assignable;
+using std::is_nothrow_move_constructible;
 using std::is_reference;
 using std::is_same;
 using std::is_scalar;
@@ -107,6 +109,7 @@ using std::invoke_result_t;
 
 using std::conjunction;
 using std::disjunction;
+using std::is_nothrow_swappable;
 using std::negation;
 
 #endif
