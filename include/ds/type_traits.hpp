@@ -5,6 +5,14 @@
 #include <type_traits>
 
 namespace ds {
+namespace detail {
+  template <typename... Ts>
+  struct make_void {
+    typedef void type;
+  };
+}
+template <typename... Ts>
+using void_t = typename detail::make_void<Ts...>::type;
 
 using std::add_lvalue_reference;
 using std::add_pointer;
@@ -24,6 +32,7 @@ using std::is_default_constructible;
 using std::is_destructible;
 using std::is_lvalue_reference;
 using std::is_member_pointer;
+using std::is_move_assignable;
 using std::is_move_constructible;
 using std::is_nothrow_move_assignable;
 using std::is_nothrow_move_constructible;
@@ -102,6 +111,66 @@ template <typename T, typename... Ts>
 struct disjunction<T, Ts...>
     : conditional<T::value, T, disjunction<Ts...>>::type { };
 
+namespace detail {
+  using std::swap;
+
+  template <typename T, typename U, typename = void>
+  struct can_swap_with_impl : std::false_type { };
+
+  template <typename T, typename U>
+  struct can_swap_with_impl<
+      T,
+      U,
+      void_t<decltype(swap(std::declval<T>(), std::declval<U>()))>>
+      : std::true_type { };
+
+  template <typename T, typename U>
+  struct can_swap_with : can_swap_with_impl<T, U> { };
+}
+
+template <typename T, typename U>
+struct is_swappable_with
+    : integral_constant<bool,
+                        conjunction<detail::can_swap_with<T, U>,
+                                    detail::can_swap_with<U, T>>::value> { };
+
+template <typename T>
+struct is_swappable
+    : integral_constant<bool,
+                        conjunction<detail::can_swap_with<
+                            add_lvalue_reference_t<T>,
+                            add_lvalue_reference_t<T>>>::value> { };
+
+namespace detail {
+  using std::swap;
+
+  template <typename T, typename U, bool = is_swappable_with<T, U>::value>
+  struct can_nothrow_swap_with_impl : std::false_type { };
+
+  template <typename T, typename U>
+  struct can_nothrow_swap_with_impl<T, U, true> {
+    static constexpr bool value
+        = noexcept(swap(std::declval<T>(), std::declval<U>()));
+  };
+
+  template <typename T, typename U>
+  struct can_nothrow_swap_with : can_nothrow_swap_with_impl<T, U> { };
+}
+
+template <typename T, typename U>
+struct is_nothrow_swappable_with
+    : integral_constant<
+          bool,
+          conjunction<detail::can_nothrow_swap_with<T, U>,
+                      detail::can_nothrow_swap_with<U, T>>::value> { };
+
+template <typename T>
+struct is_nothrow_swappable
+    : integral_constant<bool,
+                        conjunction<detail::can_nothrow_swap_with<
+                            add_lvalue_reference_t<T>,
+                            add_lvalue_reference_t<T>>>::value> { };
+
 #else
 
 using std::invoke_result;
@@ -110,6 +179,9 @@ using std::invoke_result_t;
 using std::conjunction;
 using std::disjunction;
 using std::is_nothrow_swappable;
+using std::is_nothrow_swappable_with;
+using std::is_swappable;
+using std::is_swappable_with;
 using std::negation;
 
 #endif

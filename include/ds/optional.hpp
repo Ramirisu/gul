@@ -976,11 +976,9 @@ public:
                                    std::forward<F>(f));
   }
 
-  DS_CXX14_CONSTEXPR void swap(optional& other)
-#ifdef DS_HAX_CXX17
-      noexcept(conjunction<is_nothrow_move_constructible<T>,
-                           is_nothrow_swappable<T>>::value)
-#endif
+  DS_CXX14_CONSTEXPR void
+  swap(optional& other) noexcept(conjunction<is_nothrow_move_constructible<T>,
+                                             is_nothrow_swappable<T>>::value)
   {
     if (this->has_value()) {
       if (other) {
