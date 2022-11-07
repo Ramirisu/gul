@@ -12,7 +12,7 @@ class default_constructible : std::vector<T> {
   using __base_type = std::vector<T>;
 
 public:
-  default_constructible() noexcept = default;
+  default_constructible() = default;
 
   default_constructible(int value)
       : __base_type({ value })
@@ -29,19 +29,18 @@ public:
   {
   }
 
-  default_constructible(const default_constructible&) noexcept = default;
+  default_constructible(const default_constructible&) = default;
 
-  default_constructible(default_constructible&&) noexcept = default;
+  default_constructible(default_constructible&&) = default;
 
-  default_constructible& operator=(const default_constructible&) noexcept
-      = default;
+  default_constructible& operator=(const default_constructible&) = default;
 
-  default_constructible& operator=(default_constructible&&) noexcept = default;
+  default_constructible& operator=(default_constructible&&) = default;
 
   using __base_type::size;
 
   friend bool operator==(const default_constructible& lhs,
-                         const default_constructible& rhs) noexcept
+                         const default_constructible& rhs)
   {
     return static_cast<const __base_type&>(lhs)
         == static_cast<const __base_type&>(rhs);
@@ -71,22 +70,19 @@ public:
   {
   }
 
-  non_default_constructible(const non_default_constructible&) noexcept
+  non_default_constructible(const non_default_constructible&) = default;
+
+  non_default_constructible(non_default_constructible&&) = default;
+
+  non_default_constructible& operator=(const non_default_constructible&)
       = default;
 
-  non_default_constructible(non_default_constructible&&) noexcept = default;
-
-  non_default_constructible&
-  operator=(const non_default_constructible&) noexcept
-      = default;
-
-  non_default_constructible& operator=(non_default_constructible&&) noexcept
-      = default;
+  non_default_constructible& operator=(non_default_constructible&&) = default;
 
   using __base_type::size;
 
   friend bool operator==(const non_default_constructible& lhs,
-                         const non_default_constructible& rhs) noexcept
+                         const non_default_constructible& rhs)
   {
     return static_cast<const __base_type&>(lhs)
         == static_cast<const __base_type&>(rhs);
@@ -516,22 +512,24 @@ TEST_CASE("value")
   assert_is_same<fn_value, const expected<int, int>&, const int&>();
   assert_is_same<fn_value, expected<int, int>, int&&>();
   assert_is_same<fn_value, const expected<int, int>, const int&&>();
+#if !DS_NO_EXCEPTIONS
   {
-    auto exp = expected<void, int>();
-    static_assert_same<decltype(exp.value()), void>();
+    auto exp = expected<void, int>(unexpect);
+    CHECK_THROWS_AS(exp.value(), bad_expected_access<int>);
   }
   {
-    const auto exp = expected<void, int>();
-    static_assert_same<decltype(exp.value()), void>();
+    const auto exp = expected<void, int>(unexpect);
+    CHECK_THROWS_AS(exp.value(), bad_expected_access<int>);
   }
   {
-    auto exp = expected<void, int>();
-    static_assert_same<decltype(std::move(exp).value()), void>();
+    auto exp = expected<void, int>(unexpect);
+    CHECK_THROWS_AS(std::move(exp).value(), bad_expected_access<int>);
   }
   {
-    const auto exp = expected<void, int>();
-    static_assert_same<decltype(std::move(exp).value()), void>();
+    const auto exp = expected<void, int>(unexpect);
+    CHECK_THROWS_AS(std::move(exp).value(), bad_expected_access<int>);
   }
+#endif
   {
     auto exp = expected<int, int>(1);
     CHECK_EQ(exp.value(), 1);
@@ -548,6 +546,24 @@ TEST_CASE("value")
     const auto exp = expected<int, int>(1);
     CHECK_EQ(std::move(exp).value(), 1);
   }
+#if !DS_NO_EXCEPTIONS
+  {
+    auto exp = expected<int, int>(unexpect);
+    CHECK_THROWS_AS(exp.value(), bad_expected_access<int>);
+  }
+  {
+    const auto exp = expected<int, int>(unexpect);
+    CHECK_THROWS_AS(exp.value(), bad_expected_access<int>);
+  }
+  {
+    auto exp = expected<int, int>(unexpect);
+    CHECK_THROWS_AS(std::move(exp).value(), bad_expected_access<int>);
+  }
+  {
+    const auto exp = expected<int, int>(unexpect);
+    CHECK_THROWS_AS(std::move(exp).value(), bad_expected_access<int>);
+  }
+#endif
   {
     auto exp = expected<ndc<int>, int>(1);
     CHECK_EQ(exp.value(), ndc<int>(1));
@@ -888,6 +904,34 @@ TEST_CASE("transform_error")
 TEST_CASE("swap")
 {
   {
+    auto a = expected<void, int>(unexpect);
+    auto b = expected<void, int>(unexpect);
+    swap(a, b);
+    CHECK_EQ(a.error(), 0);
+    CHECK_EQ(b.error(), 0);
+  }
+  {
+    auto a = expected<void, int>(unexpect);
+    auto b = expected<void, int>();
+    swap(a, b);
+    CHECK(a);
+    CHECK_EQ(b.error(), 0);
+  }
+  {
+    auto a = expected<void, int>();
+    auto b = expected<void, int>(unexpect);
+    swap(a, b);
+    CHECK_EQ(a.error(), 0);
+    CHECK(b);
+  }
+  {
+    auto a = expected<void, int>();
+    auto b = expected<void, int>();
+    swap(a, b);
+    CHECK(a);
+    CHECK(b);
+  }
+  {
     auto a = expected<ndc<int>, ndc<int>>(unexpect, { 7, 8, 9 });
     auto b = expected<ndc<int>, ndc<int>>(unexpect, 0);
     swap(a, b);
@@ -914,6 +958,45 @@ TEST_CASE("swap")
     swap(a, b);
     CHECK_EQ(a.value(), ndc<int>(1));
     CHECK_EQ(b.value(), ndc<int>({ 0, 1, 2 }));
+  }
+
+  class throw_move_constructible {
+  public:
+    throw_move_constructible(int val)
+        : val_(val)
+    {
+    }
+
+    throw_move_constructible(const throw_move_constructible&) = default;
+    throw_move_constructible(throw_move_constructible&&) noexcept(false)
+        = default;
+    throw_move_constructible& operator=(const throw_move_constructible&)
+        = default;
+    throw_move_constructible&
+    operator=(throw_move_constructible&&) noexcept(false)
+        = default;
+
+    int v() const noexcept
+    {
+      return val_;
+    }
+
+  private:
+    int val_ = 0;
+  };
+  {
+    auto a = expected<throw_move_constructible, int>(1);
+    auto b = expected<throw_move_constructible, int>(unexpect, 2);
+    swap(a, b);
+    CHECK_EQ(a.error(), 2);
+    CHECK_EQ(b.value().v(), 1);
+  }
+  {
+    auto a = expected<int, throw_move_constructible>(1);
+    auto b = expected<int, throw_move_constructible>(unexpect, 2);
+    swap(a, b);
+    CHECK_EQ(a.error().v(), 2);
+    CHECK_EQ(b.value(), 1);
   }
 }
 

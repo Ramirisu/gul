@@ -35,6 +35,8 @@
 #endif
 #ifdef DS_HAS_CXX20
 #define DS_CXX20_EXPLICIT(expr) explicit(expr)
+#define DS_CXX20_CONSTEXPR constexpr
 #else
 #define DS_CXX20_EXPLICIT(expr)
+#define DS_CXX20_CONSTEXPR
 #endif
