@@ -18,13 +18,13 @@ ds is an open-source library providing general utilities for c++11.
 
 CMake
 
-| Options          | Description      | Value  | Default |
-| :--------------- | :--------------- | :----: | :-----: |
-| DS_BUILD_TESTING | Build unit tests | ON/OFF |   ON    |
+| Options        | Description | Value  | Default |
+| :------------- | :---------- | :----: | :-----: |
+| DS_BUILD_TESTS | Build tests | ON/OFF |   ON    |
 
 ```sh
 cd ds/
-cmake -B build -DDS_BUILD_TESTING=ON
+cmake -B build -DDS_BUILD_TESTS=ON
 cmake --build build
 cd build && ctest && cd ..
 ```
