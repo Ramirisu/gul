@@ -30,6 +30,7 @@ using std::is_convertible;
 using std::is_copy_constructible;
 using std::is_default_constructible;
 using std::is_destructible;
+using std::is_integral;
 using std::is_lvalue_reference;
 using std::is_member_pointer;
 using std::is_move_assignable;

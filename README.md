@@ -8,6 +8,7 @@ ds is an open-source library providing general utilities for c++11.
 
 |  Feature   | Description                                                                                                                                                                     |
 | :--------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+|   `byte`   | A type represents the byte concept.                                                                                                                                             |
 | `optional` | A type either holds a value of type `T`, or is with *valueless* state.                                                                                                          |
 | `expected` | A type either holds a value of type `T`, or an *unexpected* value of type `E`.                                                                                                  |
 | `fifo_map` | An associative container that contains key-value pairs with unique keys. `Key`s are sorted by insertion order.                                                                  |
