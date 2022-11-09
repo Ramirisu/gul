@@ -6,13 +6,14 @@ ds is an open-source library providing general utilities for c++11.
 
 ## Features
 
-|  Feature   | Description                                                                                                                                                                     |
-| :--------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-|   `byte`   | A type represents the byte concept.                                                                                                                                             |
-| `optional` | A type either holds a value of type `T`, or is with *valueless* state.                                                                                                          |
-| `expected` | A type either holds a value of type `T`, or an *unexpected* value of type `E`.                                                                                                  |
-| `fifo_map` | An associative container that contains key-value pairs with unique keys. `Key`s are sorted by insertion order.                                                                  |
-| `lru_map`  | An associative container that contains key-value pairs with at most `capacity` unique keys. The least recently used `Key` will be purged when the map is full during insertion. |
+|    Feature    | Description                                                                                                                                                                     |
+| :-----------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+|    `byte`     | A type represents the byte concept.                                                                                                                                             |
+|  `optional`   | A type either holds a value of type `T`, or is with *valueless* state.                                                                                                          |
+|  `expected`   | A type either holds a value of type `T`, or an *unexpected* value of type `E`.                                                                                                  |
+| `string_view` | A non-owning type can refer to a constant contiguous sequence of `char`-like objects with the first element of the sequence at position zero                                    |
+|  `fifo_map`   | An associative container that contains key-value pairs with unique keys. `Key`s are sorted by insertion order.                                                                  |
+|   `lru_map`   | An associative container that contains key-value pairs with at most `capacity` unique keys. The least recently used `Key` will be purged when the map is full during insertion. |
 
 ## Building
 
