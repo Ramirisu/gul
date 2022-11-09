@@ -1,45 +1,66 @@
 #pragma once
 
-#include <cstddef>
 #include <ds/config.hpp>
 
+#include <ds/type_traits.hpp>
+
+#include <deque>
 #include <initializer_list>
 #include <iterator>
 #include <map>
 #include <memory>
-#include <vector>
 
 namespace ds {
-template <typename Key, typename T>
+template <typename Key, typename T, typename Compare = std::less<Key>>
 class fifo_map {
-  using map_type = std::map<Key, T>;
-  using queue_type = std::vector<typename map_type::iterator>;
+  using value_type_impl = std::pair<Key, T>;
+  using map_type = std::map<Key, T, Compare>;
+  using queue_type = std::deque<typename map_type::iterator>;
 
-public:
-  class const_iterator {
+  template <bool Const>
+  class iterator_impl {
+    using parent_iterator = conditional_t<Const,
+                                          typename queue_type::const_iterator,
+                                          typename queue_type::iterator>;
+
   public:
     using iterator_category = std::forward_iterator_tag;
-    using value_type = typename map_type::value_type;
+    using value_type = conditional_t<Const,
+                                     const typename map_type::value_type,
+                                     typename map_type::value_type>;
     using reference = value_type&;
     using const_reference = const value_type&;
     using pointer = value_type*;
     using difference_type = std::ptrdiff_t;
 
-    const_iterator(typename queue_type::const_iterator curr)
+    iterator_impl(parent_iterator curr)
         : curr_(std::move(curr))
     {
     }
 
-    const_iterator operator++(int)
+    iterator_impl operator++(int)
     {
       auto it = *this;
       ++*this;
       return it;
     }
 
-    const_iterator& operator++()
+    iterator_impl& operator++()
     {
       ++curr_;
+      return *this;
+    }
+
+    iterator_impl operator--(int)
+    {
+      auto it = *this;
+      --*this;
+      return it;
+    }
+
+    iterator_impl& operator--()
+    {
+      --curr_;
       return *this;
     }
 
@@ -53,25 +74,51 @@ public:
       return &*curr_;
     }
 
-    friend bool operator==(const const_iterator& lhs, const const_iterator& rhs)
+    friend bool operator==(const iterator_impl& lhs, const iterator_impl& rhs)
     {
       return lhs.curr_ == rhs.curr_;
     }
 
-    friend bool operator!=(const const_iterator& lhs, const const_iterator& rhs)
+    friend bool operator!=(const iterator_impl& lhs, const iterator_impl& rhs)
     {
       return lhs.curr_ != rhs.curr_;
     }
 
   private:
-    typename queue_type::const_iterator curr_;
+    parent_iterator curr_;
   };
 
+  class value_compare_impl {
+  public:
+    value_compare_impl(Compare compare)
+        : compare_(std::move(compare))
+    {
+    }
+
+    bool operator()(const value_type_impl& lhs,
+                    const value_type_impl& rhs) const
+    {
+      return compare_(lhs.first, rhs.first);
+    }
+
+  private:
+    Compare compare_;
+  };
+
+public:
   using key_type = Key;
   using mapped_type = T;
   using value_type = std::pair<const Key, T>;
   using size_type = std::size_t;
   using difference_type = std::ptrdiff_t;
+  using key_compare = Compare;
+  using value_compare = value_compare_impl;
+  using reference = value_type&;
+  using const_reference = const value_type&;
+  using iterator = iterator_impl<false>;
+  using const_iterator = iterator_impl<true>;
+  using reverse_iterator = std::reverse_iterator<iterator>;
+  using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
   fifo_map() = default;
 
@@ -149,14 +196,64 @@ public:
     return std::numeric_limits<size_type>::max();
   }
 
+  iterator begin()
+  {
+    return iterator(queue_.begin());
+  }
+
   const_iterator begin() const
   {
     return const_iterator(queue_.begin());
   }
 
+  const_iterator cbegin() const
+  {
+    return const_iterator(queue_.cbegin());
+  }
+
+  reverse_iterator rbegin()
+  {
+    return reverse_iterator(queue_.rbegin());
+  }
+
+  const_reverse_iterator rbegin() const
+  {
+    return const_reverse_iterator(queue_.rbegin());
+  }
+
+  const_reverse_iterator crbegin() const
+  {
+    return const_reverse_iterator(queue_.crbegin());
+  }
+
+  iterator end()
+  {
+    return iterator(queue_.end());
+  }
+
   const_iterator end() const
   {
     return const_iterator(queue_.end());
+  }
+
+  const_iterator cend() const
+  {
+    return const_iterator(queue_.cend());
+  }
+
+  reverse_iterator rend()
+  {
+    return reverse_iterator(queue_.rend());
+  }
+
+  const_reverse_iterator rend() const
+  {
+    return const_reverse_iterator(queue_.rend());
+  }
+
+  const_reverse_iterator crend() const
+  {
+    return const_reverse_iterator(queue_.crend());
   }
 
 private:
