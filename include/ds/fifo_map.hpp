@@ -2,6 +2,7 @@
 
 #include <ds/config.hpp>
 
+#include <ds/optional.hpp>
 #include <ds/type_traits.hpp>
 
 #include <deque>
@@ -125,14 +126,14 @@ public:
   fifo_map(std::initializer_list<value_type> init)
   {
     for (auto& value : init) {
-      insert(std::move(value));
+      insert_or_assign(std::move(value).first, std::move(value).second);
     }
   }
 
   fifo_map(const fifo_map& other)
   {
-    for (const auto& iter : other.queue_) {
-      insert(*iter);
+    for (const auto& it : other.queue_) {
+      insert_or_assign(it->first, it->second);
     }
   }
 
@@ -140,8 +141,8 @@ public:
   {
     if (this != std::addressof(other)) {
       clear();
-      for (const auto& iter : other.queue_) {
-        insert(*iter);
+      for (const auto& it : other.queue_) {
+        insert_or_assign(it->first, it->second);
       }
     }
 
@@ -152,33 +153,74 @@ public:
 
   fifo_map& operator=(fifo_map&&) = default;
 
-  bool insert(const value_type& value)
+  optional<T&> get(const key_type& key) noexcept
   {
-    if (map_.find(value.first) != std::end(map_)) {
+    auto it = map_.find(key);
+    if (it != map_.end()) {
+      return it->second;
+    }
+
+    return nullopt;
+  }
+
+  optional<const T&> get(const key_type& key) const noexcept
+  {
+    auto it = map_.find(key);
+    if (it != map_.end()) {
+      return it->second;
+    }
+
+    return nullopt;
+  }
+
+  optional<const T&> cget(const key_type& key) const noexcept
+  {
+    auto it = map_.find(key);
+    if (it != map_.end()) {
+      return it->second;
+    }
+
+    return nullopt;
+  }
+
+  bool try_insert(const key_type& key, const mapped_type& value)
+  {
+    if (map_.find(key) != map_.end()) {
       return false;
     }
 
-    auto res = map_.insert(value);
-    queue_.push_back(res.first);
+    queue_.push_back(map_.insert({ key, value }).first);
     return true;
   }
 
-  void clear()
+  bool try_assign(const key_type& key, const mapped_type& value)
+  {
+    auto it = map_.find(key);
+    if (it != map_.end()) {
+      it->second = value;
+      return true;
+    }
+
+    return false;
+  }
+
+  // return true if insertion took place
+  bool insert_or_assign(const key_type& key, const mapped_type& value)
+  {
+    auto it = map_.find(key);
+    if (it != map_.end()) {
+      it->second = value;
+      return false;
+    }
+
+    queue_.push_back(map_.insert({ key, value }).first);
+    return true;
+  }
+
+  void clear() noexcept
   {
     map_.clear();
     queue_.clear();
-  }
-
-  mapped_type& operator[](const key_type& key)
-  {
-    DS_ASSERT(contains(key));
-    return map_[key];
-  }
-
-  mapped_type& at(const key_type& key)
-  {
-    DS_ASSERT(contains(key));
-    return map_.at(key);
   }
 
   bool contains(const key_type& key) const noexcept
@@ -254,6 +296,16 @@ public:
   const_reverse_iterator crend() const
   {
     return const_reverse_iterator(queue_.crend());
+  }
+
+  key_compare key_comp() const
+  {
+    return map_.key_comp();
+  }
+
+  value_compare value_comp() const
+  {
+    return value_compare(key_comp());
   }
 
 private:

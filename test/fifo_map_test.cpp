@@ -9,21 +9,18 @@ TEST_CASE("basic")
 {
   ds::fifo_map<int, int> m;
   CHECK_EQ(m.size(), 0);
-  CHECK(m.insert({ 1, 10 }));
+  CHECK(m.try_insert(1, 10));
   CHECK_EQ(m.size(), 1);
-  CHECK_EQ(m.at(1), 10);
-  CHECK_EQ(m[1], 10);
-  CHECK(!m.insert({ 1, 10 }));
-  CHECK(m.insert({ 2, 20 }));
+  CHECK_EQ(m.get(1), 10);
+  CHECK(!m.try_insert(1, 10));
+  CHECK(m.try_insert(2, 20));
   CHECK_EQ(m.size(), 2);
-  CHECK_EQ(m.at(2), 20);
-  CHECK_EQ(m[2], 20);
-  CHECK(!m.insert({ 2, 20 }));
-  CHECK(m.insert({ 3, 30 }));
+  CHECK_EQ(m.get(2), 20);
+  CHECK(!m.try_insert(2, 20));
+  CHECK(m.try_insert(3, 30));
   CHECK_EQ(m.size(), 3);
-  CHECK_EQ(m.at(3), 30);
-  CHECK_EQ(m[3], 30);
-  CHECK(!m.insert({ 3, 30 }));
+  CHECK_EQ(m.get(3), 30);
+  CHECK(!m.try_insert(3, 30));
   CHECK(m.contains(1));
   CHECK(m.contains(2));
   CHECK(m.contains(3));
@@ -65,6 +62,43 @@ TEST_CASE("copy assigment operator")
     CHECK_EQ(*it, *init_it);
   }
   CHECK(it == c.end());
+}
+
+TEST_CASE("get|cget")
+{
+  {
+    ds::fifo_map<int, int> m({ { 1, 10 }, { 2, 20 } });
+    static_assert_same<decltype(m.get(1)), ds::optional<int&>>();
+    static_assert_same<decltype(m.cget(1)), ds::optional<const int&>>();
+    CHECK_EQ(m.get(1), 10);
+    CHECK_EQ(m.cget(1), 10);
+    m.get(1).value() = 100;
+    CHECK_EQ(m.get(1), 100);
+  }
+  {
+    const ds::fifo_map<int, int> m({ { 1, 10 }, { 2, 20 } });
+    static_assert_same<decltype(m.get(1)), ds::optional<const int&>>();
+    static_assert_same<decltype(m.cget(1)), ds::optional<const int&>>();
+    CHECK_EQ(m.get(1), 10);
+    CHECK_EQ(m.cget(1), 10);
+  }
+}
+
+TEST_CASE("try_assign")
+{
+  ds::fifo_map<int, int> m({ { 1, 10 }, { 2, 20 } });
+  CHECK(!m.try_assign(3, 30));
+  CHECK(m.try_assign(1, 100));
+  CHECK_EQ(m.get(1), 100);
+}
+
+TEST_CASE("insert_or_assign")
+{
+  ds::fifo_map<int, int> m({ { 1, 10 }, { 2, 20 } });
+  CHECK(m.insert_or_assign(3, 30));
+  CHECK_EQ(m.get(3), 30);
+  CHECK(!m.insert_or_assign(1, 100));
+  CHECK_EQ(m.get(1), 100);
 }
 
 TEST_CASE("insertion order")
