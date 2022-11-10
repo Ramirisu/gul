@@ -2,13 +2,151 @@
 
 #include <ds/config.hpp>
 
+#include <ds/type_traits.hpp>
+
 #include <climits>
 #include <string>
 
 namespace ds {
-
 template <typename CharT, typename Traits = std::char_traits<CharT>>
 class basic_string_view {
+
+  class const_iterator_impl {
+  public:
+    using iterator_category = std::random_access_iterator_tag;
+    using value_type = const CharT;
+    using reference = value_type&;
+    using const_reference = const value_type&;
+    using pointer = value_type*;
+    using difference_type = std::ptrdiff_t;
+
+    DS_CXX14_CONSTEXPR const_iterator_impl(const CharT* curr)
+        : curr_(curr)
+    {
+    }
+
+    DS_CXX14_CONSTEXPR reference operator*() noexcept
+    {
+      return *curr_;
+    }
+
+    DS_CXX14_CONSTEXPR pointer operator->() noexcept
+    {
+      return curr_;
+    }
+
+    DS_CXX14_CONSTEXPR reference operator[](difference_type n)
+    {
+      return *(curr_ + n);
+    }
+
+    DS_CXX14_CONSTEXPR const_iterator_impl& operator++()
+    {
+      ++curr_;
+      return *this;
+    }
+
+    DS_CXX14_CONSTEXPR const_iterator_impl operator++(int)
+    {
+      auto it = *this;
+      ++*this;
+      return it;
+    }
+
+    DS_CXX14_CONSTEXPR const_iterator_impl& operator--()
+    {
+      --curr_;
+      return *this;
+    }
+
+    DS_CXX14_CONSTEXPR const_iterator_impl operator--(int)
+    {
+      auto it = *this;
+      --*this;
+      return it;
+    }
+
+    friend DS_CXX14_CONSTEXPR const_iterator_impl&
+    operator+=(const_iterator_impl& it, difference_type n)
+    {
+      it.curr_ += n;
+      return it;
+    }
+
+    friend DS_CXX14_CONSTEXPR const_iterator_impl&
+    operator-=(const_iterator_impl& it, difference_type n)
+    {
+      it.curr_ -= n;
+      return it;
+    }
+
+    friend DS_CXX14_CONSTEXPR const_iterator_impl
+    operator+(const const_iterator_impl& it, difference_type n)
+    {
+      auto temp = it;
+      return temp += n;
+    }
+
+    friend DS_CXX14_CONSTEXPR const_iterator_impl
+    operator+(difference_type n, const const_iterator_impl& it)
+    {
+      auto temp = it;
+      return temp += n;
+    }
+
+    friend DS_CXX14_CONSTEXPR const_iterator_impl
+    operator-(const const_iterator_impl& it, difference_type n)
+    {
+      auto temp = it;
+      return temp -= n;
+    }
+
+    friend DS_CXX14_CONSTEXPR difference_type
+    operator-(const const_iterator_impl& lhs, const const_iterator_impl& rhs)
+    {
+      return lhs.curr_ - rhs.curr_;
+    }
+
+    friend DS_CXX14_CONSTEXPR bool operator==(const const_iterator_impl& lhs,
+                                              const const_iterator_impl& rhs)
+    {
+      return lhs.curr_ == rhs.curr_;
+    }
+
+    friend DS_CXX14_CONSTEXPR bool operator!=(const const_iterator_impl& lhs,
+                                              const const_iterator_impl& rhs)
+    {
+      return lhs.curr_ != rhs.curr_;
+    }
+
+    friend DS_CXX14_CONSTEXPR bool operator<(const const_iterator_impl& lhs,
+                                             const const_iterator_impl& rhs)
+    {
+      return lhs.curr_ < rhs.curr_;
+    }
+
+    friend DS_CXX14_CONSTEXPR bool operator<=(const const_iterator_impl& lhs,
+                                              const const_iterator_impl& rhs)
+    {
+      return lhs.curr_ <= rhs.curr_;
+    }
+
+    friend DS_CXX14_CONSTEXPR bool operator>(const const_iterator_impl& lhs,
+                                             const const_iterator_impl& rhs)
+    {
+      return lhs.curr_ > rhs.curr_;
+    }
+
+    friend DS_CXX14_CONSTEXPR bool operator>=(const const_iterator_impl& lhs,
+                                              const const_iterator_impl& rhs)
+    {
+      return lhs.curr_ >= rhs.curr_;
+    }
+
+  private:
+    const CharT* curr_;
+  };
+
 public:
   using traits_type = Traits;
   using value_type = CharT;
@@ -18,6 +156,10 @@ public:
   using const_reference = const CharT&;
   using size_type = std::size_t;
   using difference_type = std::ptrdiff_t;
+  using iterator = const_iterator_impl;
+  using const_iterator = const_iterator_impl;
+  using reverse_iterator = std::reverse_iterator<iterator>;
+  using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
   static constexpr size_type npos = size_type(-1);
 
@@ -467,6 +609,46 @@ public:
                                                 size_type index = npos) const
   {
     return find_last_not_of(basic_string_view(s), index);
+  }
+
+  const_iterator begin() const
+  {
+    return const_iterator(data());
+  }
+
+  const_iterator cbegin() const
+  {
+    return const_iterator(data());
+  }
+
+  const_reverse_iterator rbegin() const
+  {
+    return const_reverse_iterator();
+  }
+
+  const_reverse_iterator crbegin() const
+  {
+    return const_reverse_iterator();
+  }
+
+  const_iterator end() const
+  {
+    return const_iterator(data() + size());
+  }
+
+  const_iterator cend() const
+  {
+    return const_iterator(data() + size());
+  }
+
+  const_reverse_iterator rend() const
+  {
+    return const_reverse_iterator();
+  }
+
+  const_reverse_iterator crend() const
+  {
+    return const_reverse_iterator();
   }
 
   explicit operator std::basic_string<CharT, Traits>()

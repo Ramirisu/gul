@@ -194,6 +194,34 @@ TEST_CASE("basic")
     CHECK_EQ(sv.find_last_not_of("!#", 10), 10);
   }
   {
+    string_view sv(s);
+    auto it = sv.begin();
+    CHECK_EQ(*it++, 'h');
+    CHECK_EQ(*it++, 'e');
+    CHECK_EQ(*it++, 'l');
+    CHECK_EQ(*it++, 'l');
+    CHECK_EQ(*it--, 'o');
+    CHECK_EQ(*it, 'l');
+    CHECK_EQ(it[2], ' ');
+    CHECK_EQ(*(it += 5), 'r');
+    CHECK_EQ(*(it -= 3), ' ');
+    CHECK_EQ(*(it + 1), 'w');
+    CHECK_EQ(*(2 + it), 'o');
+    CHECK_EQ(*(it - 4), 'e');
+    CHECK_EQ(sv.end() - it, 7);
+    CHECK_EQ(*(it += 6), '!');
+    ++it;
+    CHECK_EQ(it, sv.end());
+    CHECK_FALSE(sv.begin() < sv.begin());
+    CHECK(sv.begin() < sv.end());
+    CHECK(sv.begin() <= sv.begin());
+    CHECK(sv.begin() <= sv.end());
+    CHECK_FALSE(sv.end() > sv.end());
+    CHECK(sv.end() > sv.begin());
+    CHECK(sv.end() >= sv.end());
+    CHECK(sv.end() >= sv.begin());
+  }
+  {
 #if !defined(__clang__) || defined(DS_HAS_CXX14)
     auto sv = "hello world!"sv;
     static_assert_same<decltype(sv), string_view>();
