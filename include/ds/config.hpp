@@ -4,10 +4,6 @@
 
 #define DS_ASSERT(expr) assert(expr)
 
-#ifdef __GNUC__
-#define DS_COMPILER_GCC
-#endif
-
 #if defined(__cplusplus) && __cplusplus >= 201402L                             \
     || defined(_MSVC_LANG) && _MSVC_LANG >= 201402L
 #define DS_HAS_CXX14
