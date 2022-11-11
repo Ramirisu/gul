@@ -20,22 +20,22 @@ class basic_string_view {
     using pointer = value_type*;
     using difference_type = std::ptrdiff_t;
 
-    DS_CXX14_CONSTEXPR const_iterator_impl(const CharT* curr)
+    constexpr const_iterator_impl(const CharT* curr)
         : curr_(curr)
     {
     }
 
-    DS_CXX14_CONSTEXPR reference operator*() noexcept
+    constexpr reference operator*() noexcept
     {
       return *curr_;
     }
 
-    DS_CXX14_CONSTEXPR pointer operator->() noexcept
+    constexpr pointer operator->() noexcept
     {
       return curr_;
     }
 
-    DS_CXX14_CONSTEXPR reference operator[](difference_type n)
+    constexpr reference operator[](difference_type n)
     {
       return *(curr_ + n);
     }
@@ -611,47 +611,47 @@ public:
     return find_last_not_of(basic_string_view(s), index);
   }
 
-  const_iterator begin() const
+  constexpr const_iterator begin() const
   {
     return const_iterator(data());
   }
 
-  const_iterator cbegin() const
+  constexpr const_iterator cbegin() const
   {
     return const_iterator(data());
   }
 
-  const_reverse_iterator rbegin() const
+  constexpr const_reverse_iterator rbegin() const
   {
-    return const_reverse_iterator();
+    return const_reverse_iterator(end());
   }
 
-  const_reverse_iterator crbegin() const
+  constexpr const_reverse_iterator crbegin() const
   {
-    return const_reverse_iterator();
+    return const_reverse_iterator(cend());
   }
 
-  const_iterator end() const
-  {
-    return const_iterator(data() + size());
-  }
-
-  const_iterator cend() const
+  constexpr const_iterator end() const
   {
     return const_iterator(data() + size());
   }
 
-  const_reverse_iterator rend() const
+  constexpr const_iterator cend() const
   {
-    return const_reverse_iterator();
+    return const_iterator(data() + size());
   }
 
-  const_reverse_iterator crend() const
+  constexpr const_reverse_iterator rend() const
   {
-    return const_reverse_iterator();
+    return const_reverse_iterator(begin());
   }
 
-  explicit operator std::basic_string<CharT, Traits>()
+  constexpr const_reverse_iterator crend() const
+  {
+    return const_reverse_iterator(cbegin());
+  }
+
+  constexpr explicit operator std::basic_string<CharT, Traits>()
   {
     return std::basic_string<CharT, Traits>(start_, size_);
   }

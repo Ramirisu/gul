@@ -196,6 +196,7 @@ TEST_CASE("basic")
   {
     string_view sv(s);
     auto it = sv.begin();
+    CHECK_EQ(it, sv.cbegin());
     CHECK_EQ(*it++, 'h');
     CHECK_EQ(*it++, 'e');
     CHECK_EQ(*it++, 'l');
@@ -212,6 +213,7 @@ TEST_CASE("basic")
     CHECK_EQ(*(it += 6), '!');
     ++it;
     CHECK_EQ(it, sv.end());
+    CHECK_EQ(it, sv.cend());
     CHECK_FALSE(sv.begin() < sv.begin());
     CHECK(sv.begin() < sv.end());
     CHECK(sv.begin() <= sv.begin());
@@ -220,6 +222,18 @@ TEST_CASE("basic")
     CHECK(sv.end() > sv.begin());
     CHECK(sv.end() >= sv.end());
     CHECK(sv.end() >= sv.begin());
+  }
+  {
+    string_view sv(s);
+    auto it = sv.rbegin();
+    CHECK_EQ(it, sv.crbegin());
+    CHECK_EQ(*it++, '!');
+    CHECK_EQ(*it++, 'd');
+    CHECK_EQ(*it++, 'l');
+    CHECK_EQ(*it++, 'r');
+    it += 8;
+    CHECK_EQ(it, sv.rend());
+    CHECK_EQ(it, sv.crend());
   }
   {
 #if !defined(__clang__) || defined(DS_HAS_CXX14)

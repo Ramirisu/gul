@@ -9,7 +9,7 @@ jobs:
       matrix:
         os: [windows-latest, ubuntu-22.04]
         cxx: [clang++-14, g++-11, cl]
-        std: [11, 14, 17, 20]
+        std: [11, 20]
         build_type: [Debug]
         generators: [Ninja]
         exclude:
@@ -19,8 +19,6 @@ jobs:
             cxx: g++-11
           - os: ubuntu-22.04
             cxx: cl
-          - cxx: cl
-            std: 11
     steps:
       - uses: actions/checkout@v2
 
