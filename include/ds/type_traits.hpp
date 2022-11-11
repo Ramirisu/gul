@@ -65,6 +65,9 @@ template <bool B, typename T>
 using enable_if_t = typename enable_if<B, T>::type;
 
 template <typename T>
+using remove_cv_t = typename remove_cv<T>::type;
+
+template <typename T>
 using remove_reference_t = typename remove_reference<T>::type;
 
 #else
@@ -74,6 +77,7 @@ using std::add_pointer_t;
 using std::conditional_t;
 using std::decay_t;
 using std::enable_if_t;
+using std::remove_cv_t;
 using std::remove_reference_t;
 
 #endif
@@ -195,10 +199,20 @@ struct remove_cvref : remove_cv<remove_reference_t<T>> { };
 template <typename T>
 using remove_cvref_t = typename remove_cvref<T>::type;
 
+template <typename T>
+struct type_identity {
+  using type = T;
+};
+
+template <typename T>
+using type_identity_t = typename type_identity<T>::type;
+
 #else
 
 using std::remove_cvref;
 using std::remove_cvref_t;
+using std::type_identity;
+using std::type_identity_t;
 
 #endif
 
