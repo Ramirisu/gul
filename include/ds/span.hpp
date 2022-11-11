@@ -2,6 +2,7 @@
 
 #include <ds/config.hpp>
 
+#include <ds/byte.hpp>
 #include <ds/type_traits.hpp>
 #include <ds/utility.hpp>
 
@@ -370,4 +371,21 @@ constexpr std::size_t span<T, Extent>::extent;
 template <typename T>
 span(T) -> span<T>;
 #endif
+
+template <class T, std::size_t N>
+span<const byte, (N == dynamic_extent ? dynamic_extent : N * sizeof(T))>
+as_bytes(span<T, N> s) noexcept
+{
+  return span<const byte,
+              (N == dynamic_extent ? dynamic_extent : N * sizeof(T))>(
+      reinterpret_cast<const byte*>(s.data()), s.size_bytes());
+}
+
+template <class T, std::size_t N>
+span<byte, (N == dynamic_extent ? dynamic_extent : N * sizeof(T))>
+as_writable_bytes(span<T, N> s) noexcept
+{
+  return span<byte, (N == dynamic_extent ? dynamic_extent : N * sizeof(T))>(
+      reinterpret_cast<byte*>(s.data()), s.size_bytes());
+}
 }

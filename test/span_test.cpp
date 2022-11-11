@@ -153,6 +153,18 @@ TEST_CASE("basic")
     CHECK_EQ(it, s.rend());
     CHECK(s.rbegin() != s.rend());
   }
+  {
+    int arr[] = { 0, 1, 2, 3 };
+    auto s = span<int>(arr);
+    auto rs = as_bytes(s);
+    static_assert_same<decltype(rs.front()), const byte&>();
+    CHECK_EQ(rs.data(), reinterpret_cast<const byte*>(arr));
+    CHECK_EQ(rs.size(), 16);
+    auto ws = as_writable_bytes(s);
+    static_assert_same<decltype(ws.front()), byte&>();
+    CHECK_EQ(ws.data(), reinterpret_cast<byte*>(arr));
+    CHECK_EQ(ws.size(), 16);
+  }
 }
 
 TEST_SUITE_END();
