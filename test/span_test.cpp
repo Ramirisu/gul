@@ -12,6 +12,9 @@ TEST_CASE("basic")
 {
   static_assert(sizeof(span<int>) == 2 * sizeof(std::size_t), "");
   static_assert(sizeof(span<int, 10>) == sizeof(std::size_t), "");
+  static_assert(is_default_constructible<span<int, dynamic_extent>>::value, "");
+  static_assert(is_default_constructible<span<int, 0>>::value, "");
+  static_assert(!is_default_constructible<span<int, 1>>::value, "");
   {
     auto s = span<int>();
     CHECK(s.empty());
@@ -110,6 +113,45 @@ TEST_CASE("basic")
     CHECK_EQ(s.back(), 3);
     CHECK_EQ(s[1], 1);
     CHECK_EQ(s[2], 2);
+  }
+  {
+    int arr[] = { 0, 1, 2, 3 };
+    auto s = span<int>(arr);
+    auto it = s.begin();
+    CHECK_EQ(*it++, 0);
+    CHECK_EQ(*it++, 1);
+    CHECK_EQ(*it--, 2);
+    CHECK_EQ(*it++, 1);
+    CHECK_EQ(*it++, 2);
+    CHECK_EQ(*it++, 3);
+    CHECK_EQ(it, s.end());
+    it = s.begin();
+    CHECK_EQ(*(it + 2), 2);
+    CHECK_EQ(*(2 + it), 2);
+    CHECK_EQ(*(it += 2), 2);
+    CHECK_EQ(it[1], 3);
+    CHECK_EQ(*(it - 1), 1);
+    CHECK_EQ(*(it -= 1), 1);
+    CHECK_EQ(s.end() - it, 3);
+    CHECK(s.begin() != s.end());
+    CHECK(s.begin() < s.end());
+    CHECK(s.begin() <= s.begin());
+    CHECK(s.begin() <= s.end());
+    CHECK_FALSE(s.end() > s.end());
+    CHECK(s.end() > s.begin());
+    CHECK(s.end() >= s.end());
+    CHECK(s.end() >= s.begin());
+  }
+  {
+    int arr[] = { 0, 1, 2, 3 };
+    auto s = span<int>(arr);
+    auto it = s.rbegin();
+    CHECK_EQ(*it++, 3);
+    CHECK_EQ(*it++, 2);
+    CHECK_EQ(*it++, 1);
+    CHECK_EQ(*it++, 0);
+    CHECK_EQ(it, s.rend());
+    CHECK(s.rbegin() != s.rend());
   }
 }
 

@@ -3,6 +3,7 @@
 #include <ds/config.hpp>
 
 #include <ds/type_traits.hpp>
+#include <ds/utility.hpp>
 
 namespace ds {
 
@@ -35,9 +36,162 @@ struct span_storage<T, dynamic_extent> {
   std::size_t size_ = 0;
 };
 
+template <std::size_t Extent,
+          bool CanDefaultConstruct = (Extent == 0 || Extent == dynamic_extent)>
+struct span_default_constructible {
+  constexpr span_default_constructible() noexcept = default;
+
+  constexpr span_default_constructible(in_place_t) noexcept { }
+};
+
+template <std::size_t Extent>
+struct span_default_constructible<Extent, false> {
+  constexpr span_default_constructible() noexcept = delete;
+
+  constexpr span_default_constructible(in_place_t) noexcept { }
+};
+
 template <typename T, std::size_t Extent = dynamic_extent>
-class span : private span_storage<T, Extent> {
+class span : private span_storage<T, Extent>,
+             private span_default_constructible<Extent> {
   using base_type = span_storage<T, Extent>;
+  using dc_base_type = span_default_constructible<Extent>;
+
+  class iterator_impl {
+  public:
+    using iterator_category = std::random_access_iterator_tag;
+    using value_type = T;
+    using reference = value_type&;
+    using const_reference = const value_type&;
+    using pointer = value_type*;
+    using difference_type = std::ptrdiff_t;
+
+    constexpr iterator_impl(T* curr)
+        : curr_(curr)
+    {
+    }
+
+    constexpr reference operator*() noexcept
+    {
+      return *curr_;
+    }
+
+    constexpr pointer operator->() noexcept
+    {
+      return curr_;
+    }
+
+    constexpr reference operator[](difference_type n)
+    {
+      return *(curr_ + n);
+    }
+
+    DS_CXX14_CONSTEXPR iterator_impl& operator++()
+    {
+      ++curr_;
+      return *this;
+    }
+
+    DS_CXX14_CONSTEXPR iterator_impl operator++(int)
+    {
+      auto it = *this;
+      ++*this;
+      return it;
+    }
+
+    DS_CXX14_CONSTEXPR iterator_impl& operator--()
+    {
+      --curr_;
+      return *this;
+    }
+
+    DS_CXX14_CONSTEXPR iterator_impl operator--(int)
+    {
+      auto it = *this;
+      --*this;
+      return it;
+    }
+
+    friend DS_CXX14_CONSTEXPR iterator_impl& operator+=(iterator_impl& it,
+                                                        difference_type n)
+    {
+      it.curr_ += n;
+      return it;
+    }
+
+    friend DS_CXX14_CONSTEXPR iterator_impl& operator-=(iterator_impl& it,
+                                                        difference_type n)
+    {
+      it.curr_ -= n;
+      return it;
+    }
+
+    friend DS_CXX14_CONSTEXPR iterator_impl operator+(const iterator_impl& it,
+                                                      difference_type n)
+    {
+      auto temp = it;
+      return temp += n;
+    }
+
+    friend DS_CXX14_CONSTEXPR iterator_impl operator+(difference_type n,
+                                                      const iterator_impl& it)
+    {
+      auto temp = it;
+      return temp += n;
+    }
+
+    friend DS_CXX14_CONSTEXPR iterator_impl operator-(const iterator_impl& it,
+                                                      difference_type n)
+    {
+      auto temp = it;
+      return temp -= n;
+    }
+
+    friend DS_CXX14_CONSTEXPR difference_type
+    operator-(const iterator_impl& lhs, const iterator_impl& rhs)
+    {
+      return lhs.curr_ - rhs.curr_;
+    }
+
+    friend DS_CXX14_CONSTEXPR bool operator==(const iterator_impl& lhs,
+                                              const iterator_impl& rhs)
+    {
+      return lhs.curr_ == rhs.curr_;
+    }
+
+    friend DS_CXX14_CONSTEXPR bool operator!=(const iterator_impl& lhs,
+                                              const iterator_impl& rhs)
+    {
+      return lhs.curr_ != rhs.curr_;
+    }
+
+    friend DS_CXX14_CONSTEXPR bool operator<(const iterator_impl& lhs,
+                                             const iterator_impl& rhs)
+    {
+      return lhs.curr_ < rhs.curr_;
+    }
+
+    friend DS_CXX14_CONSTEXPR bool operator<=(const iterator_impl& lhs,
+                                              const iterator_impl& rhs)
+    {
+      return lhs.curr_ <= rhs.curr_;
+    }
+
+    friend DS_CXX14_CONSTEXPR bool operator>(const iterator_impl& lhs,
+                                             const iterator_impl& rhs)
+    {
+      return lhs.curr_ > rhs.curr_;
+    }
+
+    friend DS_CXX14_CONSTEXPR bool operator>=(const iterator_impl& lhs,
+                                              const iterator_impl& rhs)
+    {
+      return lhs.curr_ >= rhs.curr_;
+    }
+
+  private:
+    T* curr_;
+  };
 
 public:
   using element_type = T;
@@ -48,6 +202,8 @@ public:
   using const_pointer = const T*;
   using reference = T&;
   using const_reference = const T&;
+  using iterator = iterator_impl;
+  using reverse_iterator = std::reverse_iterator<iterator>;
 
   static constexpr std::size_t extent = Extent;
 
@@ -55,11 +211,13 @@ public:
 
   constexpr span(pointer first, size_type size)
       : base_type(first, size)
+      , dc_base_type(in_place)
   {
   }
 
   constexpr span(pointer first, pointer last)
       : base_type(first, last - first)
+      , dc_base_type(in_place)
   {
   }
 
@@ -67,6 +225,7 @@ public:
             enable_if_t<extent == dynamic_extent || N == extent, int> = 0>
   constexpr span(type_identity_t<element_type> (&arr)[N]) noexcept
       : base_type(arr, N)
+      , dc_base_type(in_place)
   {
   }
 
@@ -75,6 +234,7 @@ public:
             enable_if_t<extent == dynamic_extent || N == extent, int> = 0>
   constexpr span(std::array<U, N>& arr) noexcept
       : base_type(arr.data(), N)
+      , dc_base_type(in_place)
   {
   }
 
@@ -83,6 +243,7 @@ public:
             enable_if_t<extent == dynamic_extent || N == extent, int> = 0>
   constexpr span(const std::array<U, N>& arr) noexcept
       : base_type(arr.data(), N)
+      , dc_base_type(in_place)
   {
   }
 
@@ -179,6 +340,26 @@ public:
     DS_ASSERT(offset <= size());
     DS_ASSERT(count != dynamic_extent && count + offset <= size());
     return span<element_type, dynamic_extent>(data() + offset, count);
+  }
+
+  constexpr iterator begin() const noexcept
+  {
+    return iterator(data());
+  }
+
+  constexpr iterator end() const noexcept
+  {
+    return iterator(data() + size());
+  }
+
+  constexpr reverse_iterator rbegin() const noexcept
+  {
+    return reverse_iterator(end());
+  }
+
+  constexpr reverse_iterator rend() const noexcept
+  {
+    return reverse_iterator(begin());
   }
 };
 
