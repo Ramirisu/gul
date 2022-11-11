@@ -10,55 +10,61 @@ namespace ds {
 
 DS_CXX17_INLINE constexpr std::size_t dynamic_extent = std::size_t(-1);
 
-template <typename T, std::size_t Extent>
-struct span_storage {
-  constexpr span_storage() noexcept = default;
+namespace detail {
 
-  constexpr span_storage(T* pointer, std::size_t) noexcept
-      : data_(pointer)
-  {
-  }
+  template <typename T, std::size_t Extent>
+  struct span_storage {
+    constexpr span_storage() noexcept = default;
 
-  T* data_ = nullptr;
-  static constexpr std::size_t size_ = Extent;
-};
+    constexpr span_storage(T* pointer, std::size_t) noexcept
+        : data_(pointer)
+    {
+    }
 
-template <typename T>
-struct span_storage<T, dynamic_extent> {
-  constexpr span_storage() noexcept = default;
+    T* data_ = nullptr;
+    static constexpr std::size_t size_ = Extent;
+  };
 
-  constexpr span_storage(T* pointer, std::size_t count) noexcept
-      : data_(pointer)
-      , size_(count)
-  {
-  }
+  template <typename T>
+  struct span_storage<T, dynamic_extent> {
+    constexpr span_storage() noexcept = default;
 
-  T* data_ = nullptr;
-  std::size_t size_ = 0;
-};
+    constexpr span_storage(T* pointer, std::size_t count) noexcept
+        : data_(pointer)
+        , size_(count)
+    {
+    }
 
-template <std::size_t Extent,
-          bool CanDefaultConstruct = (Extent == 0 || Extent == dynamic_extent)>
-struct span_default_constructible {
-  constexpr span_default_constructible() noexcept = default;
+    T* data_ = nullptr;
+    std::size_t size_ = 0;
+  };
 
-  constexpr span_default_constructible(in_place_t) noexcept { }
-};
+  template <std::size_t Extent,
+            bool CanDefaultConstruct
+            = (Extent == 0 || Extent == dynamic_extent)>
+  struct span_default_constructible {
+    constexpr span_default_constructible() noexcept = default;
 
-template <std::size_t Extent>
-struct span_default_constructible<Extent, false> {
-  constexpr span_default_constructible() noexcept = delete;
+    constexpr span_default_constructible(in_place_t) noexcept { }
+  };
 
-  constexpr span_default_constructible(in_place_t) noexcept { }
-};
+  template <std::size_t Extent>
+  struct span_default_constructible<Extent, false> {
+    constexpr span_default_constructible() noexcept = delete;
+
+    constexpr span_default_constructible(in_place_t) noexcept { }
+  };
+}
 
 template <typename T, std::size_t Extent = dynamic_extent>
-class span : private span_storage<T, Extent>,
-             private span_default_constructible<Extent> {
-  using base_type = span_storage<T, Extent>;
-  using dc_base_type = span_default_constructible<Extent>;
+class span : private detail::span_storage<T, Extent>,
+             private detail::span_default_constructible<Extent> {
+  using base_type = detail::span_storage<T, Extent>;
+  using dc_base_type = detail::span_default_constructible<Extent>;
 
   class iterator_impl {
+    friend class span;
+
   public:
     using iterator_category = std::random_access_iterator_tag;
     using value_type = T;
@@ -67,34 +73,36 @@ class span : private span_storage<T, Extent>,
     using pointer = value_type*;
     using difference_type = std::ptrdiff_t;
 
-    constexpr iterator_impl(T* curr)
-        : curr_(curr)
-    {
-    }
+    constexpr iterator_impl() noexcept = default;
 
-    constexpr reference operator*() noexcept
+    DS_CXX14_CONSTEXPR reference operator*() noexcept
     {
+      DS_ASSERT(curr_ != nullptr);
       return *curr_;
     }
 
-    constexpr pointer operator->() noexcept
+    DS_CXX14_CONSTEXPR pointer operator->() noexcept
     {
+      DS_ASSERT(curr_ != nullptr);
       return curr_;
     }
 
-    constexpr reference operator[](difference_type n)
+    DS_CXX14_CONSTEXPR reference operator[](difference_type n)
     {
+      DS_ASSERT(curr_ != nullptr);
       return *(curr_ + n);
     }
 
     DS_CXX14_CONSTEXPR iterator_impl& operator++()
     {
+      DS_ASSERT(curr_ != nullptr);
       ++curr_;
       return *this;
     }
 
     DS_CXX14_CONSTEXPR iterator_impl operator++(int)
     {
+      DS_ASSERT(curr_ != nullptr);
       auto it = *this;
       ++*this;
       return it;
@@ -102,12 +110,14 @@ class span : private span_storage<T, Extent>,
 
     DS_CXX14_CONSTEXPR iterator_impl& operator--()
     {
+      DS_ASSERT(curr_ != nullptr);
       --curr_;
       return *this;
     }
 
     DS_CXX14_CONSTEXPR iterator_impl operator--(int)
     {
+      DS_ASSERT(curr_ != nullptr);
       auto it = *this;
       --*this;
       return it;
@@ -116,6 +126,7 @@ class span : private span_storage<T, Extent>,
     friend DS_CXX14_CONSTEXPR iterator_impl& operator+=(iterator_impl& it,
                                                         difference_type n)
     {
+      DS_ASSERT(it.curr_ != nullptr);
       it.curr_ += n;
       return it;
     }
@@ -123,6 +134,7 @@ class span : private span_storage<T, Extent>,
     friend DS_CXX14_CONSTEXPR iterator_impl& operator-=(iterator_impl& it,
                                                         difference_type n)
     {
+      DS_ASSERT(it.curr_ != nullptr);
       it.curr_ -= n;
       return it;
     }
@@ -191,7 +203,12 @@ class span : private span_storage<T, Extent>,
     }
 
   private:
-    T* curr_;
+    constexpr iterator_impl(T* curr)
+        : curr_(curr)
+    {
+    }
+
+    T* curr_ = nullptr;
   };
 
 public:

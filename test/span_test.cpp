@@ -115,6 +115,10 @@ TEST_CASE("basic")
     CHECK_EQ(s[2], 2);
   }
   {
+    auto s = span<int>();
+    CHECK_EQ(s.begin(), s.end());
+  }
+  {
     int arr[] = { 0, 1, 2, 3 };
     auto s = span<int>(arr);
     auto it = s.begin();
