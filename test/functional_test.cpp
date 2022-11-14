@@ -54,4 +54,19 @@ TEST_CASE("invoke")
   }
 }
 
+TEST_CASE("invoke_r")
+{
+  struct to {
+    int i;
+  };
+  struct from {
+    operator to()
+    {
+      return to { 1 };
+    }
+  };
+  auto f = []() { return from {}; };
+  CHECK_EQ(invoke_r<to>(f).i, 1);
+}
+
 TEST_SUITE_END();

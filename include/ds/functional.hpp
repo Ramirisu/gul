@@ -128,4 +128,14 @@ constexpr auto invoke(F&& f, Args&&... args) noexcept(noexcept(
 {
   return detail::invoke_impl(std::forward<F>(f), std::forward<Args>(args)...);
 }
+
+template <typename R,
+          typename F,
+          typename... Args,
+          enable_if_t<is_invocable_r<R, F, Args...>::value, int> = 0>
+constexpr auto invoke_r(F&& f, Args&&... args) noexcept(noexcept(
+    detail::invoke_impl(std::forward<F>(f), std::forward<Args>(args)...))) -> R
+{
+  return detail::invoke_impl(std::forward<F>(f), std::forward<Args>(args)...);
+}
 }
