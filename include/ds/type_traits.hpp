@@ -364,10 +364,18 @@ namespace detail {
           std::declval<F>(), std::declval<Args>()...));
 
   template <typename F, typename... Args>
-  using is_invocable_noexcept
-      = integral_constant<bool,
+  struct is_invocable_noexcept
+      : integral_constant<bool,
                           noexcept(is_invocable_get_ret_type_impl<F>::test(
-                              std::declval<F>(), std::declval<Args>()...))>;
+                              std::declval<F>(), std::declval<Args>()...))> { };
+
+#if !defined(_MSC_VER) || _MSC_VER < 1920
+  template <typename F>
+  struct is_invocable_noexcept<F, void>
+      : integral_constant<bool,
+                          noexcept(is_invocable_get_ret_type_impl<F>::test(
+                              std::declval<F>()))> { };
+#endif
 
   template <typename R, typename NoExcept>
   struct is_invocable_traits {
