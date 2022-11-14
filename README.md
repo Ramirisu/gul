@@ -19,6 +19,10 @@ ds is an open-source library providing general utilities for c++11. Many of them
 
 ## Building
 
+Compiler Support
+
+* gcc 5.5 (or higher)
+
 CMake
 
 | Option         | Description | Value  | Default |
