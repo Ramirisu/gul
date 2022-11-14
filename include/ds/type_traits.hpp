@@ -34,6 +34,8 @@ using std::is_destructible;
 using std::is_function;
 using std::is_integral;
 using std::is_lvalue_reference;
+using std::is_member_function_pointer;
+using std::is_member_object_pointer;
 using std::is_member_pointer;
 using std::is_move_assignable;
 using std::is_move_constructible;
@@ -224,4 +226,136 @@ struct is_specialization_of : std::false_type { };
 
 template <template <typename...> class U, typename... Args>
 struct is_specialization_of<U<Args...>, U> : std::true_type { };
+
+namespace detail {
+  struct is_nothrow_convertible_helper {
+    template <typename To>
+    static constexpr void test(To) noexcept;
+  };
+}
+
+template <typename From, typename To, bool = is_convertible<From, To>::value>
+struct is_nothrow_convertible
+    : integral_constant<bool,
+                        noexcept(detail::is_nothrow_convertible_helper::test<
+                                 To>(std::declval<From>()))> { };
+
+template <typename From, typename To>
+struct is_nothrow_convertible<From, To, false> : std::false_type { };
+
+template <typename From>
+struct is_nothrow_convertible<From, void, true> : std::true_type { };
+
+namespace detail {
+  template <typename T,
+            bool = is_member_function_pointer<T>::value,
+            bool = is_member_object_pointer<T>::value>
+  struct is_invocable_get_ret_type_impl;
+
+  template <typename T>
+  struct is_invocable_get_ret_type_impl<T, false, false> {
+    template <typename F, typename... Args>
+    static constexpr auto test(F&& f, Args&&... args) //
+        noexcept(noexcept(std::forward<F>(f)(std::forward<Args>(args)...)))
+            -> decltype(std::forward<F>(f)(std::forward<Args>(args)...));
+  };
+
+  template <typename T>
+  struct is_invocable_get_ret_type_impl<T, true, false> {
+    template <typename C, typename Pointed, typename Arg1, typename... Args>
+    static constexpr auto test(Pointed C::*f, Arg1&& arg1, Args&&... args) //
+        noexcept(noexcept((std::forward<Arg1>(arg1)
+                           .*f)(std::forward<Args>(args)...)))
+            -> enable_if_t<is_base_of<C, remove_reference_t<Arg1>>::value,
+                           decltype((std::forward<Arg1>(arg1)
+                                     .*f)(std::forward<Args>(args)...))>;
+
+    template <typename C, typename Pointed, typename Arg1, typename... Args>
+    static constexpr auto test(Pointed C::*f, Arg1&& arg1, Args&&... args) //
+        noexcept(noexcept(((*std::forward<Arg1>(arg1))
+                           .*f)(std::forward<Args>(args)...)))
+            -> enable_if_t<!is_base_of<C, remove_reference_t<Arg1>>::value,
+                           decltype(((*std::forward<Arg1>(arg1))
+                                     .*f)(std::forward<Args>(args)...))>;
+  };
+
+  template <typename T>
+  struct is_invocable_get_ret_type_impl<T, false, true> {
+    template <typename C, typename Pointed, typename Arg1>
+    static constexpr auto test(Pointed C::*o, Arg1&& arg1) noexcept
+        -> enable_if_t<is_base_of<C, remove_reference_t<Arg1>>::value,
+                       decltype(std::forward<Arg1>(arg1).*o)>;
+
+    template <typename C, typename Pointed, typename Arg1>
+    static constexpr auto test(Pointed C::*o,
+                               Arg1&& arg1) //
+        noexcept(noexcept((*std::forward<Arg1>(arg1)).*o))
+            -> enable_if_t<!is_base_of<C, remove_reference_t<Arg1>>::value,
+                           decltype((*std::forward<Arg1>(arg1)).*o)>;
+  };
+
+  template <typename F, typename... Args>
+  using is_invocable_get_ret_type
+      = decltype(is_invocable_get_ret_type_impl<F>::test(
+          std::declval<F>(), std::declval<Args>()...));
+
+  template <typename F, typename... Args>
+  using is_invocable_noexcept
+      = integral_constant<bool,
+                          noexcept(is_invocable_get_ret_type_impl<F>::test(
+                              std::declval<F>(), std::declval<Args>()...))>;
+
+  template <typename R, typename NoExcept>
+  struct is_invocable_traits {
+    using is_invocable = std::true_type;
+    using is_nothrow_invocable = NoExcept;
+    template <typename R2>
+    using is_invocable_r = disjunction<is_void<R2>, is_convertible<R, R2>>;
+    template <typename R2>
+    using is_nothrow_invocable_r
+        = conjunction<NoExcept,
+                      disjunction<is_void<R2>, is_nothrow_convertible<R, R2>>>;
+  };
+
+  template <typename Void, typename F, typename... Args>
+  struct is_invocable_impl {
+    using is_invocable = std::false_type;
+    using is_nothrow_invocable = std::false_type;
+    template <typename R2>
+    using is_invocable_r = std::false_type;
+    template <typename R2>
+    using is_nothrow_invocable_r = std::false_type;
+  };
+
+  template <typename F, typename... Args>
+  struct is_invocable_impl<void_t<is_invocable_get_ret_type<F, Args...>>,
+                           F,
+                           Args...>
+      : is_invocable_traits<is_invocable_get_ret_type<F, Args...>,
+                            is_invocable_noexcept<F, Args...>> { };
+}
+
+template <typename F, typename... Args>
+struct is_invocable
+    : detail::is_invocable_impl<void, F, Args...>::is_invocable { };
+
+#ifdef DS_HAS_CXX17
+// requires noexcept-specification as a part of function type
+template <typename F, typename... Args>
+struct is_nothrow_invocable
+    : detail::is_invocable_impl<void, F, Args...>::is_nothrow_invocable { };
+#endif
+
+template <typename R, typename F, typename... Args>
+struct is_invocable_r
+    : detail::is_invocable_impl<void, F, Args...>::template is_invocable_r<R> {
+};
+
+#ifdef DS_HAS_CXX17
+// requires noexcept-specification as a part of function type
+template <typename R, typename F, typename... Args>
+struct is_nothrow_invocable_r : detail::is_invocable_impl<void, F, Args...>::
+                                    template is_nothrow_invocable_r<R> { };
+#endif
+
 }
