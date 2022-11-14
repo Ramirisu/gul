@@ -1161,7 +1161,7 @@ public:
   template <typename U>
   using rebind = expected<U, E>;
 
-  DS_CXX14_CONSTEXPR expected() noexcept(is_void<T>::value) = default;
+  DS_CXX14_CONSTEXPR expected() = default;
 
   DS_CXX14_CONSTEXPR expected(const expected&) = default;
 
@@ -1239,16 +1239,21 @@ public:
       , dc_base_type(in_place)
   {
   }
+  template <bool B
+            = disjunction<is_void<T>, is_default_constructible<T>>::value,
+            enable_if_t<B, int> = 0>
+  DS_CXX14_CONSTEXPR explicit expected(in_place_t) noexcept(is_void<T>::value)
+      : base_type(in_place)
+      , dc_base_type(in_place)
+  {
+  }
 
   template <typename... Args
 #if defined(_MSC_VER) && !defined(__clang__) && !defined(DS_HAS_CXX17)
   // workaround: MSVC /std:c++14
 #else
             ,
-            enable_if_t<
-                disjunction<is_void<T>, is_constructible<T, Args...>>::value,
-                int>
-            = 0
+            enable_if_t<is_constructible<T, Args...>::value, int> = 0
 #endif
             >
   DS_CXX14_CONSTEXPR explicit expected(in_place_t, Args&&... args) noexcept(
@@ -1271,6 +1276,14 @@ public:
                                        std::initializer_list<U> init,
                                        Args&&... args)
       : base_type(in_place, init, std::forward<Args>(args)...)
+      , dc_base_type(in_place)
+  {
+  }
+
+  template <bool B = is_default_constructible<E>::value,
+            enable_if_t<B, int> = 0>
+  DS_CXX14_CONSTEXPR explicit expected(unexpect_t)
+      : base_type(unexpect)
       , dc_base_type(in_place)
   {
   }
