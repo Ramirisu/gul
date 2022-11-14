@@ -118,7 +118,9 @@ namespace detail {
   }
 }
 
-template <typename F, typename... Args>
+template <typename F,
+          typename... Args,
+          enable_if_t<is_invocable<F, Args...>::value, int> = 0>
 constexpr auto invoke(F&& f, Args&&... args) noexcept(noexcept(
     detail::invoke_impl(std::forward<F>(f), std::forward<Args>(args)...)))
     -> decltype(detail::invoke_impl(std::forward<F>(f),
