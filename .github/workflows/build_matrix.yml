@@ -7,15 +7,16 @@ jobs:
     runs-on: ${{matrix.os}}
     strategy:
       matrix:
-        os: [windows-latest, ubuntu-22.04]
+        os: [windows-2022, ubuntu-22.04]
         cxx: [clang++-14, g++-11, cl]
         std: [11, 20]
         build_type: [Debug]
         generators: [Ninja]
+        extra_args: [""]
         exclude:
-          - os: windows-latest
+          - os: windows-2022
             cxx: clang++-14
-          - os: windows-latest
+          - os: windows-2022
             cxx: g++-11
           - os: ubuntu-22.04
             cxx: cl
@@ -25,6 +26,12 @@ jobs:
             std: 11
             build_type: Debug
             generators: Ninja
+          - os: windows-2019
+            cxx: cl
+            std: 14
+            build_type: Debug
+            generators: Visual Studio 16 2019
+            extra_args: -A x64 -T v141
     steps:
       - uses: actions/checkout@v2
 
@@ -74,7 +81,8 @@ jobs:
             -DCMAKE_BUILD_TYPE=${{matrix.build_type}} \
             -DCMAKE_CXX_COMPILER=${{matrix.cxx}} \
             -DCMAKE_CXX_STANDARD:STRING=${{matrix.std}} \
-            -DDS_BUILD_TESTS=ON
+            -DDS_BUILD_TESTS=ON \
+            ${{matrix.extra_args}}
 
       - name: Build
         shell: bash
