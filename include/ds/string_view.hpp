@@ -714,52 +714,29 @@ using u32string_view = basic_string_view<char32_t>;
 
 inline namespace literals {
   inline namespace string_view_literals {
-#if !defined(__clang__) || defined(DS_HAS_CXX14)
-
-#if defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wuser-defined-literals"
-#elif defined(_MSC_VER)
-#pragma warning(push)
-#pragma warning(disable : 4455)
-#elif defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wliteral-suffix"
-#endif
-
-    constexpr string_view operator"" sv(const char* str,
-                                        std::size_t len) noexcept
+    constexpr string_view operator"" _sv(const char* str,
+                                         std::size_t len) noexcept
     {
       return string_view(str, len);
     }
 
-    constexpr wstring_view operator"" sv(const wchar_t* str,
-                                         std::size_t len) noexcept
+    constexpr wstring_view operator"" _sv(const wchar_t* str,
+                                          std::size_t len) noexcept
     {
       return wstring_view(str, len);
     }
 
-    constexpr u16string_view operator"" sv(const char16_t* str,
-                                           std::size_t len) noexcept
+    constexpr u16string_view operator"" _sv(const char16_t* str,
+                                            std::size_t len) noexcept
     {
       return u16string_view(str, len);
     }
 
-    constexpr u32string_view operator"" sv(const char32_t* str,
-                                           std::size_t len) noexcept
+    constexpr u32string_view operator"" _sv(const char32_t* str,
+                                            std::size_t len) noexcept
     {
       return u32string_view(str, len);
     }
-
-#if defined(__clang__)
-#pragma clang diagnostic pop
-#elif defined(_MSC_VER)
-#pragma warning(pop)
-#elif defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif
-
-#endif
   }
 }
 }

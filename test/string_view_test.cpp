@@ -236,16 +236,14 @@ TEST_CASE("basic")
     CHECK_EQ(it, sv.crend());
   }
   {
-#if !defined(__clang__) || defined(DS_HAS_CXX14)
-    auto sv = "hello world!"sv;
+    auto sv = "hello world!"_sv;
     static_assert_same<decltype(sv), string_view>();
-    auto wsv = L"hello world!"sv;
+    auto wsv = L"hello world!"_sv;
     static_assert_same<decltype(wsv), wstring_view>();
-    auto u16sv = u"hello world!"sv;
+    auto u16sv = u"hello world!"_sv;
     static_assert_same<decltype(u16sv), u16string_view>();
-    auto u32sv = U"hello world!"sv;
+    auto u32sv = U"hello world!"_sv;
     static_assert_same<decltype(u32sv), u32string_view>();
-#endif
   }
   {
     std::string str(s);
