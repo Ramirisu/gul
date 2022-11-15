@@ -972,7 +972,7 @@ class expected : private detail::expected_move_assign_base<T, E>,
   {
     using Err = remove_cvref_t<decltype(std::declval<Self>().error())>;
     using Exp = remove_cvref_t<invoke_result_t<F>>;
-    static_assert(is_specialization_of<Exp, expected>::value, "");
+    static_assert(is_specialization_of<Exp, ds::expected>::value, "");
     static_assert(is_same<typename Exp::error_type, Err>::value, "");
     if (self.has_value()) {
       return Exp(invoke(std::forward<F>(f)));
@@ -990,7 +990,7 @@ class expected : private detail::expected_move_assign_base<T, E>,
     using Val = decltype(std::declval<Self>().value());
     using Err = remove_cvref_t<decltype(std::declval<Self>().error())>;
     using Exp = remove_cvref_t<invoke_result_t<F, Val>>;
-    static_assert(is_specialization_of<Exp, expected>::value, "");
+    static_assert(is_specialization_of<Exp, ds::expected>::value, "");
     static_assert(is_same<typename Exp::error_type, Err>::value, "");
     if (self.has_value()) {
       return Exp(invoke(std::forward<F>(f), std::forward<Self>(self).value()));
@@ -1006,7 +1006,7 @@ class expected : private detail::expected_move_assign_base<T, E>,
   {
     using Exp = remove_cvref_t<invoke_result_t<F>>;
     using Val = typename Exp::value_type;
-    static_assert(is_specialization_of<Exp, expected>::value, "");
+    static_assert(is_specialization_of<Exp, ds::expected>::value, "");
     static_assert(is_same<typename Exp::value_type, Val>::value, "");
     if (self.has_value()) {
       return Exp();
@@ -1024,7 +1024,7 @@ class expected : private detail::expected_move_assign_base<T, E>,
     using Err = decltype(std::declval<Self>().error());
     using Exp = remove_cvref_t<invoke_result_t<F, Err>>;
     using Val = typename Exp::value_type;
-    static_assert(is_specialization_of<Exp, expected>::value, "");
+    static_assert(is_specialization_of<Exp, ds::expected>::value, "");
     static_assert(is_same<typename Exp::value_type, Val>::value, "");
     if (self.has_value()) {
       return Exp(in_place, std::forward<Self>(self).value());
