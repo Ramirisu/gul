@@ -2,6 +2,7 @@
 
 [![build](https://github.com/Ramirisu/ds/actions/workflows/build_matrix.yml/badge.svg)](https://github.com/Ramirisu/ds/actions/workflows/build_matrix.yml)
 ![std](https://img.shields.io/badge/std-11%2F14%2F17%2F20-blue.svg)
+![license](https://img.shields.io/badge/license-MIT-blue)
 
 ds is an open-source library providing general utilities for c++11. Many of them are backported from later standard version.
 
@@ -21,8 +22,9 @@ ds is an open-source library providing general utilities for c++11. Many of them
 
 Compiler Support
 
-* gcc 5.5 (or higher)
-* MSVC 2017 15.9 v141 (or higher)
+* GCC 5.5
+* Clang 9
+* MSVC 2017 15.9 v141
 
 CMake
 
