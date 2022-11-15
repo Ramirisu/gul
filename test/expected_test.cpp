@@ -1003,11 +1003,36 @@ TEST_CASE("swap")
 TEST_CASE("compare")
 {
   CHECK(expected<void, int>() == expected<void, int>());
+  CHECK(!(expected<void, int>() != expected<void, int>()));
   CHECK(expected<void, int>(unexpect) == expected<void, int>(unexpect));
+  CHECK(!(expected<void, int>(unexpect) != expected<void, int>(unexpect)));
+  CHECK(!(expected<void, int>() == expected<void, int>(unexpect)));
+  CHECK(expected<void, int>() != expected<void, int>(unexpect));
+  CHECK(!(expected<void, int>(unexpect) == expected<void, int>()));
+  CHECK(expected<void, int>(unexpect) != expected<void, int>());
+
   CHECK(expected<int, int>() == expected<int, int>());
+  CHECK(!(expected<int, int>() != expected<int, int>()));
   CHECK(expected<int, int>(unexpect) == expected<int, int>(unexpect));
+  CHECK(!(expected<int, int>(unexpect) != expected<int, int>(unexpect)));
+  CHECK(!(expected<int, int>() == expected<int, int>(unexpect)));
+  CHECK(expected<int, int>() != expected<int, int>(unexpect));
+  CHECK(!(expected<int, int>(unexpect) == expected<int, int>()));
+  CHECK(expected<int, int>(unexpect) != expected<int, int>());
+
   CHECK(expected<int, int>() == 0);
+  CHECK(0 == expected<int, int>());
+  CHECK(!(expected<int, int>(unexpect) == 0));
+  CHECK(!(0 == expected<int, int>(unexpect)));
+  CHECK(!(expected<int, int>() != 0));
+  CHECK(!(0 != expected<int, int>()));
+  CHECK(expected<int, int>(unexpect) != 0);
+  CHECK(0 != expected<int, int>(unexpect));
+
+  CHECK(!(expected<int, int>() == ds::unexpected<int>(0)));
   CHECK(expected<int, int>(unexpect) == ds::unexpected<int>(0));
+  CHECK(expected<int, int>() != ds::unexpected<int>(0));
+  CHECK(!(expected<int, int>(unexpect) != ds::unexpected<int>(0)));
 }
 
 TEST_SUITE_END();
