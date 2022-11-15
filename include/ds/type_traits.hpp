@@ -221,6 +221,80 @@ using std::type_identity_t;
 
 #endif
 
+namespace detail {
+  template <typename T, typename U, typename = void>
+  struct is_eq_comparable_with : std::false_type { };
+
+  template <typename T, typename U>
+  struct is_eq_comparable_with<
+      T,
+      U,
+      void_t<decltype(std::declval<const T&>() == std::declval<const U&>())>>
+      : is_convertible<decltype(std::declval<const T&>()
+                                == std::declval<const U&>()),
+                       bool> { };
+
+  template <typename T, typename U, typename = void>
+  struct is_ne_comparable_with : std::false_type { };
+
+  template <typename T, typename U>
+  struct is_ne_comparable_with<
+      T,
+      U,
+      void_t<decltype(std::declval<const T&>() != std::declval<const U&>())>>
+      : is_convertible<decltype(std::declval<const T&>()
+                                != std::declval<const U&>()),
+                       bool> { };
+
+  template <typename T, typename U, typename = void>
+  struct is_lt_comparable_with : std::false_type { };
+
+  template <typename T, typename U>
+  struct is_lt_comparable_with<
+      T,
+      U,
+      void_t<decltype(std::declval<const T&>() < std::declval<const U&>())>>
+      : is_convertible<decltype(std::declval<const T&>()
+                                < std::declval<const U&>()),
+                       bool> { };
+
+  template <typename T, typename U, typename = void>
+  struct is_le_comparable_with : std::false_type { };
+
+  template <typename T, typename U>
+  struct is_le_comparable_with<
+      T,
+      U,
+      void_t<decltype(std::declval<const T&>() <= std::declval<const U&>())>>
+      : is_convertible<decltype(std::declval<const T&>()
+                                <= std::declval<const U&>()),
+                       bool> { };
+
+  template <typename T, typename U, typename = void>
+  struct is_gt_comparable_with : std::false_type { };
+
+  template <typename T, typename U>
+  struct is_gt_comparable_with<
+      T,
+      U,
+      void_t<decltype(std::declval<const T&>() > std::declval<const U&>())>>
+      : is_convertible<decltype(std::declval<const T&>()
+                                > std::declval<const U&>()),
+                       bool> { };
+
+  template <typename T, typename U, typename = void>
+  struct is_ge_comparable_with : std::false_type { };
+
+  template <typename T, typename U>
+  struct is_ge_comparable_with<
+      T,
+      U,
+      void_t<decltype(std::declval<const T&>() >= std::declval<const U&>())>>
+      : is_convertible<decltype(std::declval<const T&>()
+                                >= std::declval<const U&>()),
+                       bool> { };
+}
+
 template <typename T, template <typename...> class U>
 struct is_specialization_of : std::false_type { };
 

@@ -558,17 +558,6 @@ class optional : private detail::optional_move_assign_base<T> {
             is_assignable<add_lvalue_reference_t<T>, optional<U>&&>,
             is_assignable<add_lvalue_reference_t<T>, const optional<U>&&>>> { };
 
-  template <typename U>
-  struct is_not_optional_like
-      : negation<is_specialization_of<remove_cvref_t<U>, optional>> { };
-
-  template <typename T2>
-  struct are_both_value_void : conjunction<is_void<T>, is_void<T2>> { };
-
-  template <typename T2>
-  struct are_both_value_not_void
-      : conjunction<negation<is_void<T>>, negation<is_void<T2>>> { };
-
   template <typename Self, typename F>
   static DS_CXX14_CONSTEXPR auto
   optional_and_then_impl(std::true_type, Self&& self, F&& f)
@@ -1003,296 +992,6 @@ public:
   {
     lhs.swap(rhs);
   }
-
-  template <typename T2, enable_if_t<are_both_value_void<T2>::value, int> = 0>
-  friend DS_CXX14_CONSTEXPR bool operator==(const optional& lhs,
-                                            const optional<T2>& rhs)
-  {
-    return lhs.has_value() == rhs.has_value();
-  }
-
-  template <typename T2, enable_if_t<are_both_value_void<T2>::value, int> = 0>
-  friend DS_CXX14_CONSTEXPR bool operator!=(const optional& lhs,
-                                            const optional<T2>& rhs)
-  {
-    return lhs.has_value() != rhs.has_value();
-  }
-
-  template <typename T2, enable_if_t<are_both_value_void<T2>::value, int> = 0>
-  friend DS_CXX14_CONSTEXPR bool operator<(const optional& lhs,
-                                           const optional<T2>& rhs)
-  {
-    return !lhs && rhs;
-  }
-
-  template <typename T2, enable_if_t<are_both_value_void<T2>::value, int> = 0>
-  friend DS_CXX14_CONSTEXPR bool operator<=(const optional& lhs,
-                                            const optional<T2>& rhs)
-  {
-    return !lhs || rhs;
-  }
-
-  template <typename T2, enable_if_t<are_both_value_void<T2>::value, int> = 0>
-  friend DS_CXX14_CONSTEXPR bool operator>(const optional& lhs,
-                                           const optional<T2>& rhs)
-  {
-    return lhs && !rhs;
-  }
-
-  template <typename T2, enable_if_t<are_both_value_void<T2>::value, int> = 0>
-  friend DS_CXX14_CONSTEXPR bool operator>=(const optional& lhs,
-                                            const optional<T2>& rhs)
-  {
-    return lhs || !rhs;
-  }
-
-  template <typename T2,
-            enable_if_t<are_both_value_not_void<T2>::value, int> = 0>
-  friend DS_CXX14_CONSTEXPR bool operator==(const optional& lhs,
-                                            const optional<T2>& rhs)
-  {
-    if (lhs.has_value() != rhs.has_value()) {
-      return false;
-    }
-
-    if (!lhs) {
-      return true;
-    }
-
-    return lhs.value() == rhs.value();
-  }
-
-  template <typename T2,
-            enable_if_t<are_both_value_not_void<T2>::value, int> = 0>
-  friend DS_CXX14_CONSTEXPR bool operator!=(const optional& lhs,
-                                            const optional<T2>& rhs)
-  {
-    if (lhs.has_value() != rhs.has_value()) {
-      return true;
-    }
-
-    if (!lhs) {
-      return false;
-    }
-
-    return lhs.value() != rhs.value();
-  }
-
-  template <typename T2,
-            enable_if_t<are_both_value_not_void<T2>::value, int> = 0>
-  friend DS_CXX14_CONSTEXPR bool operator<(const optional& lhs,
-                                           const optional<T2>& rhs)
-  {
-    if (!rhs) {
-      return false;
-    }
-    if (!lhs) {
-      return true;
-    }
-
-    return lhs.value() < rhs.value();
-  }
-
-  template <typename T2,
-            enable_if_t<are_both_value_not_void<T2>::value, int> = 0>
-  friend DS_CXX14_CONSTEXPR bool operator<=(const optional& lhs,
-                                            const optional<T2>& rhs)
-  {
-    if (!lhs) {
-      return true;
-    }
-    if (!rhs) {
-      return false;
-    }
-
-    return lhs.value() <= rhs.value();
-  }
-
-  template <typename T2,
-            enable_if_t<are_both_value_not_void<T2>::value, int> = 0>
-  friend DS_CXX14_CONSTEXPR bool operator>(const optional& lhs,
-                                           const optional<T2>& rhs)
-  {
-    if (!lhs) {
-      return false;
-    }
-    if (!rhs) {
-      return true;
-    }
-
-    return lhs.value() > rhs.value();
-  }
-
-  template <typename T2,
-            enable_if_t<are_both_value_not_void<T2>::value, int> = 0>
-  friend DS_CXX14_CONSTEXPR bool operator>=(const optional& lhs,
-                                            const optional<T2>& rhs)
-  {
-    if (!rhs) {
-      return true;
-    }
-    if (!lhs) {
-      return false;
-    }
-
-    return lhs.value() >= rhs.value();
-  }
-
-  friend DS_CXX14_CONSTEXPR bool operator==(const optional& opt,
-                                            nullopt_t) noexcept
-  {
-    return !opt;
-  }
-
-#ifndef DS_HAS_CXX20
-
-  friend DS_CXX14_CONSTEXPR bool operator==(nullopt_t,
-                                            const optional& opt) noexcept
-  {
-    return !opt;
-  }
-
-  friend DS_CXX14_CONSTEXPR bool operator!=(const optional& opt,
-                                            nullopt_t) noexcept
-  {
-    return !!opt;
-  }
-
-  friend DS_CXX14_CONSTEXPR bool operator!=(nullopt_t,
-                                            const optional& opt) noexcept
-  {
-    return !!opt;
-  }
-
-  friend DS_CXX14_CONSTEXPR bool operator<(const optional& opt,
-                                           nullopt_t) noexcept
-  {
-    return false;
-  }
-
-  friend DS_CXX14_CONSTEXPR bool operator<(nullopt_t,
-                                           const optional& opt) noexcept
-  {
-    return !!opt;
-  }
-
-  friend DS_CXX14_CONSTEXPR bool operator<=(const optional& opt,
-                                            nullopt_t) noexcept
-  {
-    return !opt;
-  }
-
-  friend DS_CXX14_CONSTEXPR bool operator<=(nullopt_t,
-                                            const optional& opt) noexcept
-  {
-    return true;
-  }
-
-  friend DS_CXX14_CONSTEXPR bool operator>(const optional& opt,
-                                           nullopt_t) noexcept
-  {
-    return !!opt;
-  }
-
-  friend DS_CXX14_CONSTEXPR bool operator>(nullopt_t,
-                                           const optional& opt) noexcept
-  {
-    return false;
-  }
-
-  friend DS_CXX14_CONSTEXPR bool operator>=(const optional& opt,
-                                            nullopt_t) noexcept
-  {
-    return true;
-  }
-
-  friend DS_CXX14_CONSTEXPR bool operator>=(nullopt_t,
-                                            const optional& opt) noexcept
-  {
-    return !opt;
-  }
-
-#else
-
-  friend constexpr std::strong_ordering operator<=>(const optional& opt,
-                                                    nullopt_t) noexcept
-  {
-    return !!opt <=> false;
-  }
-
-#endif
-
-  template <typename U, enable_if_t<is_not_optional_like<U>::value, int> = 0>
-  friend DS_CXX14_CONSTEXPR bool operator==(const optional& opt, const U& val)
-  {
-    return opt && opt.value() == val;
-  }
-
-  template <typename U, enable_if_t<is_not_optional_like<U>::value, int> = 0>
-  friend DS_CXX14_CONSTEXPR bool operator==(const U& val, const optional& opt)
-  {
-    return opt && val == opt.value();
-  }
-
-  template <typename U, enable_if_t<is_not_optional_like<U>::value, int> = 0>
-  friend DS_CXX14_CONSTEXPR bool operator!=(const optional& opt, const U& val)
-  {
-    return !opt || opt.value() != val;
-  }
-
-  template <typename U, enable_if_t<is_not_optional_like<U>::value, int> = 0>
-  friend DS_CXX14_CONSTEXPR bool operator!=(const U& val, const optional& opt)
-  {
-    return !opt || val != opt.value();
-  }
-
-  template <typename U, enable_if_t<is_not_optional_like<U>::value, int> = 0>
-  friend DS_CXX14_CONSTEXPR bool operator<(const optional& opt, const U& val)
-  {
-    return !opt || opt.value() < val;
-  }
-
-  template <typename U, enable_if_t<is_not_optional_like<U>::value, int> = 0>
-  friend DS_CXX14_CONSTEXPR bool operator<(const U& val, const optional& opt)
-  {
-    return opt && val < opt.value();
-  }
-
-  template <typename U, enable_if_t<is_not_optional_like<U>::value, int> = 0>
-  friend DS_CXX14_CONSTEXPR bool operator<=(const optional& opt, const U& val)
-  {
-    return !opt || opt.value() <= val;
-  }
-
-  template <typename U, enable_if_t<is_not_optional_like<U>::value, int> = 0>
-  friend DS_CXX14_CONSTEXPR bool operator<=(const U& val, const optional& opt)
-  {
-    return opt && val <= opt.value();
-  }
-
-  template <typename U, enable_if_t<is_not_optional_like<U>::value, int> = 0>
-  friend DS_CXX14_CONSTEXPR bool operator>(const optional& opt, const U& val)
-  {
-    return !(opt <= val);
-  }
-
-  template <typename U, enable_if_t<is_not_optional_like<U>::value, int> = 0>
-  friend DS_CXX14_CONSTEXPR bool operator>(const U& val, const optional& opt)
-  {
-    return !(val <= opt);
-  }
-
-  template <typename U, enable_if_t<is_not_optional_like<U>::value, int> = 0>
-  friend DS_CXX14_CONSTEXPR bool operator>=(const optional& opt, const U& val)
-  {
-    return !(opt < val);
-  }
-
-  template <typename U, enable_if_t<is_not_optional_like<U>::value, int> = 0>
-  friend DS_CXX14_CONSTEXPR bool operator>=(const U& val, const optional& opt)
-  {
-    return !(val < opt);
-  }
 };
 
 #ifdef DS_HAS_CXX17
@@ -1301,6 +1000,321 @@ template <typename T>
 optional(T) -> optional<T>;
 
 #endif
+
+inline DS_CXX14_CONSTEXPR bool operator==(const optional<void>& lhs,
+                                          const optional<void>& rhs)
+{
+  return lhs.has_value() == rhs.has_value();
+}
+
+inline DS_CXX14_CONSTEXPR bool operator!=(const optional<void>& lhs,
+                                          const optional<void>& rhs)
+{
+  return lhs.has_value() != rhs.has_value();
+}
+
+inline DS_CXX14_CONSTEXPR bool operator<(const optional<void>& lhs,
+                                         const optional<void>& rhs)
+{
+  return !lhs && rhs;
+}
+
+inline DS_CXX14_CONSTEXPR bool operator<=(const optional<void>& lhs,
+                                          const optional<void>& rhs)
+{
+  return !lhs || rhs;
+}
+
+inline DS_CXX14_CONSTEXPR bool operator>(const optional<void>& lhs,
+                                         const optional<void>& rhs)
+{
+  return lhs && !rhs;
+}
+
+inline DS_CXX14_CONSTEXPR bool operator>=(const optional<void>& lhs,
+                                          const optional<void>& rhs)
+{
+  return lhs || !rhs;
+}
+
+template <typename T1,
+          typename T2,
+          enable_if_t<detail::is_eq_comparable_with<T1, T2>::value, int> = 0>
+DS_CXX14_CONSTEXPR bool operator==(const optional<T1>& lhs,
+                                   const optional<T2>& rhs)
+{
+  if (lhs.has_value() != rhs.has_value()) {
+    return false;
+  }
+
+  if (!lhs) {
+    return true;
+  }
+
+  return lhs.value() == rhs.value();
+}
+
+template <typename T1,
+          typename T2,
+          enable_if_t<detail::is_ne_comparable_with<T1, T2>::value, int> = 0>
+DS_CXX14_CONSTEXPR bool operator!=(const optional<T1>& lhs,
+                                   const optional<T2>& rhs)
+{
+  if (lhs.has_value() != rhs.has_value()) {
+    return true;
+  }
+
+  if (!lhs) {
+    return false;
+  }
+
+  return lhs.value() != rhs.value();
+}
+
+template <typename T1,
+          typename T2,
+          enable_if_t<detail::is_lt_comparable_with<T1, T2>::value, int> = 0>
+DS_CXX14_CONSTEXPR bool operator<(const optional<T1>& lhs,
+                                  const optional<T2>& rhs)
+{
+  if (!rhs) {
+    return false;
+  }
+  if (!lhs) {
+    return true;
+  }
+
+  return lhs.value() < rhs.value();
+}
+
+template <typename T1,
+          typename T2,
+          enable_if_t<detail::is_le_comparable_with<T1, T2>::value, int> = 0>
+DS_CXX14_CONSTEXPR bool operator<=(const optional<T1>& lhs,
+                                   const optional<T2>& rhs)
+{
+  if (!lhs) {
+    return true;
+  }
+  if (!rhs) {
+    return false;
+  }
+
+  return lhs.value() <= rhs.value();
+}
+
+template <typename T1,
+          typename T2,
+          enable_if_t<detail::is_gt_comparable_with<T1, T2>::value, int> = 0>
+DS_CXX14_CONSTEXPR bool operator>(const optional<T1>& lhs,
+                                  const optional<T2>& rhs)
+{
+  if (!lhs) {
+    return false;
+  }
+  if (!rhs) {
+    return true;
+  }
+
+  return lhs.value() > rhs.value();
+}
+
+template <typename T1,
+          typename T2,
+          enable_if_t<detail::is_ge_comparable_with<T1, T2>::value, int> = 0>
+DS_CXX14_CONSTEXPR bool operator>=(const optional<T1>& lhs,
+                                   const optional<T2>& rhs)
+{
+  if (!rhs) {
+    return true;
+  }
+  if (!lhs) {
+    return false;
+  }
+
+  return lhs.value() >= rhs.value();
+}
+
+template <typename T>
+DS_CXX14_CONSTEXPR bool operator==(const optional<T>& opt, nullopt_t) noexcept
+{
+  return !opt;
+}
+
+#ifndef DS_HAS_CXX20
+
+template <typename T>
+DS_CXX14_CONSTEXPR bool operator==(nullopt_t, const optional<T>& opt) noexcept
+{
+  return !opt;
+}
+
+template <typename T>
+DS_CXX14_CONSTEXPR bool operator!=(const optional<T>& opt, nullopt_t) noexcept
+{
+  return !!opt;
+}
+
+template <typename T>
+DS_CXX14_CONSTEXPR bool operator!=(nullopt_t, const optional<T>& opt) noexcept
+{
+  return !!opt;
+}
+
+template <typename T>
+DS_CXX14_CONSTEXPR bool operator<(const optional<T>& opt, nullopt_t) noexcept
+{
+  return false;
+}
+
+template <typename T>
+DS_CXX14_CONSTEXPR bool operator<(nullopt_t, const optional<T>& opt) noexcept
+{
+  return !!opt;
+}
+
+template <typename T>
+DS_CXX14_CONSTEXPR bool operator<=(const optional<T>& opt, nullopt_t) noexcept
+{
+  return !opt;
+}
+
+template <typename T>
+DS_CXX14_CONSTEXPR bool operator<=(nullopt_t, const optional<T>& opt) noexcept
+{
+  return true;
+}
+
+template <typename T>
+DS_CXX14_CONSTEXPR bool operator>(const optional<T>& opt, nullopt_t) noexcept
+{
+  return !!opt;
+}
+
+template <typename T>
+DS_CXX14_CONSTEXPR bool operator>(nullopt_t, const optional<T>& opt) noexcept
+{
+  return false;
+}
+
+template <typename T>
+DS_CXX14_CONSTEXPR bool operator>=(const optional<T>& opt, nullopt_t) noexcept
+{
+  return true;
+}
+
+template <typename T>
+DS_CXX14_CONSTEXPR bool operator>=(nullopt_t, const optional<T>& opt) noexcept
+{
+  return !opt;
+}
+
+#else
+
+template <typename T>
+constexpr std::strong_ordering operator<=>(const optional<T>& opt,
+                                           nullopt_t) noexcept
+{
+  return !!opt <=> false;
+}
+
+#endif
+
+template <typename T,
+          typename U,
+          enable_if_t<detail::is_eq_comparable_with<T, U>::value, int> = 0>
+DS_CXX14_CONSTEXPR bool operator==(const optional<T>& opt, const U& val)
+{
+  return opt && opt.value() == val;
+}
+
+template <typename T,
+          typename U,
+          enable_if_t<detail::is_eq_comparable_with<T, U>::value, int> = 0>
+DS_CXX14_CONSTEXPR bool operator==(const T& val, const optional<U>& opt)
+{
+  return opt && val == opt.value();
+}
+
+template <typename T,
+          typename U,
+          enable_if_t<detail::is_ne_comparable_with<T, U>::value, int> = 0>
+DS_CXX14_CONSTEXPR bool operator!=(const optional<T>& opt, const U& val)
+{
+  return !opt || opt.value() != val;
+}
+
+template <typename T,
+          typename U,
+          enable_if_t<detail::is_ne_comparable_with<T, U>::value, int> = 0>
+DS_CXX14_CONSTEXPR bool operator!=(const T& val, const optional<U>& opt)
+{
+  return !opt || val != opt.value();
+}
+
+template <typename T,
+          typename U,
+          enable_if_t<detail::is_lt_comparable_with<T, U>::value, int> = 0>
+DS_CXX14_CONSTEXPR bool operator<(const optional<T>& opt, const U& val)
+{
+  return !opt || opt.value() < val;
+}
+
+template <typename T,
+          typename U,
+          enable_if_t<detail::is_lt_comparable_with<T, U>::value, int> = 0>
+DS_CXX14_CONSTEXPR bool operator<(const T& val, const optional<U>& opt)
+{
+  return opt && val < opt.value();
+}
+
+template <typename T,
+          typename U,
+          enable_if_t<detail::is_le_comparable_with<T, U>::value, int> = 0>
+DS_CXX14_CONSTEXPR bool operator<=(const optional<T>& opt, const U& val)
+{
+  return !opt || opt.value() <= val;
+}
+
+template <typename T,
+          typename U,
+          enable_if_t<detail::is_le_comparable_with<T, U>::value, int> = 0>
+DS_CXX14_CONSTEXPR bool operator<=(const T& val, const optional<U>& opt)
+{
+  return opt && val <= opt.value();
+}
+
+template <typename T,
+          typename U,
+          enable_if_t<detail::is_gt_comparable_with<T, U>::value, int> = 0>
+DS_CXX14_CONSTEXPR bool operator>(const optional<T>& opt, const U& val)
+{
+  return !(opt <= val);
+}
+
+template <typename T,
+          typename U,
+          enable_if_t<detail::is_gt_comparable_with<T, U>::value, int> = 0>
+DS_CXX14_CONSTEXPR bool operator>(const T& val, const optional<U>& opt)
+{
+  return !(val <= opt);
+}
+
+template <typename T,
+          typename U,
+          enable_if_t<detail::is_ge_comparable_with<T, U>::value, int> = 0>
+DS_CXX14_CONSTEXPR bool operator>=(const optional<T>& opt, const U& val)
+{
+  return !(opt < val);
+}
+
+template <typename T,
+          typename U,
+          enable_if_t<detail::is_ge_comparable_with<T, U>::value, int> = 0>
+DS_CXX14_CONSTEXPR bool operator>=(const T& val, const optional<U>& opt)
+{
+  return !(val < opt);
+}
 
 template <typename T>
 constexpr optional<decay_t<T>> make_optional(T&& value)
