@@ -125,61 +125,51 @@ namespace detail {
   using std::swap;
 
   template <typename T, typename U, typename = void>
-  struct can_swap_with_impl : std::false_type { };
+  struct is_swappable_with_impl : std::false_type { };
 
   template <typename T, typename U>
-  struct can_swap_with_impl<
+  struct is_swappable_with_impl<
       T,
       U,
       void_t<decltype(swap(std::declval<T>(), std::declval<U>()))>>
       : std::true_type { };
-
-  template <typename T, typename U>
-  struct can_swap_with : can_swap_with_impl<T, U> { };
 }
 
 template <typename T, typename U>
-struct is_swappable_with
-    : integral_constant<bool,
-                        conjunction<detail::can_swap_with<T, U>,
-                                    detail::can_swap_with<U, T>>::value> { };
+struct is_swappable_with : conjunction<detail::is_swappable_with_impl<T, U>,
+                                       detail::is_swappable_with_impl<U, T>> {
+};
 
 template <typename T>
 struct is_swappable
-    : integral_constant<bool,
-                        conjunction<detail::can_swap_with<
-                            add_lvalue_reference_t<T>,
-                            add_lvalue_reference_t<T>>>::value> { };
+    : conjunction<detail::is_swappable_with_impl<add_lvalue_reference_t<T>,
+                                                 add_lvalue_reference_t<T>>> {
+};
 
 namespace detail {
   using std::swap;
 
   template <typename T, typename U, bool = is_swappable_with<T, U>::value>
-  struct can_nothrow_swap_with_impl : std::false_type { };
+  struct is_nothrow_swappable_with_impl : std::false_type { };
 
   template <typename T, typename U>
-  struct can_nothrow_swap_with_impl<T, U, true> {
-    static constexpr bool value
-        = noexcept(swap(std::declval<T>(), std::declval<U>()));
-  };
-
-  template <typename T, typename U>
-  struct can_nothrow_swap_with : can_nothrow_swap_with_impl<T, U> { };
+  struct is_nothrow_swappable_with_impl<T, U, true>
+      : integral_constant<bool,
+                          noexcept(
+                              swap(std::declval<T>(), std::declval<U>()))> { };
 }
 
 template <typename T, typename U>
 struct is_nothrow_swappable_with
-    : integral_constant<
-          bool,
-          conjunction<detail::can_nothrow_swap_with<T, U>,
-                      detail::can_nothrow_swap_with<U, T>>::value> { };
+    : conjunction<detail::is_nothrow_swappable_with_impl<T, U>,
+                  detail::is_nothrow_swappable_with_impl<U, T>> { };
 
 template <typename T>
 struct is_nothrow_swappable
-    : integral_constant<bool,
-                        conjunction<detail::can_nothrow_swap_with<
-                            add_lvalue_reference_t<T>,
-                            add_lvalue_reference_t<T>>>::value> { };
+    : conjunction<
+          detail::is_nothrow_swappable_with_impl<add_lvalue_reference_t<T>,
+                                                 add_lvalue_reference_t<T>>> {
+};
 
 #else
 

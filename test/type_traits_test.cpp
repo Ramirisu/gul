@@ -40,8 +40,6 @@ TEST_CASE("is_swappable_with")
 {
   static_assert(!is_swappable_with<int, int>::value, "");
   static_assert(is_swappable_with<int&, int&>::value, "");
-  static_assert(!is_swappable_with<int[1], int[1]>::value, "");
-  static_assert(is_swappable_with<int(&)[1], int(&)[1]>::value, "");
   static_assert(
       is_swappable_with<std::std_swappable&, std::std_swappable&>::value, "");
   static_assert(
@@ -54,7 +52,6 @@ TEST_CASE("is_swappable_with")
 TEST_CASE("is_swappable")
 {
   static_assert(is_swappable<int>::value, "");
-  static_assert(is_swappable<int[1]>::value, "");
   static_assert(is_swappable<std::std_swappable>::value, "");
   static_assert(is_swappable<non_std_swappable>::value, "");
   static_assert(!is_swappable<non_swappable>::value, "");
@@ -64,8 +61,6 @@ TEST_CASE("is_nothrow_swappable_with")
 {
   static_assert(!is_nothrow_swappable_with<int, int>::value, "");
   static_assert(is_nothrow_swappable_with<int&, int&>::value, "");
-  static_assert(!is_nothrow_swappable_with<int[1], int[1]>::value, "");
-  static_assert(is_nothrow_swappable_with<int(&)[1], int(&)[1]>::value, "");
   static_assert(!is_nothrow_swappable_with<std::std_swappable&,
                                            std::std_swappable&>::value,
                 "");
@@ -90,7 +85,6 @@ TEST_CASE("is_nothrow_swappable_with")
 TEST_CASE("is_nothrow_swappable")
 {
   static_assert(is_nothrow_swappable<int>::value, "");
-  static_assert(is_nothrow_swappable<int[1]>::value, "");
   static_assert(!is_nothrow_swappable<std::std_swappable>::value, "");
   static_assert(!is_nothrow_swappable<non_std_swappable>::value, "");
   static_assert(!is_nothrow_swappable<non_swappable>::value, "");
