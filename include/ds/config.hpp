@@ -32,11 +32,19 @@
 #define DS_HAS_CXX20
 #endif
 
+// clang-format off
 #if __cpp_exceptions >= 199711
 #define DS_NO_EXCEPTIONS 0
+#define DS_TRY try
+#define DS_CATCH(...) catch (__VA_ARGS__)
+#define DS_RETHROW() throw
 #else
 #define DS_NO_EXCEPTIONS 1
+#define DS_TRY
+#define DS_CATCH(...) if (true) { } else
+#define DS_RETHROW() ((void)0)
 #endif
+// clang-format on
 
 #ifdef DS_HAS_CXX14
 #define DS_CXX14_CONSTEXPR constexpr

@@ -33,17 +33,17 @@ class basic_string_view {
     {
     }
 
-    constexpr reference operator*() noexcept
+    DS_CXX14_CONSTEXPR reference operator*() noexcept
     {
       return *curr_;
     }
 
-    constexpr pointer operator->() noexcept
+    DS_CXX14_CONSTEXPR pointer operator->() noexcept
     {
       return curr_;
     }
 
-    constexpr reference operator[](difference_type n)
+    DS_CXX14_CONSTEXPR reference operator[](difference_type n)
     {
       return *(curr_ + n);
     }
@@ -155,6 +155,15 @@ class basic_string_view {
     const CharT* curr_;
   };
 
+  void throw_out_of_range(const char* msg) const
+  {
+#if DS_NO_EXCEPTIONS
+    std::abort();
+#else
+    throw std::out_of_range(msg);
+#endif
+  }
+
 public:
   using traits_type = Traits;
   using value_type = CharT;
@@ -194,8 +203,7 @@ public:
   constexpr basic_string_view(const basic_string_view&) noexcept = default;
 
   DS_CXX14_CONSTEXPR basic_string_view&
-  operator=(const basic_string_view&) noexcept
-      = default;
+  operator=(const basic_string_view&) noexcept = default;
 
   DS_CXX14_CONSTEXPR const_reference operator[](size_type index) const
   {
@@ -206,7 +214,7 @@ public:
   DS_CXX14_CONSTEXPR const_reference at(size_type index) const
   {
     if (index >= size()) {
-      throw std::out_of_range("[basic_string_view::at] index out of range");
+      throw_out_of_range("[basic_string_view::at] index out of range");
     }
 
     return *(start_ + index);
@@ -273,7 +281,7 @@ public:
                                     size_type index) const
   {
     if (index > size_) {
-      throw std::out_of_range("[basic_string_view::copy] index out of range");
+      throw_out_of_range("[basic_string_view::copy] index out of range");
     }
 
     const auto len = std::min(count, size_ - index);
@@ -659,7 +667,7 @@ public:
     return const_reverse_iterator(cbegin());
   }
 
-  constexpr explicit operator std::basic_string<CharT, Traits>()
+  constexpr explicit operator std::basic_string<CharT, Traits>() const
   {
     return std::basic_string<CharT, Traits>(start_, size_);
   }

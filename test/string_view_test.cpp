@@ -56,7 +56,9 @@ TEST_CASE("basic")
   {
     string_view sv(s);
     char buf[16] = {};
+#if !DS_NO_EXCEPTIONS
     CHECK_THROWS_AS(sv.copy(buf, sv.size(), sv.size() + 1), std::out_of_range);
+#endif
     CHECK_EQ(sv.copy(buf, 3, 6), 3);
     CHECK_EQ(string_view(s + 6, 3).compare(0, 3, buf), 0);
     CHECK_EQ(sv.copy(buf, 12, 6), 6);

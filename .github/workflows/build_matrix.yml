@@ -27,10 +27,22 @@ jobs:
             build_type: Debug
             generators: Ninja
           - os: ubuntu-20.04
+            cxx: g++-5
+            std: 11
+            build_type: Debug
+            generators: Ninja
+            extra_args: -DCMAKE_CXX_FLAGS=-fno-exceptions
+          - os: ubuntu-20.04
             cxx: clang++-9
             std: 11
             build_type: Debug
             generators: Ninja
+          - os: ubuntu-20.04
+            cxx: clang++-9
+            std: 11
+            build_type: Debug
+            generators: Ninja
+            extra_args: -DCMAKE_CXX_FLAGS=-fno-exceptions
           - os: windows-2019
             cxx: cl
             std: 14
