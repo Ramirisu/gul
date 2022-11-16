@@ -2,7 +2,7 @@
 
 [![build](https://github.com/Ramirisu/ds/actions/workflows/build_matrix.yml/badge.svg)](https://github.com/Ramirisu/ds/actions/workflows/build_matrix.yml)
 ![std](https://img.shields.io/badge/std-11%2F14%2F17%2F20-blue.svg)
-![license](https://img.shields.io/badge/license-MIT-blue)
+![license](https://img.shields.io/badge/license-BSL--1.0-blue)
 
 ds is an open-source library providing general utilities for c++11. Many of them are backported from later standard version.
 
@@ -41,4 +41,4 @@ cd build && ctest && cd ..
 
 ## License
 
-This project is distributed under the [MIT License](https://github.com/Ramirisu/ds/blob/main/LICENSE).
+This project is distributed under the [Boost Software License 1.0](https://github.com/Ramirisu/ds/blob/main/LICENSE).
