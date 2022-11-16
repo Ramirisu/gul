@@ -1,3 +1,10 @@
+//
+// Copyright (c) 2022 Ramirisu (labyrinth dot ramirisu at gmail dot com)
+//
+// Distributed under the Boost Software License, Version 1.0. (See accompanying
+// file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+//
+
 #pragma once
 
 #include <ds/config.hpp>
@@ -34,7 +41,8 @@ public:
       enable_if_t<conjunction<negation<is_same<remove_cvref_t<E2>, in_place_t>>,
                               negation<is_same<remove_cvref_t<E2>, unexpected>>,
                               is_constructible<E, E2>>::value,
-                  int> = 0>
+                  int>
+      = 0>
   DS_CXX14_CONSTEXPR explicit unexpected(E2&& err)
       : err_(std::forward<E2>(err))
   {
@@ -51,7 +59,8 @@ public:
             typename... Args,
             enable_if_t<
                 is_constructible<E, std::initializer_list<U>&, Args...>::value,
-                int> = 0>
+                int>
+            = 0>
   DS_CXX14_CONSTEXPR explicit unexpected(in_place_t,
                                          std::initializer_list<U> init,
                                          Args&&... args)
@@ -899,16 +908,20 @@ namespace detail {
     DS_CXX14_CONSTEXPR expected_default_constructible_base() noexcept = default;
 
     DS_CXX14_CONSTEXPR expected_default_constructible_base(
-        const expected_default_constructible_base&) noexcept = default;
+        const expected_default_constructible_base&) noexcept
+        = default;
 
     DS_CXX14_CONSTEXPR expected_default_constructible_base(
-        expected_default_constructible_base&&) noexcept = default;
+        expected_default_constructible_base&&) noexcept
+        = default;
 
     DS_CXX14_CONSTEXPR expected_default_constructible_base&
-    operator=(const expected_default_constructible_base&) noexcept = default;
+    operator=(const expected_default_constructible_base&) noexcept
+        = default;
 
     DS_CXX14_CONSTEXPR expected_default_constructible_base&
-    operator=(expected_default_constructible_base&&) noexcept = default;
+    operator=(expected_default_constructible_base&&) noexcept
+        = default;
   };
 
   template <typename T>
@@ -919,16 +932,20 @@ namespace detail {
     DS_CXX14_CONSTEXPR expected_default_constructible_base() noexcept = delete;
 
     DS_CXX14_CONSTEXPR expected_default_constructible_base(
-        const expected_default_constructible_base&) noexcept = default;
+        const expected_default_constructible_base&) noexcept
+        = default;
 
     DS_CXX14_CONSTEXPR expected_default_constructible_base(
-        expected_default_constructible_base&&) noexcept = default;
+        expected_default_constructible_base&&) noexcept
+        = default;
 
     DS_CXX14_CONSTEXPR expected_default_constructible_base&
-    operator=(const expected_default_constructible_base&) noexcept = default;
+    operator=(const expected_default_constructible_base&) noexcept
+        = default;
 
     DS_CXX14_CONSTEXPR expected_default_constructible_base&
-    operator=(expected_default_constructible_base&&) noexcept = default;
+    operator=(expected_default_constructible_base&&) noexcept
+        = default;
   };
 }
 
@@ -953,8 +970,7 @@ class expected : private detail::expected_move_assign_base<T, E>,
             is_constructible<unexpected<E>, expected<T2, E2>&>,
             is_constructible<unexpected<E>, expected<T2, E2>>,
             is_constructible<unexpected<E>, const expected<T2, E2>&>,
-            is_constructible<unexpected<E>, const expected<T2, E2>>>> {
-  };
+            is_constructible<unexpected<E>, const expected<T2, E2>>>> { };
 
   template <typename Self, typename F>
   static DS_CXX14_CONSTEXPR auto
@@ -1168,7 +1184,8 @@ public:
                                           is_constructible<T, const T2&>>,
                               is_constructible<E, const E2&>,
                               is_expected_constructible<T2, E2>>::value,
-                  int> = 0>
+                  int>
+      = 0>
   DS_CXX14_CONSTEXPR
       DS_CXX20_EXPLICIT((!is_convertible<const T2&, T>::value
                          || !is_convertible<const E2&, E>::value))
@@ -1185,7 +1202,8 @@ public:
                                           is_constructible<T, T2>>,
                               is_constructible<E, E2>,
                               is_expected_constructible<T2, E2>>::value,
-                  int> = 0>
+                  int>
+      = 0>
   DS_CXX14_CONSTEXPR DS_CXX20_EXPLICIT((!is_convertible<T2, T>::value
                                         || !is_convertible<E2, E>::value))
       expected(expected<T2, E2>&& other)
@@ -1203,7 +1221,8 @@ public:
                     negation<is_same<remove_cvref<U>, expected>>,
                     negation<is_specialization_of<remove_cvref<U>, unexpected>>,
                     is_constructible<T, U>>::value,
-                int> = 0>
+                int>
+            = 0>
   DS_CXX14_CONSTEXPR DS_CXX20_EXPLICIT((!is_convertible<U, T>::value))
       expected(U&& u)
       : base_type(in_place, std::forward<U>(u))
@@ -1258,7 +1277,8 @@ public:
           conjunction<
               negation<is_void<T>>,
               is_constructible<T, std::initializer_list<U>&, Args...>>::value,
-          int> = 0>
+          int>
+      = 0>
   DS_CXX14_CONSTEXPR explicit expected(in_place_t,
                                        std::initializer_list<U> init,
                                        Args&&... args)
@@ -1293,7 +1313,8 @@ public:
             typename... Args,
             enable_if_t<
                 is_constructible<E, std::initializer_list<U>&, Args...>::value,
-                int> = 0>
+                int>
+            = 0>
   DS_CXX14_CONSTEXPR explicit expected(unexpect_t,
                                        std::initializer_list<U> init,
                                        Args&&... args)
@@ -1320,7 +1341,8 @@ public:
                     negation<is_specialization_of<remove_cvref<U>, unexpected>>,
                     is_constructible<T, U>,
                     is_assignable<add_lvalue_reference_t<T>, U>>::value,
-                int> = 0>
+                int>
+            = 0>
   DS_CXX14_CONSTEXPR expected& operator=(U&& u)
   {
     if (this->has_value()) {
@@ -1338,7 +1360,8 @@ public:
             enable_if_t<conjunction<is_constructible<E, const E2&>,
                                     is_assignable<add_lvalue_reference_t<E>,
                                                   const E2&>>::value,
-                        int> = 0>
+                        int>
+            = 0>
   DS_CXX14_CONSTEXPR expected& operator=(const unexpected<E2>& une)
   {
     if (this->has_value()) {
@@ -1357,7 +1380,8 @@ public:
       enable_if_t<
           conjunction<is_constructible<E, E2>,
                       is_assignable<add_lvalue_reference_t<E>, E2>>::value,
-          int> = 0>
+          int>
+      = 0>
   DS_CXX14_CONSTEXPR expected& operator=(unexpected<E2>&& une)
   {
     if (this->has_value()) {
@@ -1467,7 +1491,8 @@ public:
   template <
       typename... Args,
       enable_if_t<disjunction<is_void<T>, is_constructible<T, Args...>>::value,
-                  int> = 0>
+                  int>
+      = 0>
   DS_CXX14_CONSTEXPR auto emplace(Args&&... args) noexcept(is_void<T>::value)
       -> decltype(this->construct_val(std::forward<Args>(args)...))
   {
@@ -1485,7 +1510,8 @@ public:
             typename... Args,
             enable_if_t<
                 is_constructible<T, std::initializer_list<U>&, Args...>::value,
-                int> = 0>
+                int>
+            = 0>
   DS_CXX14_CONSTEXPR auto emplace(std::initializer_list<U> init, Args&&... args)
       -> decltype(this->construct_val(init, std::forward<Args>(args)...))
   {
@@ -1648,7 +1674,8 @@ public:
       enable_if_t<conjunction<is_void<T>,
                               is_void<T2>,
                               detail::is_eq_comparable_with<E, E2>>::value,
-                  int> = 0>
+                  int>
+      = 0>
   friend DS_CXX14_CONSTEXPR bool operator==(const expected& lhs,
                                             const expected<T2, E2>& rhs)
   {
@@ -1668,7 +1695,8 @@ public:
       enable_if_t<conjunction<is_void<T>,
                               is_void<T2>,
                               detail::is_eq_comparable_with<E, E2>>::value,
-                  int> = 0>
+                  int>
+      = 0>
   friend DS_CXX14_CONSTEXPR bool operator!=(const expected& lhs,
                                             const expected<T2, E2>& rhs)
   {
@@ -1680,7 +1708,8 @@ public:
       typename E2,
       enable_if_t<conjunction<detail::is_eq_comparable_with<T, T2>,
                               detail::is_eq_comparable_with<E, E2>>::value,
-                  int> = 0>
+                  int>
+      = 0>
   friend DS_CXX14_CONSTEXPR bool operator==(const expected& lhs,
                                             const expected<T2, E2>& rhs)
   {
@@ -1699,7 +1728,8 @@ public:
       typename E2,
       enable_if_t<conjunction<detail::is_eq_comparable_with<T, T2>,
                               detail::is_eq_comparable_with<E, E2>>::value,
-                  int> = 0>
+                  int>
+      = 0>
   friend DS_CXX14_CONSTEXPR bool operator!=(const expected& lhs,
                                             const expected<T2, E2>& rhs)
   {
@@ -1710,7 +1740,8 @@ public:
       typename T2,
       enable_if_t<conjunction<negation<is_void<T>>,
                               detail::is_eq_comparable_with<T, T2>>::value,
-                  int> = 0>
+                  int>
+      = 0>
   friend DS_CXX14_CONSTEXPR bool operator==(const expected& lhs, const T2& rhs)
   {
     return lhs.has_value() && static_cast<bool>(lhs.value() == rhs);
@@ -1720,7 +1751,8 @@ public:
       typename T2,
       enable_if_t<conjunction<negation<is_void<T>>,
                               detail::is_eq_comparable_with<T, T2>>::value,
-                  int> = 0>
+                  int>
+      = 0>
   friend DS_CXX14_CONSTEXPR bool operator!=(const expected& lhs, const T2& rhs)
   {
     return !(lhs == rhs);
