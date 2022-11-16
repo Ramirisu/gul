@@ -19,10 +19,10 @@
 #include <memory>
 
 namespace ds {
-template <typename Key, typename T, typename Compare = std::less<Key>>
+template <typename Key, typename T>
 class fifo_map {
   using value_type_impl = std::pair<Key, T>;
-  using map_type = std::map<Key, T, Compare>;
+  using map_type = std::map<Key, T>;
   using queue_type = std::deque<typename map_type::iterator>;
 
   template <bool Const>
@@ -96,31 +96,12 @@ class fifo_map {
     parent_iterator curr_;
   };
 
-  class value_compare_impl {
-  public:
-    value_compare_impl(Compare compare)
-        : compare_(std::move(compare))
-    {
-    }
-
-    bool operator()(const value_type_impl& lhs,
-                    const value_type_impl& rhs) const
-    {
-      return compare_(lhs.first, rhs.first);
-    }
-
-  private:
-    Compare compare_;
-  };
-
 public:
   using key_type = Key;
   using mapped_type = T;
   using value_type = std::pair<const Key, T>;
   using size_type = std::size_t;
   using difference_type = std::ptrdiff_t;
-  using key_compare = Compare;
-  using value_compare = value_compare_impl;
   using reference = value_type&;
   using const_reference = const value_type&;
   using iterator = iterator_impl<false>;
@@ -303,16 +284,6 @@ public:
   const_reverse_iterator crend() const
   {
     return const_reverse_iterator(queue_.crend());
-  }
-
-  key_compare key_comp() const
-  {
-    return map_.key_comp();
-  }
-
-  value_compare value_comp() const
-  {
-    return value_compare(key_comp());
   }
 
 private:
