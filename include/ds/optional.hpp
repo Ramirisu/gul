@@ -13,7 +13,7 @@
 #include <ds/type_traits.hpp>
 #include <ds/utility.hpp>
 
-namespace ds {
+DS_NAMESPACE_BEGIN
 
 struct nullopt_t {
   struct tag_t {
@@ -44,495 +44,493 @@ public:
 #endif
 
 namespace detail {
-  struct optional_throw_base {
-    void throw_bad_optional_access() const
-    {
+struct optional_throw_base {
+  void throw_bad_optional_access() const
+  {
 #if DS_NO_EXCEPTIONS
-      std::abort();
+    std::abort();
 #else
-      throw bad_optional_access();
+    throw bad_optional_access();
 #endif
-    }
+  }
+};
+
+template <typename T, bool = is_trivially_destructible<T>::value>
+struct optional_destruct_base : optional_throw_base {
+  union {
+    char nul_;
+    T val_;
   };
+  bool has_;
 
-  template <typename T, bool = is_trivially_destructible<T>::value>
-  struct optional_destruct_base : optional_throw_base {
-    union {
-      char nul_;
-      T val_;
-    };
-    bool has_;
+  DS_CXX14_CONSTEXPR optional_destruct_base() noexcept
+      : nul_()
+      , has_(false)
+  {
+  }
 
-    DS_CXX14_CONSTEXPR optional_destruct_base() noexcept
-        : nul_()
-        , has_(false)
-    {
+  template <typename... Args>
+  DS_CXX14_CONSTEXPR explicit optional_destruct_base(in_place_t, Args&&... args)
+      : val_(std::forward<Args>(args)...)
+      , has_(true)
+  {
+  }
+
+  DS_CXX14_CONSTEXPR bool has_value() const noexcept
+  {
+    return has_;
+  }
+
+  DS_CXX14_CONSTEXPR void reset() noexcept
+  {
+    has_ = false;
+  }
+};
+
+template <typename T>
+struct optional_destruct_base<T, false> : optional_throw_base {
+  union {
+    char nul_;
+    T val_;
+  };
+  bool has_;
+
+  DS_CXX14_CONSTEXPR optional_destruct_base() noexcept
+      : nul_()
+      , has_(false)
+  {
+  }
+
+  template <typename... Args>
+  DS_CXX14_CONSTEXPR explicit optional_destruct_base(in_place_t, Args&&... args)
+      : val_(std::forward<Args>(args)...)
+      , has_(true)
+  {
+  }
+
+  ~optional_destruct_base()
+  {
+    if (has_) {
+      val_.~T();
     }
+  }
 
-    template <typename... Args>
-    DS_CXX14_CONSTEXPR explicit optional_destruct_base(in_place_t,
-                                                       Args&&... args)
-        : val_(std::forward<Args>(args)...)
-        , has_(true)
-    {
-    }
+  DS_CXX14_CONSTEXPR bool has_value() const noexcept
+  {
+    return has_;
+  }
 
-    DS_CXX14_CONSTEXPR bool has_value() const noexcept
-    {
-      return has_;
-    }
-
-    DS_CXX14_CONSTEXPR void reset() noexcept
-    {
+  DS_CXX14_CONSTEXPR void reset() noexcept
+  {
+    if (has_) {
+      val_.~T();
       has_ = false;
     }
-  };
+  }
+};
 
-  template <typename T>
-  struct optional_destruct_base<T, false> : optional_throw_base {
-    union {
-      char nul_;
-      T val_;
-    };
-    bool has_;
+template <typename T, bool = is_reference<T>::value>
+struct optional_storage_base : optional_destruct_base<T> {
+  using optional_destruct_base<T>::optional_destruct_base;
 
-    DS_CXX14_CONSTEXPR optional_destruct_base() noexcept
-        : nul_()
-        , has_(false)
-    {
+  DS_CXX14_CONSTEXPR T& operator*() & noexcept
+  {
+    DS_ASSERT(this->has_);
+    return this->val_;
+  }
+
+  DS_CXX14_CONSTEXPR const T& operator*() const& noexcept
+  {
+    DS_ASSERT(this->has_);
+    return this->val_;
+  }
+
+  DS_CXX14_CONSTEXPR T&& operator*() && noexcept
+  {
+    DS_ASSERT(this->has_);
+    return std::move(this->val_);
+  }
+
+  DS_CXX14_CONSTEXPR const T&& operator*() const&& noexcept
+  {
+    DS_ASSERT(this->has_);
+    return std::move(this->val_);
+  }
+
+  DS_CXX14_CONSTEXPR T& value() &
+  {
+    if (!this->has_) {
+      this->throw_bad_optional_access();
     }
+    return this->val_;
+  }
 
-    template <typename... Args>
-    DS_CXX14_CONSTEXPR explicit optional_destruct_base(in_place_t,
-                                                       Args&&... args)
-        : val_(std::forward<Args>(args)...)
-        , has_(true)
-    {
+  DS_CXX14_CONSTEXPR const T& value() const&
+  {
+    if (!this->has_) {
+      this->throw_bad_optional_access();
     }
+    return this->val_;
+  }
 
-    ~optional_destruct_base()
-    {
-      if (has_) {
-        val_.~T();
+  DS_CXX14_CONSTEXPR T&& value() &&
+  {
+    if (!this->has_) {
+      this->throw_bad_optional_access();
+    }
+    return std::move(this->val_);
+  }
+
+  DS_CXX14_CONSTEXPR const T&& value() const&&
+  {
+    if (!this->has_) {
+      this->throw_bad_optional_access();
+    }
+    return std::move(this->val_);
+  }
+
+  template <typename... Args>
+  DS_CXX14_CONSTEXPR T& construct(Args&&... args)
+  {
+    DS_ASSERT(!this->has_);
+    auto& val
+        = *(::new (std::addressof(this->val_)) T(std::forward<Args>(args)...));
+    this->has_ = true;
+    return val;
+  }
+
+  DS_CXX14_CONSTEXPR void destroy()
+  {
+    DS_ASSERT(this->has_);
+    this->val_.~T();
+    this->has_ = false;
+  }
+
+  template <typename Other>
+  DS_CXX14_CONSTEXPR void construct_from(Other&& other)
+  {
+    if (other.has_value()) {
+      construct(std::forward<Other>(other).value());
+    }
+  }
+
+  template <typename Other>
+  DS_CXX14_CONSTEXPR void assign_from(Other&& other)
+  {
+    if (this->has_) {
+      if (other.has_value()) {
+        this->val_ = std::forward<Other>(other).value();
+      } else {
+        this->reset();
+      }
+    } else {
+      if (other.has_value()) {
+        construct(std::forward<Other>(other).value());
+        this->has_ = true;
       }
     }
+  }
+};
 
-    DS_CXX14_CONSTEXPR bool has_value() const noexcept
-    {
-      return has_;
+template <typename T>
+struct optional_storage_base<T, true> : optional_throw_base {
+  remove_reference_t<T>* valptr_;
+
+  DS_CXX14_CONSTEXPR optional_storage_base() noexcept
+      : valptr_(nullptr)
+  {
+  }
+
+  template <typename U>
+  DS_CXX14_CONSTEXPR optional_storage_base(in_place_t, U&& val) noexcept
+      : valptr_(std::addressof(val))
+  {
+  }
+
+  DS_CXX14_CONSTEXPR bool has_value() const noexcept
+  {
+    return valptr_ != nullptr;
+  }
+
+  DS_CXX14_CONSTEXPR void reset() noexcept
+  {
+    valptr_ = nullptr;
+  }
+
+  DS_CXX14_CONSTEXPR T& operator*() const& noexcept
+  {
+    DS_ASSERT(has_value());
+    return *valptr_;
+  }
+
+  DS_CXX14_CONSTEXPR T&& operator*() const&& noexcept
+  {
+    DS_ASSERT(has_value());
+    return std::forward<T>(*valptr_);
+  }
+
+  DS_CXX14_CONSTEXPR T& value() const&
+  {
+    if (!has_value()) {
+      this->throw_bad_optional_access();
     }
+    return *valptr_;
+  }
 
-    DS_CXX14_CONSTEXPR void reset() noexcept
-    {
-      if (has_) {
-        val_.~T();
-        has_ = false;
+  DS_CXX14_CONSTEXPR T&& value() const&&
+  {
+    if (!has_value()) {
+      this->throw_bad_optional_access();
+    }
+    return std::forward<T>(*valptr_);
+  }
+
+  template <typename U>
+  DS_CXX14_CONSTEXPR T& construct(U&& u)
+  {
+    DS_ASSERT(!has_value());
+    valptr_ = std::addressof(u);
+    return *valptr_;
+  }
+
+  template <typename Other>
+  DS_CXX14_CONSTEXPR void construct_from(Other&& other)
+  {
+    if (other.has_value()) {
+      construct(std::forward<Other>(other).value());
+    }
+  }
+
+  template <typename Other>
+  DS_CXX14_CONSTEXPR void assign_from(Other&& other)
+  {
+    if (has_value()) {
+      if (other.has_value()) {
+        *valptr_ = std::forward<Other>(other).value();
+      } else {
+        reset();
       }
-    }
-  };
-
-  template <typename T, bool = is_reference<T>::value>
-  struct optional_storage_base : optional_destruct_base<T> {
-    using optional_destruct_base<T>::optional_destruct_base;
-
-    DS_CXX14_CONSTEXPR T& operator*() & noexcept
-    {
-      DS_ASSERT(this->has_);
-      return this->val_;
-    }
-
-    DS_CXX14_CONSTEXPR const T& operator*() const& noexcept
-    {
-      DS_ASSERT(this->has_);
-      return this->val_;
-    }
-
-    DS_CXX14_CONSTEXPR T&& operator*() && noexcept
-    {
-      DS_ASSERT(this->has_);
-      return std::move(this->val_);
-    }
-
-    DS_CXX14_CONSTEXPR const T&& operator*() const&& noexcept
-    {
-      DS_ASSERT(this->has_);
-      return std::move(this->val_);
-    }
-
-    DS_CXX14_CONSTEXPR T& value() &
-    {
-      if (!this->has_) {
-        this->throw_bad_optional_access();
-      }
-      return this->val_;
-    }
-
-    DS_CXX14_CONSTEXPR const T& value() const&
-    {
-      if (!this->has_) {
-        this->throw_bad_optional_access();
-      }
-      return this->val_;
-    }
-
-    DS_CXX14_CONSTEXPR T&& value() &&
-    {
-      if (!this->has_) {
-        this->throw_bad_optional_access();
-      }
-      return std::move(this->val_);
-    }
-
-    DS_CXX14_CONSTEXPR const T&& value() const&&
-    {
-      if (!this->has_) {
-        this->throw_bad_optional_access();
-      }
-      return std::move(this->val_);
-    }
-
-    template <typename... Args>
-    DS_CXX14_CONSTEXPR T& construct(Args&&... args)
-    {
-      DS_ASSERT(!this->has_);
-      auto& val = *(::new (std::addressof(this->val_))
-                        T(std::forward<Args>(args)...));
-      this->has_ = true;
-      return val;
-    }
-
-    DS_CXX14_CONSTEXPR void destroy()
-    {
-      DS_ASSERT(this->has_);
-      this->val_.~T();
-      this->has_ = false;
-    }
-
-    template <typename Other>
-    DS_CXX14_CONSTEXPR void construct_from(Other&& other)
-    {
+    } else {
       if (other.has_value()) {
         construct(std::forward<Other>(other).value());
       }
     }
+  }
+};
 
-    template <typename Other>
-    DS_CXX14_CONSTEXPR void assign_from(Other&& other)
-    {
-      if (this->has_) {
-        if (other.has_value()) {
-          this->val_ = std::forward<Other>(other).value();
-        } else {
-          this->reset();
-        }
-      } else {
-        if (other.has_value()) {
-          construct(std::forward<Other>(other).value());
-          this->has_ = true;
-        }
-      }
+template <bool B>
+struct optional_storage_base<void, B> : optional_throw_base {
+  bool has_;
+
+  DS_CXX14_CONSTEXPR optional_storage_base() noexcept
+      : has_(false)
+  {
+  }
+
+  DS_CXX14_CONSTEXPR optional_storage_base(in_place_t) noexcept
+      : has_(true)
+  {
+  }
+
+  DS_CXX14_CONSTEXPR bool has_value() const noexcept
+  {
+    return has_;
+  }
+
+  DS_CXX14_CONSTEXPR void reset() noexcept
+  {
+    has_ = false;
+  }
+
+  DS_CXX14_CONSTEXPR void operator*() & noexcept
+  {
+    DS_ASSERT(has_);
+  }
+
+  DS_CXX14_CONSTEXPR void operator*() const& noexcept
+  {
+    DS_ASSERT(has_);
+  }
+
+  DS_CXX14_CONSTEXPR void operator*() && noexcept
+  {
+    DS_ASSERT(has_);
+  }
+
+  DS_CXX14_CONSTEXPR void operator*() const&& noexcept
+  {
+    DS_ASSERT(has_);
+  }
+
+  DS_CXX14_CONSTEXPR void value() &
+  {
+    if (!has_value()) {
+      this->throw_bad_optional_access();
     }
-  };
+  }
 
-  template <typename T>
-  struct optional_storage_base<T, true> : optional_throw_base {
-    remove_reference_t<T>* valptr_;
-
-    DS_CXX14_CONSTEXPR optional_storage_base() noexcept
-        : valptr_(nullptr)
-    {
+  DS_CXX14_CONSTEXPR void value() const&
+  {
+    if (!has_value()) {
+      this->throw_bad_optional_access();
     }
+  }
 
-    template <typename U>
-    DS_CXX14_CONSTEXPR optional_storage_base(in_place_t, U&& val) noexcept
-        : valptr_(std::addressof(val))
-    {
+  DS_CXX14_CONSTEXPR void value() &&
+  {
+    if (!has_value()) {
+      this->throw_bad_optional_access();
     }
+  }
 
-    DS_CXX14_CONSTEXPR bool has_value() const noexcept
-    {
-      return valptr_ != nullptr;
+  DS_CXX14_CONSTEXPR void value() const&&
+  {
+    if (!has_value()) {
+      this->throw_bad_optional_access();
     }
+  }
 
-    DS_CXX14_CONSTEXPR void reset() noexcept
-    {
-      valptr_ = nullptr;
-    }
+  DS_CXX14_CONSTEXPR void construct() noexcept
+  {
+    has_ = true;
+  }
 
-    DS_CXX14_CONSTEXPR T& operator*() const& noexcept
-    {
-      DS_ASSERT(has_value());
-      return *valptr_;
-    }
+  DS_CXX14_CONSTEXPR void destroy() noexcept
+  {
+    has_ = false;
+  }
+};
 
-    DS_CXX14_CONSTEXPR T&& operator*() const&& noexcept
-    {
-      DS_ASSERT(has_value());
-      return std::forward<T>(*valptr_);
-    }
+template <typename T,
+          bool
+          = disjunction<is_void<T>, is_trivially_copy_constructible<T>>::value>
+struct optional_copy_construct_base : optional_storage_base<T> {
+  using optional_storage_base<T>::optional_storage_base;
+};
 
-    DS_CXX14_CONSTEXPR T& value() const&
-    {
-      if (!has_value()) {
-        this->throw_bad_optional_access();
-      }
-      return *valptr_;
-    }
+template <typename T>
+struct optional_copy_construct_base<T, false> : optional_storage_base<T> {
+  using optional_storage_base<T>::optional_storage_base;
 
-    DS_CXX14_CONSTEXPR T&& value() const&&
-    {
-      if (!has_value()) {
-        this->throw_bad_optional_access();
-      }
-      return std::forward<T>(*valptr_);
-    }
+  DS_CXX14_CONSTEXPR optional_copy_construct_base() = default;
 
-    template <typename U>
-    DS_CXX14_CONSTEXPR T& construct(U&& u)
-    {
-      DS_ASSERT(!has_value());
-      valptr_ = std::addressof(u);
-      return *valptr_;
-    }
+  DS_CXX14_CONSTEXPR
+  optional_copy_construct_base(const optional_copy_construct_base& other)
+  {
+    this->construct_from(other);
+  }
 
-    template <typename Other>
-    DS_CXX14_CONSTEXPR void construct_from(Other&& other)
-    {
-      if (other.has_value()) {
-        construct(std::forward<Other>(other).value());
-      }
-    }
+  DS_CXX14_CONSTEXPR
+  optional_copy_construct_base(optional_copy_construct_base&&) = default;
 
-    template <typename Other>
-    DS_CXX14_CONSTEXPR void assign_from(Other&& other)
-    {
-      if (has_value()) {
-        if (other.has_value()) {
-          *valptr_ = std::forward<Other>(other).value();
-        } else {
-          reset();
-        }
-      } else {
-        if (other.has_value()) {
-          construct(std::forward<Other>(other).value());
-        }
-      }
-    }
-  };
+  DS_CXX14_CONSTEXPR optional_copy_construct_base&
+  operator=(const optional_copy_construct_base&)
+      = default;
 
-  template <bool B>
-  struct optional_storage_base<void, B> : optional_throw_base {
-    bool has_;
+  DS_CXX14_CONSTEXPR optional_copy_construct_base&
+  operator=(optional_copy_construct_base&&)
+      = default;
+};
 
-    DS_CXX14_CONSTEXPR optional_storage_base() noexcept
-        : has_(false)
-    {
-    }
+template <typename T,
+          bool
+          = disjunction<is_void<T>, is_trivially_move_constructible<T>>::value>
+struct optional_move_construct_base : optional_copy_construct_base<T> {
+  using optional_copy_construct_base<T>::optional_copy_construct_base;
+};
 
-    DS_CXX14_CONSTEXPR optional_storage_base(in_place_t) noexcept
-        : has_(true)
-    {
-    }
+template <typename T>
+struct optional_move_construct_base<T, false>
+    : optional_copy_construct_base<T> {
+  using optional_copy_construct_base<T>::optional_copy_construct_base;
 
-    DS_CXX14_CONSTEXPR bool has_value() const noexcept
-    {
-      return has_;
-    }
+  DS_CXX14_CONSTEXPR optional_move_construct_base() = default;
 
-    DS_CXX14_CONSTEXPR void reset() noexcept
-    {
-      has_ = false;
-    }
+  DS_CXX14_CONSTEXPR
+  optional_move_construct_base(const optional_move_construct_base&) = default;
 
-    DS_CXX14_CONSTEXPR void operator*() & noexcept
-    {
-      DS_ASSERT(has_);
-    }
+  DS_CXX14_CONSTEXPR
+  optional_move_construct_base(optional_move_construct_base&& other)
+  {
+    this->construct_from(std::move(other));
+  }
 
-    DS_CXX14_CONSTEXPR void operator*() const& noexcept
-    {
-      DS_ASSERT(has_);
-    }
+  DS_CXX14_CONSTEXPR optional_move_construct_base&
+  operator=(const optional_move_construct_base&)
+      = default;
 
-    DS_CXX14_CONSTEXPR void operator*() && noexcept
-    {
-      DS_ASSERT(has_);
-    }
+  DS_CXX14_CONSTEXPR optional_move_construct_base&
+  operator=(optional_move_construct_base&&)
+      = default;
+};
 
-    DS_CXX14_CONSTEXPR void operator*() const&& noexcept
-    {
-      DS_ASSERT(has_);
-    }
+template <typename T,
+          bool
+          = disjunction<is_void<T>,
+                        conjunction<is_trivially_destructible<T>,
+                                    is_trivially_copy_constructible<T>,
+                                    is_trivially_copy_assignable<T>>>::value>
+struct optional_copy_assign_base : optional_move_construct_base<T> {
+  using optional_move_construct_base<T>::optional_move_construct_base;
+};
 
-    DS_CXX14_CONSTEXPR void value() &
-    {
-      if (!has_value()) {
-        this->throw_bad_optional_access();
-      }
-    }
+template <typename T>
+struct optional_copy_assign_base<T, false> : optional_move_construct_base<T> {
+  using optional_move_construct_base<T>::optional_move_construct_base;
 
-    DS_CXX14_CONSTEXPR void value() const&
-    {
-      if (!has_value()) {
-        this->throw_bad_optional_access();
-      }
-    }
+  DS_CXX14_CONSTEXPR optional_copy_assign_base() = default;
 
-    DS_CXX14_CONSTEXPR void value() &&
-    {
-      if (!has_value()) {
-        this->throw_bad_optional_access();
-      }
-    }
+  DS_CXX14_CONSTEXPR
+  optional_copy_assign_base(const optional_copy_assign_base&) = default;
 
-    DS_CXX14_CONSTEXPR void value() const&&
-    {
-      if (!has_value()) {
-        this->throw_bad_optional_access();
-      }
-    }
+  DS_CXX14_CONSTEXPR
+  optional_copy_assign_base(optional_copy_assign_base&&) = default;
 
-    DS_CXX14_CONSTEXPR void construct() noexcept
-    {
-      has_ = true;
-    }
+  DS_CXX14_CONSTEXPR optional_copy_assign_base&
+  operator=(const optional_copy_assign_base& other)
+  {
+    this->assign_from(other);
+    return *this;
+  }
 
-    DS_CXX14_CONSTEXPR void destroy() noexcept
-    {
-      has_ = false;
-    }
-  };
+  DS_CXX14_CONSTEXPR optional_copy_assign_base&
+  operator=(optional_copy_assign_base&&)
+      = default;
+};
 
-  template <
-      typename T,
-      bool = disjunction<is_void<T>, is_trivially_copy_constructible<T>>::value>
-  struct optional_copy_construct_base : optional_storage_base<T> {
-    using optional_storage_base<T>::optional_storage_base;
-  };
+template <typename T,
+          bool
+          = disjunction<is_void<T>,
+                        conjunction<is_trivially_destructible<T>,
+                                    is_trivially_move_constructible<T>,
+                                    is_trivially_move_assignable<T>>>::value>
+struct optional_move_assign_base : optional_copy_assign_base<T> {
+  using optional_copy_assign_base<T>::optional_copy_assign_base;
+};
 
-  template <typename T>
-  struct optional_copy_construct_base<T, false> : optional_storage_base<T> {
-    using optional_storage_base<T>::optional_storage_base;
+template <typename T>
+struct optional_move_assign_base<T, false> : optional_copy_assign_base<T> {
+  using optional_copy_assign_base<T>::optional_copy_assign_base;
 
-    DS_CXX14_CONSTEXPR optional_copy_construct_base() = default;
+  DS_CXX14_CONSTEXPR optional_move_assign_base() = default;
 
-    DS_CXX14_CONSTEXPR
-    optional_copy_construct_base(const optional_copy_construct_base& other)
-    {
-      this->construct_from(other);
-    }
+  DS_CXX14_CONSTEXPR
+  optional_move_assign_base(const optional_move_assign_base&) = default;
 
-    DS_CXX14_CONSTEXPR
-    optional_copy_construct_base(optional_copy_construct_base&&) = default;
+  DS_CXX14_CONSTEXPR
+  optional_move_assign_base(optional_move_assign_base&&) = default;
 
-    DS_CXX14_CONSTEXPR optional_copy_construct_base&
-    operator=(const optional_copy_construct_base&)
-        = default;
+  DS_CXX14_CONSTEXPR optional_move_assign_base&
+  operator=(const optional_move_assign_base&)
+      = default;
 
-    DS_CXX14_CONSTEXPR optional_copy_construct_base&
-    operator=(optional_copy_construct_base&&)
-        = default;
-  };
-
-  template <
-      typename T,
-      bool = disjunction<is_void<T>, is_trivially_move_constructible<T>>::value>
-  struct optional_move_construct_base : optional_copy_construct_base<T> {
-    using optional_copy_construct_base<T>::optional_copy_construct_base;
-  };
-
-  template <typename T>
-  struct optional_move_construct_base<T, false>
-      : optional_copy_construct_base<T> {
-    using optional_copy_construct_base<T>::optional_copy_construct_base;
-
-    DS_CXX14_CONSTEXPR optional_move_construct_base() = default;
-
-    DS_CXX14_CONSTEXPR
-    optional_move_construct_base(const optional_move_construct_base&) = default;
-
-    DS_CXX14_CONSTEXPR
-    optional_move_construct_base(optional_move_construct_base&& other)
-    {
-      this->construct_from(std::move(other));
-    }
-
-    DS_CXX14_CONSTEXPR optional_move_construct_base&
-    operator=(const optional_move_construct_base&)
-        = default;
-
-    DS_CXX14_CONSTEXPR optional_move_construct_base&
-    operator=(optional_move_construct_base&&)
-        = default;
-  };
-
-  template <typename T,
-            bool
-            = disjunction<is_void<T>,
-                          conjunction<is_trivially_destructible<T>,
-                                      is_trivially_copy_constructible<T>,
-                                      is_trivially_copy_assignable<T>>>::value>
-  struct optional_copy_assign_base : optional_move_construct_base<T> {
-    using optional_move_construct_base<T>::optional_move_construct_base;
-  };
-
-  template <typename T>
-  struct optional_copy_assign_base<T, false> : optional_move_construct_base<T> {
-    using optional_move_construct_base<T>::optional_move_construct_base;
-
-    DS_CXX14_CONSTEXPR optional_copy_assign_base() = default;
-
-    DS_CXX14_CONSTEXPR
-    optional_copy_assign_base(const optional_copy_assign_base&) = default;
-
-    DS_CXX14_CONSTEXPR
-    optional_copy_assign_base(optional_copy_assign_base&&) = default;
-
-    DS_CXX14_CONSTEXPR optional_copy_assign_base&
-    operator=(const optional_copy_assign_base& other)
-    {
-      this->assign_from(other);
-      return *this;
-    }
-
-    DS_CXX14_CONSTEXPR optional_copy_assign_base&
-    operator=(optional_copy_assign_base&&)
-        = default;
-  };
-
-  template <typename T,
-            bool
-            = disjunction<is_void<T>,
-                          conjunction<is_trivially_destructible<T>,
-                                      is_trivially_move_constructible<T>,
-                                      is_trivially_move_assignable<T>>>::value>
-  struct optional_move_assign_base : optional_copy_assign_base<T> {
-    using optional_copy_assign_base<T>::optional_copy_assign_base;
-  };
-
-  template <typename T>
-  struct optional_move_assign_base<T, false> : optional_copy_assign_base<T> {
-    using optional_copy_assign_base<T>::optional_copy_assign_base;
-
-    DS_CXX14_CONSTEXPR optional_move_assign_base() = default;
-
-    DS_CXX14_CONSTEXPR
-    optional_move_assign_base(const optional_move_assign_base&) = default;
-
-    DS_CXX14_CONSTEXPR
-    optional_move_assign_base(optional_move_assign_base&&) = default;
-
-    DS_CXX14_CONSTEXPR optional_move_assign_base&
-    operator=(const optional_move_assign_base&)
-        = default;
-
-    DS_CXX14_CONSTEXPR optional_move_assign_base&
-    operator=(optional_move_assign_base&& other)
-    {
-      this->assign_from(std::move(other));
-      return *this;
-    }
-  };
+  DS_CXX14_CONSTEXPR optional_move_assign_base&
+  operator=(optional_move_assign_base&& other)
+  {
+    this->assign_from(std::move(other));
+    return *this;
+  }
+};
 }
 
 template <typename T>
@@ -1341,4 +1339,5 @@ constexpr optional<T> make_optional(std::initializer_list<U> init,
 {
   return optional<T>(in_place, std::move(init), std::forward<Args>(args)...);
 }
-}
+
+DS_NAMESPACE_END

@@ -9,6 +9,14 @@
 
 #include <cassert>
 
+#define DS_NAMESPACE_BEGIN                                                     \
+  namespace ds {                                                               \
+  inline namespace v0 {
+
+#define DS_NAMESPACE_END                                                       \
+  }                                                                            \
+  }
+
 #define DS_ASSERT(expr) assert(expr)
 
 #if defined(__cplusplus) && __cplusplus >= 201402L                             \

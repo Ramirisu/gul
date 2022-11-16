@@ -18,7 +18,8 @@
 #include <map>
 #include <memory>
 
-namespace ds {
+DS_NAMESPACE_BEGIN
+
 template <typename Key, typename T>
 class fifo_map {
   using value_type_impl = std::pair<Key, T>;
@@ -290,4 +291,5 @@ private:
   map_type map_;
   queue_type queue_;
 };
-}
+
+DS_NAMESPACE_END

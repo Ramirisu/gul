@@ -13,7 +13,7 @@
 #include <ds/type_traits.hpp>
 #include <ds/utility.hpp>
 
-namespace ds {
+DS_NAMESPACE_BEGIN
 
 struct unexpect_t {
   struct tag_t {
@@ -177,776 +177,768 @@ private:
 
 namespace detail {
 
-  template <typename E>
-  struct expected_throw_base {
-    void throw_bad_expected_access(E err) const
-    {
+template <typename E>
+struct expected_throw_base {
+  void throw_bad_expected_access(E err) const
+  {
 #if DS_NO_EXCEPTIONS
-      std::abort();
+    std::abort();
 #else
-      throw bad_expected_access<E>(err);
+    throw bad_expected_access<E>(err);
 #endif
-    }
+  }
+};
+
+template <typename T,
+          typename E,
+          bool = disjunction<is_void<T>, is_trivially_destructible<T>>::value,
+          bool = is_trivially_destructible<E>::value>
+struct expected_destruct_base : expected_throw_base<E> {
+  union {
+    char nul_;
+    conditional_t<is_void<T>::value, char, T> val_;
+    E err_;
   };
+  bool has_;
 
-  template <typename T,
-            typename E,
-            bool = disjunction<is_void<T>, is_trivially_destructible<T>>::value,
-            bool = is_trivially_destructible<E>::value>
-  struct expected_destruct_base : expected_throw_base<E> {
-    union {
-      char nul_;
-      conditional_t<is_void<T>::value, char, T> val_;
-      E err_;
-    };
-    bool has_;
+  DS_CXX14_CONSTEXPR expected_destruct_base() noexcept
+      : nul_()
+      , has_(true)
+  {
+  }
 
-    DS_CXX14_CONSTEXPR expected_destruct_base() noexcept
-        : nul_()
-        , has_(true)
-    {
-    }
+  template <typename... Args>
+  DS_CXX14_CONSTEXPR explicit expected_destruct_base(in_place_t, Args&&... args)
+      : val_(std::forward<Args>(args)...)
+      , has_(true)
+  {
+  }
 
-    template <typename... Args>
-    DS_CXX14_CONSTEXPR explicit expected_destruct_base(in_place_t,
-                                                       Args&&... args)
-        : val_(std::forward<Args>(args)...)
-        , has_(true)
-    {
-    }
+  template <typename... Args>
+  DS_CXX14_CONSTEXPR explicit expected_destruct_base(unexpect_t, Args&&... args)
+      : err_(std::forward<Args>(args)...)
+      , has_(false)
+  {
+  }
+};
 
-    template <typename... Args>
-    DS_CXX14_CONSTEXPR explicit expected_destruct_base(unexpect_t,
-                                                       Args&&... args)
-        : err_(std::forward<Args>(args)...)
-        , has_(false)
-    {
-    }
+template <typename T, typename E>
+struct expected_destruct_base<T, E, true, false> : expected_throw_base<E> {
+  union {
+    char nul_;
+    conditional_t<is_void<T>::value, char, T> val_;
+    E err_;
   };
+  bool has_;
 
-  template <typename T, typename E>
-  struct expected_destruct_base<T, E, true, false> : expected_throw_base<E> {
-    union {
-      char nul_;
-      conditional_t<is_void<T>::value, char, T> val_;
-      E err_;
-    };
-    bool has_;
+  DS_CXX14_CONSTEXPR expected_destruct_base() noexcept
+      : nul_()
+      , has_(true)
+  {
+  }
 
-    DS_CXX14_CONSTEXPR expected_destruct_base() noexcept
-        : nul_()
-        , has_(true)
-    {
+  template <typename... Args>
+  DS_CXX14_CONSTEXPR explicit expected_destruct_base(in_place_t, Args&&... args)
+      : val_(std::forward<Args>(args)...)
+      , has_(true)
+  {
+  }
+
+  template <typename... Args>
+  DS_CXX14_CONSTEXPR explicit expected_destruct_base(unexpect_t, Args&&... args)
+      : err_(std::forward<Args>(args)...)
+      , has_(false)
+  {
+  }
+
+  ~expected_destruct_base()
+  {
+    if (!has_) {
+      err_.~E();
     }
+  }
+};
 
-    template <typename... Args>
-    DS_CXX14_CONSTEXPR explicit expected_destruct_base(in_place_t,
-                                                       Args&&... args)
-        : val_(std::forward<Args>(args)...)
-        , has_(true)
-    {
-    }
-
-    template <typename... Args>
-    DS_CXX14_CONSTEXPR explicit expected_destruct_base(unexpect_t,
-                                                       Args&&... args)
-        : err_(std::forward<Args>(args)...)
-        , has_(false)
-    {
-    }
-
-    ~expected_destruct_base()
-    {
-      if (!has_) {
-        err_.~E();
-      }
-    }
+template <typename T, typename E>
+struct expected_destruct_base<T, E, false, true> : expected_throw_base<E> {
+  union {
+    char nul_;
+    T val_;
+    E err_;
   };
+  bool has_;
 
-  template <typename T, typename E>
-  struct expected_destruct_base<T, E, false, true> : expected_throw_base<E> {
-    union {
-      char nul_;
-      T val_;
-      E err_;
-    };
-    bool has_;
+  DS_CXX14_CONSTEXPR expected_destruct_base() noexcept
+      : nul_()
+      , has_(true)
+  {
+  }
 
-    DS_CXX14_CONSTEXPR expected_destruct_base() noexcept
-        : nul_()
-        , has_(true)
-    {
+  template <typename... Args>
+  DS_CXX14_CONSTEXPR explicit expected_destruct_base(in_place_t, Args&&... args)
+      : val_(std::forward<Args>(args)...)
+      , has_(true)
+  {
+  }
+
+  template <typename... Args>
+  DS_CXX14_CONSTEXPR explicit expected_destruct_base(unexpect_t, Args&&... args)
+      : err_(std::forward<Args>(args)...)
+      , has_(false)
+  {
+  }
+
+  ~expected_destruct_base()
+  {
+    if (has_) {
+      val_.~T();
     }
+  }
+};
 
-    template <typename... Args>
-    DS_CXX14_CONSTEXPR explicit expected_destruct_base(in_place_t,
-                                                       Args&&... args)
-        : val_(std::forward<Args>(args)...)
-        , has_(true)
-    {
-    }
-
-    template <typename... Args>
-    DS_CXX14_CONSTEXPR explicit expected_destruct_base(unexpect_t,
-                                                       Args&&... args)
-        : err_(std::forward<Args>(args)...)
-        , has_(false)
-    {
-    }
-
-    ~expected_destruct_base()
-    {
-      if (has_) {
-        val_.~T();
-      }
-    }
+template <typename T, typename E>
+struct expected_destruct_base<T, E, false, false> : expected_throw_base<E> {
+  union {
+    char nul_;
+    T val_;
+    E err_;
   };
+  bool has_;
 
-  template <typename T, typename E>
-  struct expected_destruct_base<T, E, false, false> : expected_throw_base<E> {
-    union {
-      char nul_;
-      T val_;
-      E err_;
-    };
-    bool has_;
+  DS_CXX14_CONSTEXPR expected_destruct_base() noexcept
+      : nul_()
+      , has_(true)
+  {
+  }
 
-    DS_CXX14_CONSTEXPR expected_destruct_base() noexcept
-        : nul_()
-        , has_(true)
-    {
+  template <typename... Args>
+  DS_CXX14_CONSTEXPR explicit expected_destruct_base(in_place_t, Args&&... args)
+      : val_(std::forward<Args>(args)...)
+      , has_(true)
+  {
+  }
+
+  template <typename... Args>
+  DS_CXX14_CONSTEXPR explicit expected_destruct_base(unexpect_t, Args&&... args)
+      : err_(std::forward<Args>(args)...)
+      , has_(false)
+  {
+  }
+
+  ~expected_destruct_base()
+  {
+    if (has_) {
+      val_.~T();
+    } else {
+      err_.~E();
     }
+  }
+};
 
-    template <typename... Args>
-    DS_CXX14_CONSTEXPR explicit expected_destruct_base(in_place_t,
-                                                       Args&&... args)
-        : val_(std::forward<Args>(args)...)
-        , has_(true)
-    {
+template <typename T, typename E>
+struct expected_storage_base : expected_destruct_base<T, E> {
+  using expected_destruct_base<T, E>::expected_destruct_base;
+
+  DS_CXX14_CONSTEXPR T& operator*() & noexcept
+  {
+    return this->val_;
+  }
+
+  DS_CXX14_CONSTEXPR const T& operator*() const& noexcept
+  {
+    return this->val_;
+  }
+
+  DS_CXX14_CONSTEXPR T&& operator*() && noexcept
+  {
+    return std::move(this->val_);
+  }
+
+  DS_CXX14_CONSTEXPR const T&& operator*() const&& noexcept
+  {
+    return std::move(this->val_);
+  }
+
+  DS_CXX14_CONSTEXPR bool has_value() const noexcept
+  {
+    return this->has_;
+  }
+
+  DS_CXX14_CONSTEXPR T& value() &
+  {
+    if (!this->has_) {
+      this->throw_bad_expected_access(get_err());
     }
+    return this->val_;
+  }
 
-    template <typename... Args>
-    DS_CXX14_CONSTEXPR explicit expected_destruct_base(unexpect_t,
-                                                       Args&&... args)
-        : err_(std::forward<Args>(args)...)
-        , has_(false)
-    {
+  DS_CXX14_CONSTEXPR const T& value() const&
+  {
+    if (!this->has_) {
+      this->throw_bad_expected_access(get_err());
     }
+    return this->val_;
+  }
 
-    ~expected_destruct_base()
-    {
-      if (has_) {
-        val_.~T();
-      } else {
-        err_.~E();
-      }
+  DS_CXX14_CONSTEXPR T&& value() &&
+  {
+    if (!this->has_) {
+      this->throw_bad_expected_access(std::move(get_err()));
     }
-  };
+    return std::move(this->val_);
+  }
 
-  template <typename T, typename E>
-  struct expected_storage_base : expected_destruct_base<T, E> {
-    using expected_destruct_base<T, E>::expected_destruct_base;
-
-    DS_CXX14_CONSTEXPR T& operator*() & noexcept
-    {
-      return this->val_;
+  DS_CXX14_CONSTEXPR const T&& value() const&&
+  {
+    if (!this->has_) {
+      this->throw_bad_expected_access(std::move(get_err()));
     }
+    return std::move(this->val_);
+  }
 
-    DS_CXX14_CONSTEXPR const T& operator*() const& noexcept
-    {
-      return this->val_;
+  DS_CXX14_CONSTEXPR E& get_err() & noexcept
+  {
+    return this->err_;
+  }
+
+  DS_CXX14_CONSTEXPR const E& get_err() const& noexcept
+  {
+    return this->err_;
+  }
+
+  DS_CXX14_CONSTEXPR E&& get_err() && noexcept
+  {
+    return std::move(this->err_);
+  }
+
+  DS_CXX14_CONSTEXPR const E&& get_err() const&& noexcept
+  {
+    return std::move(this->err_);
+  }
+
+  template <typename... Args>
+  DS_CXX14_CONSTEXPR T& construct_val(Args&&... args)
+  {
+    auto& val
+        = *(::new (std::addressof(this->val_)) T(std::forward<Args>(args)...));
+    this->has_ = true;
+    return val;
+  }
+
+  template <typename... Args>
+  DS_CXX14_CONSTEXPR E& construct_err(Args&&... args)
+  {
+    auto& err
+        = *(::new (std::addressof(this->err_)) E(std::forward<Args>(args)...));
+    this->has_ = false;
+    return err;
+  }
+
+  DS_CXX14_CONSTEXPR void destroy_val()
+  {
+    this->val_.~T();
+  }
+
+  DS_CXX14_CONSTEXPR void destroy_err()
+  {
+    this->err_.~E();
+  }
+
+  template <typename Other>
+  DS_CXX14_CONSTEXPR void construct_from(Other&& other)
+  {
+    if (other.has_value()) {
+      construct_val(std::forward<Other>(other).value());
+    } else {
+      construct_err(std::forward<Other>(other).get_err());
     }
+  }
 
-    DS_CXX14_CONSTEXPR T&& operator*() && noexcept
-    {
-      return std::move(this->val_);
-    }
-
-    DS_CXX14_CONSTEXPR const T&& operator*() const&& noexcept
-    {
-      return std::move(this->val_);
-    }
-
-    DS_CXX14_CONSTEXPR bool has_value() const noexcept
-    {
-      return this->has_;
-    }
-
-    DS_CXX14_CONSTEXPR T& value() &
-    {
-      if (!this->has_) {
-        this->throw_bad_expected_access(get_err());
-      }
-      return this->val_;
-    }
-
-    DS_CXX14_CONSTEXPR const T& value() const&
-    {
-      if (!this->has_) {
-        this->throw_bad_expected_access(get_err());
-      }
-      return this->val_;
-    }
-
-    DS_CXX14_CONSTEXPR T&& value() &&
-    {
-      if (!this->has_) {
-        this->throw_bad_expected_access(std::move(get_err()));
-      }
-      return std::move(this->val_);
-    }
-
-    DS_CXX14_CONSTEXPR const T&& value() const&&
-    {
-      if (!this->has_) {
-        this->throw_bad_expected_access(std::move(get_err()));
-      }
-      return std::move(this->val_);
-    }
-
-    DS_CXX14_CONSTEXPR E& get_err() & noexcept
-    {
-      return this->err_;
-    }
-
-    DS_CXX14_CONSTEXPR const E& get_err() const& noexcept
-    {
-      return this->err_;
-    }
-
-    DS_CXX14_CONSTEXPR E&& get_err() && noexcept
-    {
-      return std::move(this->err_);
-    }
-
-    DS_CXX14_CONSTEXPR const E&& get_err() const&& noexcept
-    {
-      return std::move(this->err_);
-    }
-
-    template <typename... Args>
-    DS_CXX14_CONSTEXPR T& construct_val(Args&&... args)
-    {
-      auto& val = *(::new (std::addressof(this->val_))
-                        T(std::forward<Args>(args)...));
-      this->has_ = true;
-      return val;
-    }
-
-    template <typename... Args>
-    DS_CXX14_CONSTEXPR E& construct_err(Args&&... args)
-    {
-      auto& err = *(::new (std::addressof(this->err_))
-                        E(std::forward<Args>(args)...));
-      this->has_ = false;
-      return err;
-    }
-
-    DS_CXX14_CONSTEXPR void destroy_val()
-    {
-      this->val_.~T();
-    }
-
-    DS_CXX14_CONSTEXPR void destroy_err()
-    {
-      this->err_.~E();
-    }
-
-    template <typename Other>
-    DS_CXX14_CONSTEXPR void construct_from(Other&& other)
-    {
+  template <typename Other>
+  DS_CXX14_CONSTEXPR void assign_from(Other&& other)
+  {
+    if (this->has_) {
       if (other.has_value()) {
-        construct_val(std::forward<Other>(other).value());
+        this->val_ = std::forward<Other>(other).value();
       } else {
+        destroy_val();
         construct_err(std::forward<Other>(other).get_err());
       }
-    }
-
-    template <typename Other>
-    DS_CXX14_CONSTEXPR void assign_from(Other&& other)
-    {
-      if (this->has_) {
-        if (other.has_value()) {
-          this->val_ = std::forward<Other>(other).value();
-        } else {
-          destroy_val();
-          construct_err(std::forward<Other>(other).get_err());
-        }
+    } else {
+      if (other.has_value()) {
+        destroy_err();
+        construct_val(std::forward<Other>(other).value());
       } else {
-        if (other.has_value()) {
-          destroy_err();
-          construct_val(std::forward<Other>(other).value());
-        } else {
-          this->err_ = std::forward<Other>(other).get_err();
-        }
+        this->err_ = std::forward<Other>(other).get_err();
       }
     }
+  }
 
-    template <bool B = conjunction<
-                  is_swappable<T>,
-                  is_swappable<E>,
-                  is_move_constructible<T>,
-                  is_move_constructible<E>,
-                  disjunction<is_nothrow_move_constructible<T>,
-                              is_nothrow_move_constructible<E>>>::value,
-              enable_if_t<B, int> = 0>
-    DS_CXX14_CONSTEXPR void swap(expected_storage_base& other) noexcept(
-        conjunction<is_nothrow_move_constructible<T>,
-                    is_nothrow_swappable<T>,
-                    is_nothrow_move_constructible<E>,
-                    is_nothrow_swappable<E>>::value)
-    {
-      if (this->has_value()) {
-        if (other.has_value()) {
-          using std::swap;
-          swap(this->value(), other.value());
-        } else {
-          swap_impl(other, is_nothrow_move_constructible<T> {},
-                    is_nothrow_move_constructible<E> {});
-        }
+  template <bool B
+            = conjunction<is_swappable<T>,
+                          is_swappable<E>,
+                          is_move_constructible<T>,
+                          is_move_constructible<E>,
+                          disjunction<is_nothrow_move_constructible<T>,
+                                      is_nothrow_move_constructible<E>>>::value,
+            enable_if_t<B, int> = 0>
+  DS_CXX14_CONSTEXPR void swap(expected_storage_base& other) noexcept(
+      conjunction<is_nothrow_move_constructible<T>,
+                  is_nothrow_swappable<T>,
+                  is_nothrow_move_constructible<E>,
+                  is_nothrow_swappable<E>>::value)
+  {
+    if (this->has_value()) {
+      if (other.has_value()) {
+        using std::swap;
+        swap(this->value(), other.value());
       } else {
-        if (other.has_value()) {
-          other.swap(*this);
-        } else {
-          using std::swap;
-          swap(this->get_err(), other.get_err());
-        }
+        swap_impl(other, is_nothrow_move_constructible<T> {},
+                  is_nothrow_move_constructible<E> {});
+      }
+    } else {
+      if (other.has_value()) {
+        other.swap(*this);
+      } else {
+        using std::swap;
+        swap(this->get_err(), other.get_err());
       }
     }
+  }
 
-  private:
-    DS_CXX14_CONSTEXPR void swap_impl(expected_storage_base& other,
-                                      std::true_type,
-                                      std::true_type) noexcept
-    {
-      auto val = std::move(this->value());
-      this->destroy_val();
+private:
+  DS_CXX14_CONSTEXPR void swap_impl(expected_storage_base& other,
+                                    std::true_type,
+                                    std::true_type) noexcept
+  {
+    auto val = std::move(this->value());
+    this->destroy_val();
+    this->construct_err(std::move(other.get_err()));
+    other.destroy_err();
+    other.construct_val(std::move(val));
+  }
+
+  DS_CXX20_CONSTEXPR void
+  swap_impl(expected_storage_base& other, std::true_type, std::false_type)
+  {
+    auto val(std::move(this->value()));
+    this->destroy_val();
+    try {
       this->construct_err(std::move(other.get_err()));
       other.destroy_err();
       other.construct_val(std::move(val));
+    } catch (...) {
+      this->construct_val(std::move(val));
+      throw;
     }
+  }
 
-    DS_CXX20_CONSTEXPR void
-    swap_impl(expected_storage_base& other, std::true_type, std::false_type)
-    {
-      auto val(std::move(this->value()));
+  DS_CXX20_CONSTEXPR void
+  swap_impl(expected_storage_base& other, std::false_type, std::true_type)
+  {
+    auto err(std::move(other.get_err()));
+    other.destroy_err();
+    try {
+      other.construct_val(std::move(this->value()));
       this->destroy_val();
-      try {
-        this->construct_err(std::move(other.get_err()));
-        other.destroy_err();
-        other.construct_val(std::move(val));
-      } catch (...) {
-        this->construct_val(std::move(val));
-        throw;
-      }
+      this->construct_err(std::move(err));
+    } catch (...) {
+      other.construct_err(std::move(err));
+      throw;
     }
+  }
+};
 
-    DS_CXX20_CONSTEXPR void
-    swap_impl(expected_storage_base& other, std::false_type, std::true_type)
-    {
-      auto err(std::move(other.get_err()));
-      other.destroy_err();
-      try {
-        other.construct_val(std::move(this->value()));
-        this->destroy_val();
-        this->construct_err(std::move(err));
-      } catch (...) {
-        other.construct_err(std::move(err));
-        throw;
-      }
+template <typename E>
+struct expected_storage_base<void, E> : expected_destruct_base<void, E> {
+  using expected_destruct_base<void, E>::expected_destruct_base;
+
+  DS_CXX14_CONSTEXPR void operator*() const& noexcept { }
+
+  DS_CXX14_CONSTEXPR void operator*() && noexcept { }
+
+  DS_CXX14_CONSTEXPR bool has_value() const noexcept
+  {
+    return this->has_;
+  }
+
+  DS_CXX14_CONSTEXPR void value() &
+  {
+    if (!this->has_) {
+      this->throw_bad_expected_access(get_err());
     }
-  };
+  }
 
-  template <typename E>
-  struct expected_storage_base<void, E> : expected_destruct_base<void, E> {
-    using expected_destruct_base<void, E>::expected_destruct_base;
-
-    DS_CXX14_CONSTEXPR void operator*() const& noexcept { }
-
-    DS_CXX14_CONSTEXPR void operator*() && noexcept { }
-
-    DS_CXX14_CONSTEXPR bool has_value() const noexcept
-    {
-      return this->has_;
+  DS_CXX14_CONSTEXPR void value() const&
+  {
+    if (!this->has_) {
+      this->throw_bad_expected_access(get_err());
     }
+  }
 
-    DS_CXX14_CONSTEXPR void value() &
-    {
-      if (!this->has_) {
-        this->throw_bad_expected_access(get_err());
-      }
+  DS_CXX14_CONSTEXPR void value() &&
+  {
+    if (!this->has_) {
+      this->throw_bad_expected_access(std::move(get_err()));
     }
+  }
 
-    DS_CXX14_CONSTEXPR void value() const&
-    {
-      if (!this->has_) {
-        this->throw_bad_expected_access(get_err());
-      }
+  DS_CXX14_CONSTEXPR void value() const&&
+  {
+    if (!this->has_) {
+      this->throw_bad_expected_access(std::move(get_err()));
     }
+  }
 
-    DS_CXX14_CONSTEXPR void value() &&
-    {
-      if (!this->has_) {
-        this->throw_bad_expected_access(std::move(get_err()));
-      }
+  DS_CXX14_CONSTEXPR E& get_err() & noexcept
+  {
+    return this->err_;
+  }
+
+  DS_CXX14_CONSTEXPR const E& get_err() const& noexcept
+  {
+    return this->err_;
+  }
+
+  DS_CXX14_CONSTEXPR E&& get_err() && noexcept
+  {
+    return std::move(this->err_);
+  }
+
+  DS_CXX14_CONSTEXPR const E&& get_err() const&& noexcept
+  {
+    return std::move(this->err_);
+  }
+
+  DS_CXX14_CONSTEXPR void construct_val() noexcept
+  {
+    this->has_ = true;
+  }
+
+  template <typename... Args>
+  DS_CXX14_CONSTEXPR E& construct_err(Args&&... args)
+  {
+    auto& err
+        = *(::new (std::addressof(this->err_)) E(std::forward<Args>(args)...));
+    this->has_ = false;
+    return err;
+  }
+
+  DS_CXX14_CONSTEXPR void destroy_val() noexcept { }
+
+  DS_CXX14_CONSTEXPR void destroy_err()
+  {
+    this->err_.~E();
+  }
+
+  template <typename Other>
+  DS_CXX14_CONSTEXPR void construct_from(Other&& other)
+  {
+    if (other.has_value()) {
+      construct_val();
+    } else {
+      construct_err(std::forward<Other>(other).get_err());
     }
+  }
 
-    DS_CXX14_CONSTEXPR void value() const&&
-    {
-      if (!this->has_) {
-        this->throw_bad_expected_access(std::move(get_err()));
-      }
-    }
-
-    DS_CXX14_CONSTEXPR E& get_err() & noexcept
-    {
-      return this->err_;
-    }
-
-    DS_CXX14_CONSTEXPR const E& get_err() const& noexcept
-    {
-      return this->err_;
-    }
-
-    DS_CXX14_CONSTEXPR E&& get_err() && noexcept
-    {
-      return std::move(this->err_);
-    }
-
-    DS_CXX14_CONSTEXPR const E&& get_err() const&& noexcept
-    {
-      return std::move(this->err_);
-    }
-
-    DS_CXX14_CONSTEXPR void construct_val() noexcept
-    {
-      this->has_ = true;
-    }
-
-    template <typename... Args>
-    DS_CXX14_CONSTEXPR E& construct_err(Args&&... args)
-    {
-      auto& err = *(::new (std::addressof(this->err_))
-                        E(std::forward<Args>(args)...));
-      this->has_ = false;
-      return err;
-    }
-
-    DS_CXX14_CONSTEXPR void destroy_val() noexcept { }
-
-    DS_CXX14_CONSTEXPR void destroy_err()
-    {
-      this->err_.~E();
-    }
-
-    template <typename Other>
-    DS_CXX14_CONSTEXPR void construct_from(Other&& other)
-    {
+  template <typename Other>
+  DS_CXX14_CONSTEXPR void assign_from(Other&& other)
+  {
+    if (this->has_) {
       if (other.has_value()) {
-        construct_val();
+        this->val_ = std::forward<Other>(other).value();
       } else {
+        destroy_val();
         construct_err(std::forward<Other>(other).get_err());
       }
-    }
-
-    template <typename Other>
-    DS_CXX14_CONSTEXPR void assign_from(Other&& other)
-    {
-      if (this->has_) {
-        if (other.has_value()) {
-          this->val_ = std::forward<Other>(other).value();
-        } else {
-          destroy_val();
-          construct_err(std::forward<Other>(other).get_err());
-        }
+    } else {
+      if (other.has_value()) {
+        destroy_err();
+        construct_val(std::forward<Other>(other).value());
       } else {
-        if (other.has_value()) {
-          destroy_err();
-          construct_val(std::forward<Other>(other).value());
-        } else {
-          this->err_ = std::forward<Other>(other).get_err();
-        }
+        this->err_ = std::forward<Other>(other).get_err();
       }
     }
+  }
 
-    DS_CXX14_CONSTEXPR void swap(expected_storage_base& other) noexcept(
-        conjunction<is_nothrow_move_constructible<E>,
-                    is_nothrow_swappable<E>>::value)
-    {
-      if (this->has_value()) {
-        if (!other.has_value()) {
-          this->destroy_val();
-          this->construct_err(std::move(other.get_err()));
-          other.destroy_err();
-          other.construct_val();
-        }
+  DS_CXX14_CONSTEXPR void swap(expected_storage_base& other) noexcept(
+      conjunction<is_nothrow_move_constructible<E>,
+                  is_nothrow_swappable<E>>::value)
+  {
+    if (this->has_value()) {
+      if (!other.has_value()) {
+        this->destroy_val();
+        this->construct_err(std::move(other.get_err()));
+        other.destroy_err();
+        other.construct_val();
+      }
+    } else {
+      if (other.has_value()) {
+        other.swap(*this);
       } else {
-        if (other.has_value()) {
-          other.swap(*this);
-        } else {
-          using std::swap;
-          swap(this->get_err(), other.get_err());
-        }
+        using std::swap;
+        swap(this->get_err(), other.get_err());
       }
     }
-  };
+  }
+};
 
-  template <
-      typename T,
-      typename E,
-      bool = disjunction<is_void<T>, is_trivially_copy_constructible<T>>::value,
-      bool = is_trivially_copy_constructible<E>::value>
-  struct expected_copy_construct_base : expected_storage_base<T, E> {
-    using expected_storage_base<T, E>::expected_storage_base;
+template <typename T,
+          typename E,
+          bool
+          = disjunction<is_void<T>, is_trivially_copy_constructible<T>>::value,
+          bool = is_trivially_copy_constructible<E>::value>
+struct expected_copy_construct_base : expected_storage_base<T, E> {
+  using expected_storage_base<T, E>::expected_storage_base;
 
-    DS_CXX14_CONSTEXPR expected_copy_construct_base() = default;
+  DS_CXX14_CONSTEXPR expected_copy_construct_base() = default;
 
-    DS_CXX14_CONSTEXPR
-    expected_copy_construct_base(const expected_copy_construct_base& other)
-    {
-      this->construct_from(other);
-    }
+  DS_CXX14_CONSTEXPR
+  expected_copy_construct_base(const expected_copy_construct_base& other)
+  {
+    this->construct_from(other);
+  }
 
-    DS_CXX14_CONSTEXPR
-    expected_copy_construct_base(expected_copy_construct_base&&) = default;
+  DS_CXX14_CONSTEXPR
+  expected_copy_construct_base(expected_copy_construct_base&&) = default;
 
-    DS_CXX14_CONSTEXPR expected_copy_construct_base&
-    operator=(const expected_copy_construct_base&)
-        = default;
+  DS_CXX14_CONSTEXPR expected_copy_construct_base&
+  operator=(const expected_copy_construct_base&)
+      = default;
 
-    DS_CXX14_CONSTEXPR expected_copy_construct_base&
-    operator=(expected_copy_construct_base&&)
-        = default;
-  };
+  DS_CXX14_CONSTEXPR expected_copy_construct_base&
+  operator=(expected_copy_construct_base&&)
+      = default;
+};
 
-  template <typename T, typename E>
-  struct expected_copy_construct_base<T, E, true, true>
-      : expected_storage_base<T, E> {
-    using expected_storage_base<T, E>::expected_storage_base;
+template <typename T, typename E>
+struct expected_copy_construct_base<T, E, true, true>
+    : expected_storage_base<T, E> {
+  using expected_storage_base<T, E>::expected_storage_base;
 
-    DS_CXX14_CONSTEXPR expected_copy_construct_base() = default;
+  DS_CXX14_CONSTEXPR expected_copy_construct_base() = default;
 
-    DS_CXX14_CONSTEXPR
-    expected_copy_construct_base(const expected_copy_construct_base&) = default;
+  DS_CXX14_CONSTEXPR
+  expected_copy_construct_base(const expected_copy_construct_base&) = default;
 
-    DS_CXX14_CONSTEXPR
-    expected_copy_construct_base(expected_copy_construct_base&&) = default;
+  DS_CXX14_CONSTEXPR
+  expected_copy_construct_base(expected_copy_construct_base&&) = default;
 
-    DS_CXX14_CONSTEXPR expected_copy_construct_base&
-    operator=(const expected_copy_construct_base&)
-        = default;
+  DS_CXX14_CONSTEXPR expected_copy_construct_base&
+  operator=(const expected_copy_construct_base&)
+      = default;
 
-    DS_CXX14_CONSTEXPR expected_copy_construct_base&
-    operator=(expected_copy_construct_base&&)
-        = default;
-  };
+  DS_CXX14_CONSTEXPR expected_copy_construct_base&
+  operator=(expected_copy_construct_base&&)
+      = default;
+};
 
-  template <
-      typename T,
-      typename E,
-      bool = disjunction<is_void<T>, is_trivially_move_constructible<T>>::value,
-      bool = is_trivially_move_constructible<E>::value>
-  struct expected_move_construct_base : expected_copy_construct_base<T, E> {
-    using expected_copy_construct_base<T, E>::expected_copy_construct_base;
+template <typename T,
+          typename E,
+          bool
+          = disjunction<is_void<T>, is_trivially_move_constructible<T>>::value,
+          bool = is_trivially_move_constructible<E>::value>
+struct expected_move_construct_base : expected_copy_construct_base<T, E> {
+  using expected_copy_construct_base<T, E>::expected_copy_construct_base;
 
-    DS_CXX14_CONSTEXPR expected_move_construct_base() = default;
+  DS_CXX14_CONSTEXPR expected_move_construct_base() = default;
 
-    DS_CXX14_CONSTEXPR
-    expected_move_construct_base(const expected_move_construct_base&) = default;
+  DS_CXX14_CONSTEXPR
+  expected_move_construct_base(const expected_move_construct_base&) = default;
 
-    DS_CXX14_CONSTEXPR
-    expected_move_construct_base(expected_move_construct_base&& other)
-    {
-      this->construct_from(std::move(other));
-    }
+  DS_CXX14_CONSTEXPR
+  expected_move_construct_base(expected_move_construct_base&& other)
+  {
+    this->construct_from(std::move(other));
+  }
 
-    DS_CXX14_CONSTEXPR expected_move_construct_base&
-    operator=(const expected_move_construct_base&)
-        = default;
+  DS_CXX14_CONSTEXPR expected_move_construct_base&
+  operator=(const expected_move_construct_base&)
+      = default;
 
-    DS_CXX14_CONSTEXPR expected_move_construct_base&
-    operator=(expected_move_construct_base&&)
-        = default;
-  };
+  DS_CXX14_CONSTEXPR expected_move_construct_base&
+  operator=(expected_move_construct_base&&)
+      = default;
+};
 
-  template <typename T, typename E>
-  struct expected_move_construct_base<T, E, true, true>
-      : expected_copy_construct_base<T, E> {
-    using expected_copy_construct_base<T, E>::expected_copy_construct_base;
+template <typename T, typename E>
+struct expected_move_construct_base<T, E, true, true>
+    : expected_copy_construct_base<T, E> {
+  using expected_copy_construct_base<T, E>::expected_copy_construct_base;
 
-    DS_CXX14_CONSTEXPR expected_move_construct_base() = default;
+  DS_CXX14_CONSTEXPR expected_move_construct_base() = default;
 
-    DS_CXX14_CONSTEXPR
-    expected_move_construct_base(const expected_move_construct_base&) = default;
+  DS_CXX14_CONSTEXPR
+  expected_move_construct_base(const expected_move_construct_base&) = default;
 
-    DS_CXX14_CONSTEXPR
-    expected_move_construct_base(expected_move_construct_base&&) = default;
+  DS_CXX14_CONSTEXPR
+  expected_move_construct_base(expected_move_construct_base&&) = default;
 
-    DS_CXX14_CONSTEXPR expected_move_construct_base&
-    operator=(const expected_move_construct_base&)
-        = default;
+  DS_CXX14_CONSTEXPR expected_move_construct_base&
+  operator=(const expected_move_construct_base&)
+      = default;
 
-    DS_CXX14_CONSTEXPR expected_move_construct_base&
-    operator=(expected_move_construct_base&&)
-        = default;
-  };
+  DS_CXX14_CONSTEXPR expected_move_construct_base&
+  operator=(expected_move_construct_base&&)
+      = default;
+};
 
-  template <typename T,
-            typename E,
-            bool
-            = disjunction<is_void<T>,
-                          conjunction<is_trivially_destructible<T>,
-                                      is_trivially_copy_constructible<T>,
-                                      is_trivially_copy_assignable<T>>>::value,
-            bool = conjunction<is_trivially_destructible<E>,
-                               is_trivially_copy_constructible<E>,
-                               is_trivially_copy_assignable<E>>::value>
-  struct expected_copy_assign_base : expected_move_construct_base<T, E> {
-    using expected_move_construct_base<T, E>::expected_move_construct_base;
+template <typename T,
+          typename E,
+          bool
+          = disjunction<is_void<T>,
+                        conjunction<is_trivially_destructible<T>,
+                                    is_trivially_copy_constructible<T>,
+                                    is_trivially_copy_assignable<T>>>::value,
+          bool = conjunction<is_trivially_destructible<E>,
+                             is_trivially_copy_constructible<E>,
+                             is_trivially_copy_assignable<E>>::value>
+struct expected_copy_assign_base : expected_move_construct_base<T, E> {
+  using expected_move_construct_base<T, E>::expected_move_construct_base;
 
-    DS_CXX14_CONSTEXPR expected_copy_assign_base() = default;
+  DS_CXX14_CONSTEXPR expected_copy_assign_base() = default;
 
-    DS_CXX14_CONSTEXPR
-    expected_copy_assign_base(const expected_copy_assign_base&) = default;
+  DS_CXX14_CONSTEXPR
+  expected_copy_assign_base(const expected_copy_assign_base&) = default;
 
-    DS_CXX14_CONSTEXPR
-    expected_copy_assign_base(expected_copy_assign_base&&) = default;
+  DS_CXX14_CONSTEXPR
+  expected_copy_assign_base(expected_copy_assign_base&&) = default;
 
-    DS_CXX14_CONSTEXPR expected_copy_assign_base&
-    operator=(const expected_copy_assign_base& other)
-    {
-      this->assign_from(other);
-    }
+  DS_CXX14_CONSTEXPR expected_copy_assign_base&
+  operator=(const expected_copy_assign_base& other)
+  {
+    this->assign_from(other);
+  }
 
-    DS_CXX14_CONSTEXPR expected_copy_assign_base&
-    operator=(expected_copy_assign_base&&)
-        = default;
-  };
+  DS_CXX14_CONSTEXPR expected_copy_assign_base&
+  operator=(expected_copy_assign_base&&)
+      = default;
+};
 
-  template <typename T, typename E>
-  struct expected_copy_assign_base<T, E, true, true>
-      : expected_move_construct_base<T, E> {
-    using expected_move_construct_base<T, E>::expected_move_construct_base;
+template <typename T, typename E>
+struct expected_copy_assign_base<T, E, true, true>
+    : expected_move_construct_base<T, E> {
+  using expected_move_construct_base<T, E>::expected_move_construct_base;
 
-    DS_CXX14_CONSTEXPR expected_copy_assign_base() = default;
+  DS_CXX14_CONSTEXPR expected_copy_assign_base() = default;
 
-    DS_CXX14_CONSTEXPR
-    expected_copy_assign_base(const expected_copy_assign_base&) = default;
+  DS_CXX14_CONSTEXPR
+  expected_copy_assign_base(const expected_copy_assign_base&) = default;
 
-    DS_CXX14_CONSTEXPR
-    expected_copy_assign_base(expected_copy_assign_base&&) = default;
+  DS_CXX14_CONSTEXPR
+  expected_copy_assign_base(expected_copy_assign_base&&) = default;
 
-    DS_CXX14_CONSTEXPR expected_copy_assign_base&
-    operator=(const expected_copy_assign_base&)
-        = default;
+  DS_CXX14_CONSTEXPR expected_copy_assign_base&
+  operator=(const expected_copy_assign_base&)
+      = default;
 
-    DS_CXX14_CONSTEXPR expected_copy_assign_base&
-    operator=(expected_copy_assign_base&&)
-        = default;
-  };
+  DS_CXX14_CONSTEXPR expected_copy_assign_base&
+  operator=(expected_copy_assign_base&&)
+      = default;
+};
 
-  template <typename T,
-            typename E,
-            bool
-            = disjunction<is_void<T>,
-                          conjunction<is_trivially_destructible<T>,
-                                      is_trivially_move_constructible<T>,
-                                      is_trivially_move_assignable<T>>>::value,
-            bool = conjunction<is_trivially_destructible<E>,
-                               is_trivially_move_constructible<E>,
-                               is_trivially_move_assignable<E>>::value>
-  struct expected_move_assign_base : expected_copy_assign_base<T, E> {
-    using expected_copy_assign_base<T, E>::expected_copy_assign_base;
+template <typename T,
+          typename E,
+          bool
+          = disjunction<is_void<T>,
+                        conjunction<is_trivially_destructible<T>,
+                                    is_trivially_move_constructible<T>,
+                                    is_trivially_move_assignable<T>>>::value,
+          bool = conjunction<is_trivially_destructible<E>,
+                             is_trivially_move_constructible<E>,
+                             is_trivially_move_assignable<E>>::value>
+struct expected_move_assign_base : expected_copy_assign_base<T, E> {
+  using expected_copy_assign_base<T, E>::expected_copy_assign_base;
 
-    DS_CXX14_CONSTEXPR expected_move_assign_base() = default;
+  DS_CXX14_CONSTEXPR expected_move_assign_base() = default;
 
-    DS_CXX14_CONSTEXPR
-    expected_move_assign_base(const expected_move_assign_base&) = default;
+  DS_CXX14_CONSTEXPR
+  expected_move_assign_base(const expected_move_assign_base&) = default;
 
-    DS_CXX14_CONSTEXPR
-    expected_move_assign_base(expected_move_assign_base&&) = default;
+  DS_CXX14_CONSTEXPR
+  expected_move_assign_base(expected_move_assign_base&&) = default;
 
-    DS_CXX14_CONSTEXPR expected_move_assign_base&
-    operator=(const expected_move_assign_base&)
-        = default;
+  DS_CXX14_CONSTEXPR expected_move_assign_base&
+  operator=(const expected_move_assign_base&)
+      = default;
 
-    DS_CXX14_CONSTEXPR expected_move_assign_base&
-    operator=(expected_move_assign_base&& other)
-    {
-      this->assign_from(std::move(other));
-    }
-  };
+  DS_CXX14_CONSTEXPR expected_move_assign_base&
+  operator=(expected_move_assign_base&& other)
+  {
+    this->assign_from(std::move(other));
+  }
+};
 
-  template <typename T, typename E>
-  struct expected_move_assign_base<T, E, true, true>
-      : expected_copy_assign_base<T, E> {
-    using expected_copy_assign_base<T, E>::expected_copy_assign_base;
+template <typename T, typename E>
+struct expected_move_assign_base<T, E, true, true>
+    : expected_copy_assign_base<T, E> {
+  using expected_copy_assign_base<T, E>::expected_copy_assign_base;
 
-    DS_CXX14_CONSTEXPR expected_move_assign_base() = default;
+  DS_CXX14_CONSTEXPR expected_move_assign_base() = default;
 
-    DS_CXX14_CONSTEXPR
-    expected_move_assign_base(const expected_move_assign_base&) = default;
+  DS_CXX14_CONSTEXPR
+  expected_move_assign_base(const expected_move_assign_base&) = default;
 
-    DS_CXX14_CONSTEXPR
-    expected_move_assign_base(expected_move_assign_base&&) = default;
+  DS_CXX14_CONSTEXPR
+  expected_move_assign_base(expected_move_assign_base&&) = default;
 
-    DS_CXX14_CONSTEXPR expected_move_assign_base&
-    operator=(const expected_move_assign_base&)
-        = default;
+  DS_CXX14_CONSTEXPR expected_move_assign_base&
+  operator=(const expected_move_assign_base&)
+      = default;
 
-    DS_CXX14_CONSTEXPR expected_move_assign_base&
-    operator=(expected_move_assign_base&&)
-        = default;
-  };
+  DS_CXX14_CONSTEXPR expected_move_assign_base&
+  operator=(expected_move_assign_base&&)
+      = default;
+};
 
-  template <typename T,
-            bool = disjunction<is_void<T>, is_default_constructible<T>>::value>
-  struct expected_default_constructible_base {
-    DS_CXX14_CONSTEXPR
-    expected_default_constructible_base(in_place_t) noexcept { }
+template <typename T,
+          bool = disjunction<is_void<T>, is_default_constructible<T>>::value>
+struct expected_default_constructible_base {
+  DS_CXX14_CONSTEXPR
+  expected_default_constructible_base(in_place_t) noexcept { }
 
-    DS_CXX14_CONSTEXPR expected_default_constructible_base() noexcept = default;
+  DS_CXX14_CONSTEXPR expected_default_constructible_base() noexcept = default;
 
-    DS_CXX14_CONSTEXPR expected_default_constructible_base(
-        const expected_default_constructible_base&) noexcept
-        = default;
+  DS_CXX14_CONSTEXPR expected_default_constructible_base(
+      const expected_default_constructible_base&) noexcept
+      = default;
 
-    DS_CXX14_CONSTEXPR expected_default_constructible_base(
-        expected_default_constructible_base&&) noexcept
-        = default;
+  DS_CXX14_CONSTEXPR expected_default_constructible_base(
+      expected_default_constructible_base&&) noexcept
+      = default;
 
-    DS_CXX14_CONSTEXPR expected_default_constructible_base&
-    operator=(const expected_default_constructible_base&) noexcept
-        = default;
+  DS_CXX14_CONSTEXPR expected_default_constructible_base&
+  operator=(const expected_default_constructible_base&) noexcept
+      = default;
 
-    DS_CXX14_CONSTEXPR expected_default_constructible_base&
-    operator=(expected_default_constructible_base&&) noexcept
-        = default;
-  };
+  DS_CXX14_CONSTEXPR expected_default_constructible_base&
+  operator=(expected_default_constructible_base&&) noexcept
+      = default;
+};
 
-  template <typename T>
-  struct expected_default_constructible_base<T, false> {
-    DS_CXX14_CONSTEXPR
-    expected_default_constructible_base(in_place_t) noexcept { }
+template <typename T>
+struct expected_default_constructible_base<T, false> {
+  DS_CXX14_CONSTEXPR
+  expected_default_constructible_base(in_place_t) noexcept { }
 
-    DS_CXX14_CONSTEXPR expected_default_constructible_base() noexcept = delete;
+  DS_CXX14_CONSTEXPR expected_default_constructible_base() noexcept = delete;
 
-    DS_CXX14_CONSTEXPR expected_default_constructible_base(
-        const expected_default_constructible_base&) noexcept
-        = default;
+  DS_CXX14_CONSTEXPR expected_default_constructible_base(
+      const expected_default_constructible_base&) noexcept
+      = default;
 
-    DS_CXX14_CONSTEXPR expected_default_constructible_base(
-        expected_default_constructible_base&&) noexcept
-        = default;
+  DS_CXX14_CONSTEXPR expected_default_constructible_base(
+      expected_default_constructible_base&&) noexcept
+      = default;
 
-    DS_CXX14_CONSTEXPR expected_default_constructible_base&
-    operator=(const expected_default_constructible_base&) noexcept
-        = default;
+  DS_CXX14_CONSTEXPR expected_default_constructible_base&
+  operator=(const expected_default_constructible_base&) noexcept
+      = default;
 
-    DS_CXX14_CONSTEXPR expected_default_constructible_base&
-    operator=(expected_default_constructible_base&&) noexcept
-        = default;
-  };
+  DS_CXX14_CONSTEXPR expected_default_constructible_base&
+  operator=(expected_default_constructible_base&&) noexcept
+      = default;
+};
 }
 
 template <typename T, typename E>
@@ -1774,4 +1766,5 @@ public:
     return !(lhs == rhs);
   }
 };
-}
+
+DS_NAMESPACE_END

@@ -20,7 +20,8 @@
 #include <type_traits>
 #include <utility>
 
-namespace ds {
+DS_NAMESPACE_BEGIN
+
 template <typename Key, typename T, typename Compare = std::less<Key>>
 class lru_map {
   using value_type_impl = std::pair<Key, T>;
@@ -494,4 +495,5 @@ private:
 
   map_type map_;
 };
-}
+
+DS_NAMESPACE_END

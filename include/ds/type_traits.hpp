@@ -11,12 +11,13 @@
 
 #include <type_traits>
 
-namespace ds {
+DS_NAMESPACE_BEGIN
+
 namespace detail {
-  template <typename... Ts>
-  struct make_void {
-    typedef void type;
-  };
+template <typename... Ts>
+struct make_void {
+  typedef void type;
+};
 }
 template <typename... Ts>
 using void_t = typename detail::make_void<Ts...>::type;
@@ -129,17 +130,17 @@ struct disjunction<T, Ts...>
     : conditional<T::value, T, disjunction<Ts...>>::type { };
 
 namespace detail {
-  using std::swap;
+using std::swap;
 
-  template <typename T, typename U, typename = void>
-  struct is_swappable_with_impl : std::false_type { };
+template <typename T, typename U, typename = void>
+struct is_swappable_with_impl : std::false_type { };
 
-  template <typename T, typename U>
-  struct is_swappable_with_impl<
-      T,
-      U,
-      void_t<decltype(swap(std::declval<T>(), std::declval<U>()))>>
-      : std::true_type { };
+template <typename T, typename U>
+struct is_swappable_with_impl<
+    T,
+    U,
+    void_t<decltype(swap(std::declval<T>(), std::declval<U>()))>>
+    : std::true_type { };
 }
 
 template <typename T, typename U>
@@ -154,16 +155,16 @@ struct is_swappable
 };
 
 namespace detail {
-  using std::swap;
+using std::swap;
 
-  template <typename T, typename U, bool = is_swappable_with<T, U>::value>
-  struct is_nothrow_swappable_with_impl : std::false_type { };
+template <typename T, typename U, bool = is_swappable_with<T, U>::value>
+struct is_nothrow_swappable_with_impl : std::false_type { };
 
-  template <typename T, typename U>
-  struct is_nothrow_swappable_with_impl<T, U, true>
-      : integral_constant<bool,
-                          noexcept(
-                              swap(std::declval<T>(), std::declval<U>()))> { };
+template <typename T, typename U>
+struct is_nothrow_swappable_with_impl<T, U, true>
+    : integral_constant<bool,
+                        noexcept(swap(std::declval<T>(), std::declval<U>()))> {
+};
 }
 
 template <typename T, typename U>
@@ -219,77 +220,77 @@ using std::type_identity_t;
 #endif
 
 namespace detail {
-  template <typename T, typename U, typename = void>
-  struct is_eq_comparable_with : std::false_type { };
+template <typename T, typename U, typename = void>
+struct is_eq_comparable_with : std::false_type { };
 
-  template <typename T, typename U>
-  struct is_eq_comparable_with<
-      T,
-      U,
-      void_t<decltype(std::declval<const T&>() == std::declval<const U&>())>>
-      : is_convertible<decltype(std::declval<const T&>()
-                                == std::declval<const U&>()),
-                       bool> { };
+template <typename T, typename U>
+struct is_eq_comparable_with<
+    T,
+    U,
+    void_t<decltype(std::declval<const T&>() == std::declval<const U&>())>>
+    : is_convertible<decltype(std::declval<const T&>()
+                              == std::declval<const U&>()),
+                     bool> { };
 
-  template <typename T, typename U, typename = void>
-  struct is_ne_comparable_with : std::false_type { };
+template <typename T, typename U, typename = void>
+struct is_ne_comparable_with : std::false_type { };
 
-  template <typename T, typename U>
-  struct is_ne_comparable_with<
-      T,
-      U,
-      void_t<decltype(std::declval<const T&>() != std::declval<const U&>())>>
-      : is_convertible<decltype(std::declval<const T&>()
-                                != std::declval<const U&>()),
-                       bool> { };
+template <typename T, typename U>
+struct is_ne_comparable_with<
+    T,
+    U,
+    void_t<decltype(std::declval<const T&>() != std::declval<const U&>())>>
+    : is_convertible<decltype(std::declval<const T&>()
+                              != std::declval<const U&>()),
+                     bool> { };
 
-  template <typename T, typename U, typename = void>
-  struct is_lt_comparable_with : std::false_type { };
+template <typename T, typename U, typename = void>
+struct is_lt_comparable_with : std::false_type { };
 
-  template <typename T, typename U>
-  struct is_lt_comparable_with<
-      T,
-      U,
-      void_t<decltype(std::declval<const T&>() < std::declval<const U&>())>>
-      : is_convertible<decltype(std::declval<const T&>()
-                                < std::declval<const U&>()),
-                       bool> { };
+template <typename T, typename U>
+struct is_lt_comparable_with<
+    T,
+    U,
+    void_t<decltype(std::declval<const T&>() < std::declval<const U&>())>>
+    : is_convertible<decltype(std::declval<const T&>()
+                              < std::declval<const U&>()),
+                     bool> { };
 
-  template <typename T, typename U, typename = void>
-  struct is_le_comparable_with : std::false_type { };
+template <typename T, typename U, typename = void>
+struct is_le_comparable_with : std::false_type { };
 
-  template <typename T, typename U>
-  struct is_le_comparable_with<
-      T,
-      U,
-      void_t<decltype(std::declval<const T&>() <= std::declval<const U&>())>>
-      : is_convertible<decltype(std::declval<const T&>()
-                                <= std::declval<const U&>()),
-                       bool> { };
+template <typename T, typename U>
+struct is_le_comparable_with<
+    T,
+    U,
+    void_t<decltype(std::declval<const T&>() <= std::declval<const U&>())>>
+    : is_convertible<decltype(std::declval<const T&>()
+                              <= std::declval<const U&>()),
+                     bool> { };
 
-  template <typename T, typename U, typename = void>
-  struct is_gt_comparable_with : std::false_type { };
+template <typename T, typename U, typename = void>
+struct is_gt_comparable_with : std::false_type { };
 
-  template <typename T, typename U>
-  struct is_gt_comparable_with<
-      T,
-      U,
-      void_t<decltype(std::declval<const T&>() > std::declval<const U&>())>>
-      : is_convertible<decltype(std::declval<const T&>()
-                                > std::declval<const U&>()),
-                       bool> { };
+template <typename T, typename U>
+struct is_gt_comparable_with<
+    T,
+    U,
+    void_t<decltype(std::declval<const T&>() > std::declval<const U&>())>>
+    : is_convertible<decltype(std::declval<const T&>()
+                              > std::declval<const U&>()),
+                     bool> { };
 
-  template <typename T, typename U, typename = void>
-  struct is_ge_comparable_with : std::false_type { };
+template <typename T, typename U, typename = void>
+struct is_ge_comparable_with : std::false_type { };
 
-  template <typename T, typename U>
-  struct is_ge_comparable_with<
-      T,
-      U,
-      void_t<decltype(std::declval<const T&>() >= std::declval<const U&>())>>
-      : is_convertible<decltype(std::declval<const T&>()
-                                >= std::declval<const U&>()),
-                       bool> { };
+template <typename T, typename U>
+struct is_ge_comparable_with<
+    T,
+    U,
+    void_t<decltype(std::declval<const T&>() >= std::declval<const U&>())>>
+    : is_convertible<decltype(std::declval<const T&>()
+                              >= std::declval<const U&>()),
+                     bool> { };
 }
 
 template <typename T, template <typename...> class U>
@@ -299,10 +300,10 @@ template <template <typename...> class U, typename... Args>
 struct is_specialization_of<U<Args...>, U> : std::true_type { };
 
 namespace detail {
-  struct is_nothrow_convertible_helper {
-    template <typename To>
-    static constexpr void test(To) noexcept;
-  };
+struct is_nothrow_convertible_helper {
+  template <typename To>
+  static constexpr void test(To) noexcept;
+};
 }
 
 template <typename From, typename To, bool = is_convertible<From, To>::value>
@@ -318,100 +319,100 @@ template <typename From>
 struct is_nothrow_convertible<From, void, true> : std::true_type { };
 
 namespace detail {
-  template <typename T,
-            bool = is_member_function_pointer<T>::value,
-            bool = is_member_object_pointer<T>::value>
-  struct is_invocable_get_ret_type_impl;
+template <typename T,
+          bool = is_member_function_pointer<T>::value,
+          bool = is_member_object_pointer<T>::value>
+struct is_invocable_get_ret_type_impl;
 
-  template <typename T>
-  struct is_invocable_get_ret_type_impl<T, false, false> {
-    template <typename F, typename... Args>
-    static constexpr auto test(F&& f, Args&&... args) //
-        noexcept(noexcept(std::forward<F>(f)(std::forward<Args>(args)...)))
-            -> decltype(std::forward<F>(f)(std::forward<Args>(args)...));
-  };
-
-  template <typename T>
-  struct is_invocable_get_ret_type_impl<T, true, false> {
-    template <typename C, typename Pointed, typename Arg1, typename... Args>
-    static constexpr auto test(Pointed C::*f, Arg1&& arg1, Args&&... args) //
-        noexcept(noexcept((std::forward<Arg1>(arg1)
-                           .*f)(std::forward<Args>(args)...)))
-            -> enable_if_t<is_base_of<C, remove_reference_t<Arg1>>::value,
-                           decltype((std::forward<Arg1>(arg1)
-                                     .*f)(std::forward<Args>(args)...))>;
-
-    template <typename C, typename Pointed, typename Arg1, typename... Args>
-    static constexpr auto test(Pointed C::*f, Arg1&& arg1, Args&&... args) //
-        noexcept(noexcept(((*std::forward<Arg1>(arg1))
-                           .*f)(std::forward<Args>(args)...)))
-            -> enable_if_t<!is_base_of<C, remove_reference_t<Arg1>>::value,
-                           decltype(((*std::forward<Arg1>(arg1))
-                                     .*f)(std::forward<Args>(args)...))>;
-  };
-
-  template <typename T>
-  struct is_invocable_get_ret_type_impl<T, false, true> {
-    template <typename C, typename Pointed, typename Arg1>
-    static constexpr auto test(Pointed C::*o, Arg1&& arg1) noexcept
-        -> enable_if_t<is_base_of<C, remove_reference_t<Arg1>>::value,
-                       decltype(std::forward<Arg1>(arg1).*o)>;
-
-    template <typename C, typename Pointed, typename Arg1>
-    static constexpr auto test(Pointed C::*o,
-                               Arg1&& arg1) //
-        noexcept(noexcept((*std::forward<Arg1>(arg1)).*o))
-            -> enable_if_t<!is_base_of<C, remove_reference_t<Arg1>>::value,
-                           decltype((*std::forward<Arg1>(arg1)).*o)>;
-  };
-
+template <typename T>
+struct is_invocable_get_ret_type_impl<T, false, false> {
   template <typename F, typename... Args>
-  using is_invocable_get_ret_type
-      = decltype(is_invocable_get_ret_type_impl<F>::test(
-          std::declval<F>(), std::declval<Args>()...));
+  static constexpr auto test(F&& f, Args&&... args) //
+      noexcept(noexcept(std::forward<F>(f)(std::forward<Args>(args)...)))
+          -> decltype(std::forward<F>(f)(std::forward<Args>(args)...));
+};
 
-  template <typename F, typename... Args>
-  struct is_invocable_noexcept
-      : integral_constant<bool,
-                          noexcept(is_invocable_get_ret_type_impl<F>::test(
-                              std::declval<F>(), std::declval<Args>()...))> { };
+template <typename T>
+struct is_invocable_get_ret_type_impl<T, true, false> {
+  template <typename C, typename Pointed, typename Arg1, typename... Args>
+  static constexpr auto test(Pointed C::*f, Arg1&& arg1, Args&&... args) //
+      noexcept(noexcept((std::forward<Arg1>(arg1)
+                         .*f)(std::forward<Args>(args)...)))
+          -> enable_if_t<is_base_of<C, remove_reference_t<Arg1>>::value,
+                         decltype((std::forward<Arg1>(arg1)
+                                   .*f)(std::forward<Args>(args)...))>;
+
+  template <typename C, typename Pointed, typename Arg1, typename... Args>
+  static constexpr auto test(Pointed C::*f, Arg1&& arg1, Args&&... args) //
+      noexcept(noexcept(((*std::forward<Arg1>(arg1))
+                         .*f)(std::forward<Args>(args)...)))
+          -> enable_if_t<!is_base_of<C, remove_reference_t<Arg1>>::value,
+                         decltype(((*std::forward<Arg1>(arg1))
+                                   .*f)(std::forward<Args>(args)...))>;
+};
+
+template <typename T>
+struct is_invocable_get_ret_type_impl<T, false, true> {
+  template <typename C, typename Pointed, typename Arg1>
+  static constexpr auto test(Pointed C::*o, Arg1&& arg1) noexcept
+      -> enable_if_t<is_base_of<C, remove_reference_t<Arg1>>::value,
+                     decltype(std::forward<Arg1>(arg1).*o)>;
+
+  template <typename C, typename Pointed, typename Arg1>
+  static constexpr auto test(Pointed C::*o,
+                             Arg1&& arg1) //
+      noexcept(noexcept((*std::forward<Arg1>(arg1)).*o))
+          -> enable_if_t<!is_base_of<C, remove_reference_t<Arg1>>::value,
+                         decltype((*std::forward<Arg1>(arg1)).*o)>;
+};
+
+template <typename F, typename... Args>
+using is_invocable_get_ret_type
+    = decltype(is_invocable_get_ret_type_impl<F>::test(
+        std::declval<F>(), std::declval<Args>()...));
+
+template <typename F, typename... Args>
+struct is_invocable_noexcept
+    : integral_constant<bool,
+                        noexcept(is_invocable_get_ret_type_impl<F>::test(
+                            std::declval<F>(), std::declval<Args>()...))> { };
 
 #if !defined(_MSC_VER) || _MSC_VER < 1920
-  template <typename F>
-  struct is_invocable_noexcept<F, void>
-      : integral_constant<bool,
-                          noexcept(is_invocable_get_ret_type_impl<F>::test(
-                              std::declval<F>()))> { };
+template <typename F>
+struct is_invocable_noexcept<F, void>
+    : integral_constant<bool,
+                        noexcept(is_invocable_get_ret_type_impl<F>::test(
+                            std::declval<F>()))> { };
 #endif
 
-  template <typename R, typename NoExcept>
-  struct is_invocable_traits {
-    using is_invocable = std::true_type;
-    using is_nothrow_invocable = NoExcept;
-    template <typename R2>
-    using is_invocable_r = disjunction<is_void<R2>, is_convertible<R, R2>>;
-    template <typename R2>
-    using is_nothrow_invocable_r
-        = conjunction<NoExcept,
-                      disjunction<is_void<R2>, is_nothrow_convertible<R, R2>>>;
-  };
+template <typename R, typename NoExcept>
+struct is_invocable_traits {
+  using is_invocable = std::true_type;
+  using is_nothrow_invocable = NoExcept;
+  template <typename R2>
+  using is_invocable_r = disjunction<is_void<R2>, is_convertible<R, R2>>;
+  template <typename R2>
+  using is_nothrow_invocable_r
+      = conjunction<NoExcept,
+                    disjunction<is_void<R2>, is_nothrow_convertible<R, R2>>>;
+};
 
-  template <typename Void, typename F, typename... Args>
-  struct is_invocable_impl {
-    using is_invocable = std::false_type;
-    using is_nothrow_invocable = std::false_type;
-    template <typename R2>
-    using is_invocable_r = std::false_type;
-    template <typename R2>
-    using is_nothrow_invocable_r = std::false_type;
-  };
+template <typename Void, typename F, typename... Args>
+struct is_invocable_impl {
+  using is_invocable = std::false_type;
+  using is_nothrow_invocable = std::false_type;
+  template <typename R2>
+  using is_invocable_r = std::false_type;
+  template <typename R2>
+  using is_nothrow_invocable_r = std::false_type;
+};
 
-  template <typename F, typename... Args>
-  struct is_invocable_impl<void_t<is_invocable_get_ret_type<F, Args...>>,
-                           F,
-                           Args...>
-      : is_invocable_traits<is_invocable_get_ret_type<F, Args...>,
-                            is_invocable_noexcept<F, Args...>> { };
+template <typename F, typename... Args>
+struct is_invocable_impl<void_t<is_invocable_get_ret_type<F, Args...>>,
+                         F,
+                         Args...>
+    : is_invocable_traits<is_invocable_get_ret_type<F, Args...>,
+                          is_invocable_noexcept<F, Args...>> { };
 }
 
 template <typename F, typename... Args>
@@ -437,4 +438,4 @@ struct is_nothrow_invocable_r : detail::is_invocable_impl<void, F, Args...>::
                                     template is_nothrow_invocable_r<R> { };
 #endif
 
-}
+DS_NAMESPACE_END

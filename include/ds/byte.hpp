@@ -11,7 +11,7 @@
 
 #include <ds/type_traits.hpp>
 
-namespace ds {
+DS_NAMESPACE_BEGIN
 
 enum class byte : unsigned char {};
 
@@ -101,4 +101,4 @@ constexpr byte to_byte(Integral i) noexcept
   return static_cast<byte>(i);
 }
 
-}
+DS_NAMESPACE_END

@@ -13,54 +13,53 @@
 #include <ds/type_traits.hpp>
 #include <ds/utility.hpp>
 
-namespace ds {
+DS_NAMESPACE_BEGIN
 
 DS_CXX17_INLINE constexpr std::size_t dynamic_extent = std::size_t(-1);
 
 namespace detail {
 
-  template <typename T, std::size_t Extent>
-  struct span_storage {
-    constexpr span_storage() noexcept = default;
+template <typename T, std::size_t Extent>
+struct span_storage {
+  constexpr span_storage() noexcept = default;
 
-    constexpr span_storage(T* pointer, std::size_t) noexcept
-        : data_(pointer)
-    {
-    }
+  constexpr span_storage(T* pointer, std::size_t) noexcept
+      : data_(pointer)
+  {
+  }
 
-    T* data_ = nullptr;
-    static constexpr std::size_t size_ = Extent;
-  };
+  T* data_ = nullptr;
+  static constexpr std::size_t size_ = Extent;
+};
 
-  template <typename T>
-  struct span_storage<T, dynamic_extent> {
-    constexpr span_storage() noexcept = default;
+template <typename T>
+struct span_storage<T, dynamic_extent> {
+  constexpr span_storage() noexcept = default;
 
-    constexpr span_storage(T* pointer, std::size_t count) noexcept
-        : data_(pointer)
-        , size_(count)
-    {
-    }
+  constexpr span_storage(T* pointer, std::size_t count) noexcept
+      : data_(pointer)
+      , size_(count)
+  {
+  }
 
-    T* data_ = nullptr;
-    std::size_t size_ = 0;
-  };
+  T* data_ = nullptr;
+  std::size_t size_ = 0;
+};
 
-  template <std::size_t Extent,
-            bool CanDefaultConstruct
-            = (Extent == 0 || Extent == dynamic_extent)>
-  struct span_default_constructible {
-    constexpr span_default_constructible() noexcept = default;
+template <std::size_t Extent,
+          bool CanDefaultConstruct = (Extent == 0 || Extent == dynamic_extent)>
+struct span_default_constructible {
+  constexpr span_default_constructible() noexcept = default;
 
-    constexpr span_default_constructible(in_place_t) noexcept { }
-  };
+  constexpr span_default_constructible(in_place_t) noexcept { }
+};
 
-  template <std::size_t Extent>
-  struct span_default_constructible<Extent, false> {
-    constexpr span_default_constructible() noexcept = delete;
+template <std::size_t Extent>
+struct span_default_constructible<Extent, false> {
+  constexpr span_default_constructible() noexcept = delete;
 
-    constexpr span_default_constructible(in_place_t) noexcept { }
-  };
+  constexpr span_default_constructible(in_place_t) noexcept { }
+};
 }
 
 template <typename T, std::size_t Extent = dynamic_extent>
@@ -412,4 +411,5 @@ as_writable_bytes(span<T, N> s) noexcept
   return span<byte, (N == dynamic_extent ? dynamic_extent : N * sizeof(T))>(
       reinterpret_cast<byte*>(s.data()), s.size_bytes());
 }
-}
+
+DS_NAMESPACE_END
