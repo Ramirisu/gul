@@ -30,7 +30,7 @@ CMake
 
 | Option         | Description | Value  | Default |
 | :------------- | :---------- | :----: | :-----: |
-| DS_BUILD_TESTS | Build tests | ON/OFF |   ON    |
+| DS_BUILD_TESTS | Build tests | ON/OFF |   OF    |
 
 ```sh
 cd ds/

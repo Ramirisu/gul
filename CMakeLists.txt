@@ -5,7 +5,7 @@ project(
   VERSION 0.0.0
   LANGUAGES CXX)
 
-option(DS_BUILD_TESTS "Build tests" ON)
+option(DS_BUILD_TESTS "Build tests" OFF)
 
 include(cmake/CPM.cmake)
 
