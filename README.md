@@ -18,13 +18,29 @@ ds is an open-source library providing general utilities for c++11. Many of them
 |                                 `fifo_map`                                 | An associative container that contains key-value pairs with unique keys. `Key`s are sorted by insertion order.                                                                  |                                none                                 |
 |                                 `lru_map`                                  | An associative container that contains key-value pairs with at most `capacity` unique keys. The least recently used `Key` will be purged when the map is full during insertion. |                                none                                 |
 
-## Building
+## Integration
 
-Compiler Support
+Requirements
 
-* GCC 5.5
-* Clang 9
-* MSVC 2017 15.9 v141
+* CMake 3.15 (or later)
+* GCC 5.5 (or later)
+* Clang 9 (or later)
+* MSVC 2017 15.9 v141 (or later)
+
+CMake
+
+```cmake
+  add_executable(your_exe)
+  target_link_libraries(your_exe PRIVATE ds)
+```
+
+ds is header-only. Just `#include` the header file `all.hpp` to utilize all features.
+
+```cpp
+  #include <ds/all.hpp>
+```
+
+## Buiding tests
 
 CMake
 
