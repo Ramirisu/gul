@@ -271,6 +271,8 @@ public:
   {
   }
 
+  DS_CXX14_CONSTEXPR span(const span&) noexcept = default;
+
   DS_CXX14_CONSTEXPR span& operator=(const span&) noexcept = default;
 
   DS_CXX14_CONSTEXPR reference front() const

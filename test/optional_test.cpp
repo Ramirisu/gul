@@ -16,23 +16,23 @@ TEST_SUITE_BEGIN("optional");
 namespace {
 template <typename T>
 class default_constructible : public std::vector<T> {
-  using __base_type = std::vector<T>;
+  using base_type = std::vector<T>;
 
 public:
   default_constructible() noexcept = default;
 
   default_constructible(int value)
-      : __base_type({ value })
+      : base_type({ value })
   {
   }
 
   default_constructible(std::initializer_list<T> init)
-      : __base_type(std::move(init))
+      : base_type(std::move(init))
   {
   }
 
-  default_constructible(__base_type init)
-      : __base_type(std::move(init))
+  default_constructible(base_type init)
+      : base_type(std::move(init))
   {
   }
 

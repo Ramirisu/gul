@@ -16,23 +16,23 @@ TEST_SUITE_BEGIN("expected");
 namespace {
 template <typename T>
 class default_constructible : std::vector<T> {
-  using __base_type = std::vector<T>;
+  using base_type = std::vector<T>;
 
 public:
   default_constructible() = default;
 
   default_constructible(int value)
-      : __base_type({ value })
+      : base_type({ value })
   {
   }
 
   default_constructible(std::initializer_list<T> init)
-      : __base_type(std::move(init))
+      : base_type(std::move(init))
   {
   }
 
-  default_constructible(__base_type init)
-      : __base_type(std::move(init))
+  default_constructible(base_type init)
+      : base_type(std::move(init))
   {
   }
 
@@ -44,13 +44,13 @@ public:
 
   default_constructible& operator=(default_constructible&&) = default;
 
-  using __base_type::size;
+  using base_type::size;
 
   friend bool operator==(const default_constructible& lhs,
                          const default_constructible& rhs)
   {
-    return static_cast<const __base_type&>(lhs)
-        == static_cast<const __base_type&>(rhs);
+    return static_cast<const base_type&>(lhs)
+        == static_cast<const base_type&>(rhs);
   }
 };
 
@@ -59,21 +59,21 @@ using dc = default_constructible<T>;
 
 template <typename T>
 class non_default_constructible : std::vector<T> {
-  using __base_type = std::vector<T>;
+  using base_type = std::vector<T>;
 
 public:
   non_default_constructible(int value)
-      : __base_type({ value })
+      : base_type({ value })
   {
   }
 
   non_default_constructible(std::initializer_list<T> init)
-      : __base_type(std::move(init))
+      : base_type(std::move(init))
   {
   }
 
-  non_default_constructible(__base_type init)
-      : __base_type(std::move(init))
+  non_default_constructible(base_type init)
+      : base_type(std::move(init))
   {
   }
 
@@ -86,13 +86,13 @@ public:
 
   non_default_constructible& operator=(non_default_constructible&&) = default;
 
-  using __base_type::size;
+  using base_type::size;
 
   friend bool operator==(const non_default_constructible& lhs,
                          const non_default_constructible& rhs)
   {
-    return static_cast<const __base_type&>(lhs)
-        == static_cast<const __base_type&>(rhs);
+    return static_cast<const base_type&>(lhs)
+        == static_cast<const base_type&>(rhs);
   }
 };
 

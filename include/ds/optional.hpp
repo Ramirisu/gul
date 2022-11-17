@@ -1169,6 +1169,7 @@ DS_CXX14_CONSTEXPR bool operator!=(nullopt_t, const optional<T>& opt) noexcept
 template <typename T>
 DS_CXX14_CONSTEXPR bool operator<(const optional<T>& opt, nullopt_t) noexcept
 {
+  DS_UNUSED(opt);
   return false;
 }
 
@@ -1187,6 +1188,7 @@ DS_CXX14_CONSTEXPR bool operator<=(const optional<T>& opt, nullopt_t) noexcept
 template <typename T>
 DS_CXX14_CONSTEXPR bool operator<=(nullopt_t, const optional<T>& opt) noexcept
 {
+  DS_UNUSED(opt);
   return true;
 }
 
@@ -1199,12 +1201,14 @@ DS_CXX14_CONSTEXPR bool operator>(const optional<T>& opt, nullopt_t) noexcept
 template <typename T>
 DS_CXX14_CONSTEXPR bool operator>(nullopt_t, const optional<T>& opt) noexcept
 {
+  DS_UNUSED(opt);
   return false;
 }
 
 template <typename T>
 DS_CXX14_CONSTEXPR bool operator>=(const optional<T>& opt, nullopt_t) noexcept
 {
+  DS_UNUSED(opt);
   return true;
 }
 

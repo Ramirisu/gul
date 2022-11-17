@@ -17,8 +17,6 @@
   }                                                                            \
   }
 
-#define DS_ASSERT(expr) assert(expr)
-
 #if defined(__cplusplus) && __cplusplus >= 201402L                             \
     || defined(_MSVC_LANG) && _MSVC_LANG >= 201402L
 #define DS_HAS_CXX14
@@ -31,6 +29,9 @@
     || defined(_MSVC_LANG) && _MSVC_LANG >= 202002L
 #define DS_HAS_CXX20
 #endif
+
+#define DS_ASSERT(expr) assert(expr)
+#define DS_UNUSED(expr) ((void)expr)
 
 // clang-format off
 #if __cpp_exceptions >= 199711

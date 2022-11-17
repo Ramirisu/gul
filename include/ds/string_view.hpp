@@ -158,6 +158,7 @@ class basic_string_view {
   void throw_out_of_range(const char* msg) const
   {
 #if DS_NO_EXCEPTIONS
+    DS_UNUSED(msg);
     std::abort();
 #else
     throw std::out_of_range(msg);
@@ -203,7 +204,8 @@ public:
   constexpr basic_string_view(const basic_string_view&) noexcept = default;
 
   DS_CXX14_CONSTEXPR basic_string_view&
-  operator=(const basic_string_view&) noexcept = default;
+  operator=(const basic_string_view&) noexcept
+      = default;
 
   DS_CXX14_CONSTEXPR const_reference operator[](size_type index) const
   {

@@ -180,6 +180,7 @@ struct expected_throw_base {
   void throw_bad_expected_access(E err) const
   {
 #if DS_NO_EXCEPTIONS
+    DS_UNUSED(err);
     std::abort();
 #else
     throw bad_expected_access<E>(err);

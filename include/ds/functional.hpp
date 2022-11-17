@@ -83,8 +83,7 @@ template <typename C,
           class T1,
           typename... Args,
           enable_if_t<is_object<Pointed>::value, int> = 0>
-constexpr auto
-invoke_memptr_impl(Pointed C::*f, T1&& t1, Args&&... args) noexcept(
+constexpr auto invoke_memptr_impl(Pointed C::*f, T1&& t1, Args&&...) noexcept(
     noexcept(invoke_memobj_impl(f, std::forward<T1>(t1))))
     -> decltype(invoke_memobj_impl(f, std::forward<T1>(t1)))
 {
