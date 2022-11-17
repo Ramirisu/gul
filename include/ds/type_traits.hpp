@@ -95,19 +95,8 @@ using std::remove_reference_t;
 
 #endif
 
-#ifndef DS_HAS_CXX17
-
-template <bool B>
-using bool_constant = integral_constant<bool, B>;
-
-template <typename F, typename... Args>
-struct invoke_result : std::result_of<F(Args...)> { };
-
-template <typename F, typename... Args>
-using invoke_result_t = typename invoke_result<F, Args...>::type;
-
 template <typename T>
-struct negation : bool_constant<!T::value> { };
+struct negation : integral_constant<bool, !static_cast<bool>(T::value)> { };
 
 template <typename... Ts>
 struct conjunction : std::true_type { };
@@ -117,7 +106,7 @@ struct conjunction<T> : T { };
 
 template <typename T, typename... Ts>
 struct conjunction<T, Ts...>
-    : conditional<T::value, conjunction<Ts...>, T>::type { };
+    : conditional<static_cast<bool>(T::value), conjunction<Ts...>, T>::type { };
 
 template <typename... Ts>
 struct disjunction : std::false_type { };
@@ -127,7 +116,15 @@ struct disjunction<T> : T { };
 
 template <typename T, typename... Ts>
 struct disjunction<T, Ts...>
-    : conditional<T::value, T, disjunction<Ts...>>::type { };
+    : conditional<static_cast<bool>(T::value), T, disjunction<Ts...>>::type { };
+
+#ifndef DS_HAS_CXX17
+
+template <typename F, typename... Args>
+struct invoke_result : std::result_of<F(Args...)> { };
+
+template <typename F, typename... Args>
+using invoke_result_t = typename invoke_result<F, Args...>::type;
 
 namespace detail {
 using std::swap;
@@ -184,13 +181,10 @@ struct is_nothrow_swappable
 using std::invoke_result;
 using std::invoke_result_t;
 
-using std::conjunction;
-using std::disjunction;
 using std::is_nothrow_swappable;
 using std::is_nothrow_swappable_with;
 using std::is_swappable;
 using std::is_swappable_with;
-using std::negation;
 
 #endif
 
