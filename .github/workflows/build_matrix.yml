@@ -9,7 +9,7 @@ jobs:
       matrix:
         os: [windows-2022, ubuntu-22.04]
         cxx: [clang++-14, g++-11, cl]
-        std: [11, 20]
+        std: [11, 14, 17, 20]
         build_type: [Debug]
         generators: [Ninja]
         extra_args: [""]
@@ -18,6 +18,8 @@ jobs:
             cxx: clang++-14
           - os: windows-2022
             cxx: g++-11
+          - cxx: cl
+            std: 11
           - os: ubuntu-22.04
             cxx: cl
         include:
