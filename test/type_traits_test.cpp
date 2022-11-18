@@ -5,11 +5,11 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#include <ds_test.h>
+#include <gul_test.h>
 
-#include <ds/type_traits.hpp>
+#include <gul/type_traits.hpp>
 
-using namespace ds;
+using namespace gul;
 
 TEST_SUITE_BEGIN("type_traits");
 
@@ -131,7 +131,7 @@ TEST_CASE("is_invocable")
     static_assert(!is_invocable<decltype(fn), int>::value, "");
     static_assert(!is_invocable<decltype(fin)>::value, "");
     static_assert(is_invocable<decltype(fin), int>::value, "");
-#ifdef DS_HAS_CXX17
+#ifdef GUL_HAS_CXX17
     static_assert(!is_nothrow_invocable<decltype(f)>::value);
     static_assert(!is_nothrow_invocable<decltype(f), int>::value);
     static_assert(!is_nothrow_invocable<decltype(fi)>::value);
@@ -151,7 +151,7 @@ TEST_CASE("is_invocable")
     static_assert(is_invocable_r<int, decltype(f_ri)>::value, "");
     static_assert(is_invocable_r<void, decltype(fn_ri)>::value, "");
     static_assert(is_invocable_r<int, decltype(fn_ri)>::value, "");
-#ifdef DS_HAS_CXX17
+#ifdef GUL_HAS_CXX17
     static_assert(!is_nothrow_invocable_r<void, decltype(f)>::value);
     static_assert(!is_nothrow_invocable_r<int, decltype(f)>::value);
     static_assert(is_nothrow_invocable_r<void, decltype(fn)>::value);
@@ -183,7 +183,7 @@ TEST_CASE("is_invocable")
     static_assert(!is_invocable<fn, int>::value, "");
     static_assert(!is_invocable<fin>::value, "");
     static_assert(is_invocable<fin, int>::value, "");
-#ifdef DS_HAS_CXX17
+#ifdef GUL_HAS_CXX17
     static_assert(!is_nothrow_invocable<f>::value);
     static_assert(!is_nothrow_invocable<f, int>::value);
     static_assert(!is_nothrow_invocable<fi>::value);
@@ -207,7 +207,7 @@ TEST_CASE("is_invocable")
     static_assert(is_invocable_r<int, f_ri>::value, "");
     static_assert(is_invocable_r<void, fn_ri>::value, "");
     static_assert(is_invocable_r<int, fn_ri>::value, "");
-#ifdef DS_HAS_CXX17
+#ifdef GUL_HAS_CXX17
     static_assert(!is_nothrow_invocable_r<void, f>::value);
     static_assert(!is_nothrow_invocable_r<int, f>::value);
     static_assert(is_nothrow_invocable_r<void, fn>::value);
@@ -267,7 +267,7 @@ TEST_CASE("is_invocable")
     static_assert(is_invocable<decltype(&s::fin), s*, int>::value, "");
     static_assert(!is_invocable<decltype(&s::ficn), s*>::value, "");
     static_assert(is_invocable<decltype(&s::ficn), s*, int>::value, "");
-#ifdef DS_HAS_CXX17
+#ifdef GUL_HAS_CXX17
     static_assert(!is_nothrow_invocable<decltype(&s::f), s>::value);
     static_assert(!is_nothrow_invocable<decltype(&s::f), s, int>::value);
     static_assert(!is_nothrow_invocable<decltype(&s::fc), s>::value);
@@ -333,7 +333,7 @@ TEST_CASE("is_invocable")
     static_assert(is_invocable_r<int, decltype(&s::fn_ri), s*>::value, "");
     static_assert(is_invocable_r<void, decltype(&s::fcn_ri), s*>::value, "");
     static_assert(is_invocable_r<int, decltype(&s::fcn_ri), s*>::value, "");
-#ifdef DS_HAS_CXX17
+#ifdef GUL_HAS_CXX17
     static_assert(!is_nothrow_invocable_r<void, decltype(&s::f), s>::value);
     static_assert(!is_nothrow_invocable_r<int, decltype(&s::f), s>::value);
     static_assert(!is_nothrow_invocable_r<void, decltype(&s::fc), s>::value);
@@ -378,7 +378,7 @@ TEST_CASE("is_invocable")
     static_assert(!is_invocable<decltype(&s::o), s*, int>::value, "");
     static_assert(is_invocable<decltype(&s::oc), s*>::value, "");
     static_assert(!is_invocable<decltype(&s::oc), s*, int>::value, "");
-#ifdef DS_HAS_CXX17
+#ifdef GUL_HAS_CXX17
     static_assert(is_nothrow_invocable<decltype(&s::o), s>::value);
     static_assert(!is_nothrow_invocable<decltype(&s::o), s, int>::value);
     static_assert(is_nothrow_invocable<decltype(&s::oc), s>::value);

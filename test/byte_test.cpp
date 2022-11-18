@@ -5,11 +5,11 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#include <ds_test.h>
+#include <gul_test.h>
 
-#include <ds/byte.hpp>
+#include <gul/byte.hpp>
 
-using namespace ds;
+using namespace gul;
 
 TEST_SUITE_BEGIN("byte");
 

@@ -7,9 +7,9 @@
 
 #pragma once
 
-#include <ds/config.hpp>
+#include <gul/config.hpp>
 
-#include <ds/optional.hpp>
+#include <gul/optional.hpp>
 
 #include <initializer_list>
 #include <iterator>
@@ -20,7 +20,7 @@
 #include <type_traits>
 #include <utility>
 
-DS_NAMESPACE_BEGIN
+GUL_NAMESPACE_BEGIN
 
 template <typename Key, typename T, typename Compare = std::less<Key>>
 class lru_map {
@@ -138,13 +138,13 @@ public:
   lru_map(size_type capacity)
       : capacity_(capacity)
   {
-    DS_ASSERT(capacity > 0);
+    GUL_ASSERT(capacity > 0);
   }
 
   lru_map(size_type capacity, std::initializer_list<value_type> init)
       : capacity_(capacity)
   {
-    DS_ASSERT(capacity > 0);
+    GUL_ASSERT(capacity > 0);
     for (auto& value : init) {
       insert_or_assign(std::move(value.first), std::move(value.second));
     }
@@ -156,7 +156,7 @@ public:
       : capacity_(capacity)
       , map_(std::move(comp))
   {
-    DS_ASSERT(capacity > 0);
+    GUL_ASSERT(capacity > 0);
     for (auto& value : init) {
       insert_or_assign(std::move(value.first), std::move(value.second));
     }
@@ -166,7 +166,7 @@ public:
   lru_map(size_type capacity, InputIt first, InputIt last)
       : capacity_(capacity)
   {
-    DS_ASSERT(capacity > 0);
+    GUL_ASSERT(capacity > 0);
     for (auto it = first; it != last; ++it) {
       using std::get;
       insert_or_assign(get<0>(*it), get<1>(*it));
@@ -496,4 +496,4 @@ private:
   map_type map_;
 };
 
-DS_NAMESPACE_END
+GUL_NAMESPACE_END

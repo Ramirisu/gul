@@ -7,13 +7,13 @@
 
 #pragma once
 
-#include <ds/config.hpp>
+#include <gul/config.hpp>
 
-#include <ds/functional.hpp>
-#include <ds/type_traits.hpp>
-#include <ds/utility.hpp>
+#include <gul/functional.hpp>
+#include <gul/type_traits.hpp>
+#include <gul/utility.hpp>
 
-DS_NAMESPACE_BEGIN
+GUL_NAMESPACE_BEGIN
 
 struct nullopt_t {
   struct tag_t {
@@ -22,10 +22,10 @@ struct nullopt_t {
   explicit constexpr nullopt_t(tag_t, tag_t) { }
 };
 
-DS_CXX17_INLINE constexpr nullopt_t nullopt { nullopt_t::tag_t {},
-                                              nullopt_t::tag_t {} };
+GUL_CXX17_INLINE constexpr nullopt_t nullopt { nullopt_t::tag_t {},
+                                               nullopt_t::tag_t {} };
 
-#if !DS_NO_EXCEPTIONS
+#if !GUL_NO_EXCEPTIONS
 class bad_optional_access : public std::exception {
 public:
   bad_optional_access() noexcept = default;
@@ -47,7 +47,7 @@ namespace detail {
 struct optional_throw_base {
   void throw_bad_optional_access() const
   {
-#if DS_NO_EXCEPTIONS
+#if GUL_NO_EXCEPTIONS
     std::abort();
 #else
     throw bad_optional_access();
@@ -63,25 +63,26 @@ struct optional_destruct_base : optional_throw_base {
   };
   bool has_;
 
-  DS_CXX14_CONSTEXPR optional_destruct_base() noexcept
+  GUL_CXX14_CONSTEXPR optional_destruct_base() noexcept
       : nul_()
       , has_(false)
   {
   }
 
   template <typename... Args>
-  DS_CXX14_CONSTEXPR explicit optional_destruct_base(in_place_t, Args&&... args)
+  GUL_CXX14_CONSTEXPR explicit optional_destruct_base(in_place_t,
+                                                      Args&&... args)
       : val_(std::forward<Args>(args)...)
       , has_(true)
   {
   }
 
-  DS_CXX14_CONSTEXPR bool has_value() const noexcept
+  GUL_CXX14_CONSTEXPR bool has_value() const noexcept
   {
     return has_;
   }
 
-  DS_CXX14_CONSTEXPR void reset() noexcept
+  GUL_CXX14_CONSTEXPR void reset() noexcept
   {
     has_ = false;
   }
@@ -95,14 +96,15 @@ struct optional_destruct_base<T, false> : optional_throw_base {
   };
   bool has_;
 
-  DS_CXX14_CONSTEXPR optional_destruct_base() noexcept
+  GUL_CXX14_CONSTEXPR optional_destruct_base() noexcept
       : nul_()
       , has_(false)
   {
   }
 
   template <typename... Args>
-  DS_CXX14_CONSTEXPR explicit optional_destruct_base(in_place_t, Args&&... args)
+  GUL_CXX14_CONSTEXPR explicit optional_destruct_base(in_place_t,
+                                                      Args&&... args)
       : val_(std::forward<Args>(args)...)
       , has_(true)
   {
@@ -115,12 +117,12 @@ struct optional_destruct_base<T, false> : optional_throw_base {
     }
   }
 
-  DS_CXX14_CONSTEXPR bool has_value() const noexcept
+  GUL_CXX14_CONSTEXPR bool has_value() const noexcept
   {
     return has_;
   }
 
-  DS_CXX14_CONSTEXPR void reset() noexcept
+  GUL_CXX14_CONSTEXPR void reset() noexcept
   {
     if (has_) {
       val_.~T();
@@ -133,31 +135,31 @@ template <typename T, bool = is_reference<T>::value>
 struct optional_storage_base : optional_destruct_base<T> {
   using optional_destruct_base<T>::optional_destruct_base;
 
-  DS_CXX14_CONSTEXPR T& operator*() & noexcept
+  GUL_CXX14_CONSTEXPR T& operator*() & noexcept
   {
-    DS_ASSERT(this->has_);
+    GUL_ASSERT(this->has_);
     return this->val_;
   }
 
-  DS_CXX14_CONSTEXPR const T& operator*() const& noexcept
+  GUL_CXX14_CONSTEXPR const T& operator*() const& noexcept
   {
-    DS_ASSERT(this->has_);
+    GUL_ASSERT(this->has_);
     return this->val_;
   }
 
-  DS_CXX14_CONSTEXPR T&& operator*() && noexcept
+  GUL_CXX14_CONSTEXPR T&& operator*() && noexcept
   {
-    DS_ASSERT(this->has_);
+    GUL_ASSERT(this->has_);
     return std::move(this->val_);
   }
 
-  DS_CXX14_CONSTEXPR const T&& operator*() const&& noexcept
+  GUL_CXX14_CONSTEXPR const T&& operator*() const&& noexcept
   {
-    DS_ASSERT(this->has_);
+    GUL_ASSERT(this->has_);
     return std::move(this->val_);
   }
 
-  DS_CXX14_CONSTEXPR T& value() &
+  GUL_CXX14_CONSTEXPR T& value() &
   {
     if (!this->has_) {
       this->throw_bad_optional_access();
@@ -165,7 +167,7 @@ struct optional_storage_base : optional_destruct_base<T> {
     return this->val_;
   }
 
-  DS_CXX14_CONSTEXPR const T& value() const&
+  GUL_CXX14_CONSTEXPR const T& value() const&
   {
     if (!this->has_) {
       this->throw_bad_optional_access();
@@ -173,7 +175,7 @@ struct optional_storage_base : optional_destruct_base<T> {
     return this->val_;
   }
 
-  DS_CXX14_CONSTEXPR T&& value() &&
+  GUL_CXX14_CONSTEXPR T&& value() &&
   {
     if (!this->has_) {
       this->throw_bad_optional_access();
@@ -181,7 +183,7 @@ struct optional_storage_base : optional_destruct_base<T> {
     return std::move(this->val_);
   }
 
-  DS_CXX14_CONSTEXPR const T&& value() const&&
+  GUL_CXX14_CONSTEXPR const T&& value() const&&
   {
     if (!this->has_) {
       this->throw_bad_optional_access();
@@ -190,24 +192,24 @@ struct optional_storage_base : optional_destruct_base<T> {
   }
 
   template <typename... Args>
-  DS_CXX14_CONSTEXPR T& construct(Args&&... args)
+  GUL_CXX14_CONSTEXPR T& construct(Args&&... args)
   {
-    DS_ASSERT(!this->has_);
+    GUL_ASSERT(!this->has_);
     auto& val
         = *(::new (std::addressof(this->val_)) T(std::forward<Args>(args)...));
     this->has_ = true;
     return val;
   }
 
-  DS_CXX14_CONSTEXPR void destroy()
+  GUL_CXX14_CONSTEXPR void destroy()
   {
-    DS_ASSERT(this->has_);
+    GUL_ASSERT(this->has_);
     this->val_.~T();
     this->has_ = false;
   }
 
   template <typename Other>
-  DS_CXX14_CONSTEXPR void construct_from(Other&& other)
+  GUL_CXX14_CONSTEXPR void construct_from(Other&& other)
   {
     if (other.has_value()) {
       construct(std::forward<Other>(other).value());
@@ -215,7 +217,7 @@ struct optional_storage_base : optional_destruct_base<T> {
   }
 
   template <typename Other>
-  DS_CXX14_CONSTEXPR void assign_from(Other&& other)
+  GUL_CXX14_CONSTEXPR void assign_from(Other&& other)
   {
     if (this->has_) {
       if (other.has_value()) {
@@ -236,40 +238,40 @@ template <typename T>
 struct optional_storage_base<T, true> : optional_throw_base {
   remove_reference_t<T>* valptr_;
 
-  DS_CXX14_CONSTEXPR optional_storage_base() noexcept
+  GUL_CXX14_CONSTEXPR optional_storage_base() noexcept
       : valptr_(nullptr)
   {
   }
 
   template <typename U>
-  DS_CXX14_CONSTEXPR optional_storage_base(in_place_t, U&& val) noexcept
+  GUL_CXX14_CONSTEXPR optional_storage_base(in_place_t, U&& val) noexcept
       : valptr_(std::addressof(val))
   {
   }
 
-  DS_CXX14_CONSTEXPR bool has_value() const noexcept
+  GUL_CXX14_CONSTEXPR bool has_value() const noexcept
   {
     return valptr_ != nullptr;
   }
 
-  DS_CXX14_CONSTEXPR void reset() noexcept
+  GUL_CXX14_CONSTEXPR void reset() noexcept
   {
     valptr_ = nullptr;
   }
 
-  DS_CXX14_CONSTEXPR T& operator*() const& noexcept
+  GUL_CXX14_CONSTEXPR T& operator*() const& noexcept
   {
-    DS_ASSERT(has_value());
+    GUL_ASSERT(has_value());
     return *valptr_;
   }
 
-  DS_CXX14_CONSTEXPR T&& operator*() const&& noexcept
+  GUL_CXX14_CONSTEXPR T&& operator*() const&& noexcept
   {
-    DS_ASSERT(has_value());
+    GUL_ASSERT(has_value());
     return std::forward<T>(*valptr_);
   }
 
-  DS_CXX14_CONSTEXPR T& value() const&
+  GUL_CXX14_CONSTEXPR T& value() const&
   {
     if (!has_value()) {
       this->throw_bad_optional_access();
@@ -277,7 +279,7 @@ struct optional_storage_base<T, true> : optional_throw_base {
     return *valptr_;
   }
 
-  DS_CXX14_CONSTEXPR T&& value() const&&
+  GUL_CXX14_CONSTEXPR T&& value() const&&
   {
     if (!has_value()) {
       this->throw_bad_optional_access();
@@ -286,15 +288,15 @@ struct optional_storage_base<T, true> : optional_throw_base {
   }
 
   template <typename U>
-  DS_CXX14_CONSTEXPR T& construct(U&& u)
+  GUL_CXX14_CONSTEXPR T& construct(U&& u)
   {
-    DS_ASSERT(!has_value());
+    GUL_ASSERT(!has_value());
     valptr_ = std::addressof(u);
     return *valptr_;
   }
 
   template <typename Other>
-  DS_CXX14_CONSTEXPR void construct_from(Other&& other)
+  GUL_CXX14_CONSTEXPR void construct_from(Other&& other)
   {
     if (other.has_value()) {
       construct(std::forward<Other>(other).value());
@@ -302,7 +304,7 @@ struct optional_storage_base<T, true> : optional_throw_base {
   }
 
   template <typename Other>
-  DS_CXX14_CONSTEXPR void assign_from(Other&& other)
+  GUL_CXX14_CONSTEXPR void assign_from(Other&& other)
   {
     if (has_value()) {
       if (other.has_value()) {
@@ -322,80 +324,80 @@ template <bool B>
 struct optional_storage_base<void, B> : optional_throw_base {
   bool has_;
 
-  DS_CXX14_CONSTEXPR optional_storage_base() noexcept
+  GUL_CXX14_CONSTEXPR optional_storage_base() noexcept
       : has_(false)
   {
   }
 
-  DS_CXX14_CONSTEXPR optional_storage_base(in_place_t) noexcept
+  GUL_CXX14_CONSTEXPR optional_storage_base(in_place_t) noexcept
       : has_(true)
   {
   }
 
-  DS_CXX14_CONSTEXPR bool has_value() const noexcept
+  GUL_CXX14_CONSTEXPR bool has_value() const noexcept
   {
     return has_;
   }
 
-  DS_CXX14_CONSTEXPR void reset() noexcept
+  GUL_CXX14_CONSTEXPR void reset() noexcept
   {
     has_ = false;
   }
 
-  DS_CXX14_CONSTEXPR void operator*() & noexcept
+  GUL_CXX14_CONSTEXPR void operator*() & noexcept
   {
-    DS_ASSERT(has_);
+    GUL_ASSERT(has_);
   }
 
-  DS_CXX14_CONSTEXPR void operator*() const& noexcept
+  GUL_CXX14_CONSTEXPR void operator*() const& noexcept
   {
-    DS_ASSERT(has_);
+    GUL_ASSERT(has_);
   }
 
-  DS_CXX14_CONSTEXPR void operator*() && noexcept
+  GUL_CXX14_CONSTEXPR void operator*() && noexcept
   {
-    DS_ASSERT(has_);
+    GUL_ASSERT(has_);
   }
 
-  DS_CXX14_CONSTEXPR void operator*() const&& noexcept
+  GUL_CXX14_CONSTEXPR void operator*() const&& noexcept
   {
-    DS_ASSERT(has_);
+    GUL_ASSERT(has_);
   }
 
-  DS_CXX14_CONSTEXPR void value() &
-  {
-    if (!has_value()) {
-      this->throw_bad_optional_access();
-    }
-  }
-
-  DS_CXX14_CONSTEXPR void value() const&
+  GUL_CXX14_CONSTEXPR void value() &
   {
     if (!has_value()) {
       this->throw_bad_optional_access();
     }
   }
 
-  DS_CXX14_CONSTEXPR void value() &&
+  GUL_CXX14_CONSTEXPR void value() const&
   {
     if (!has_value()) {
       this->throw_bad_optional_access();
     }
   }
 
-  DS_CXX14_CONSTEXPR void value() const&&
+  GUL_CXX14_CONSTEXPR void value() &&
   {
     if (!has_value()) {
       this->throw_bad_optional_access();
     }
   }
 
-  DS_CXX14_CONSTEXPR void construct() noexcept
+  GUL_CXX14_CONSTEXPR void value() const&&
+  {
+    if (!has_value()) {
+      this->throw_bad_optional_access();
+    }
+  }
+
+  GUL_CXX14_CONSTEXPR void construct() noexcept
   {
     has_ = true;
   }
 
-  DS_CXX14_CONSTEXPR void destroy() noexcept
+  GUL_CXX14_CONSTEXPR void destroy() noexcept
   {
     has_ = false;
   }
@@ -412,22 +414,22 @@ template <typename T>
 struct optional_copy_construct_base<T, false> : optional_storage_base<T> {
   using optional_storage_base<T>::optional_storage_base;
 
-  DS_CXX14_CONSTEXPR optional_copy_construct_base() = default;
+  GUL_CXX14_CONSTEXPR optional_copy_construct_base() = default;
 
-  DS_CXX14_CONSTEXPR
+  GUL_CXX14_CONSTEXPR
   optional_copy_construct_base(const optional_copy_construct_base& other)
   {
     this->construct_from(other);
   }
 
-  DS_CXX14_CONSTEXPR
+  GUL_CXX14_CONSTEXPR
   optional_copy_construct_base(optional_copy_construct_base&&) = default;
 
-  DS_CXX14_CONSTEXPR optional_copy_construct_base&
+  GUL_CXX14_CONSTEXPR optional_copy_construct_base&
   operator=(const optional_copy_construct_base&)
       = default;
 
-  DS_CXX14_CONSTEXPR optional_copy_construct_base&
+  GUL_CXX14_CONSTEXPR optional_copy_construct_base&
   operator=(optional_copy_construct_base&&)
       = default;
 };
@@ -444,22 +446,22 @@ struct optional_move_construct_base<T, false>
     : optional_copy_construct_base<T> {
   using optional_copy_construct_base<T>::optional_copy_construct_base;
 
-  DS_CXX14_CONSTEXPR optional_move_construct_base() = default;
+  GUL_CXX14_CONSTEXPR optional_move_construct_base() = default;
 
-  DS_CXX14_CONSTEXPR
+  GUL_CXX14_CONSTEXPR
   optional_move_construct_base(const optional_move_construct_base&) = default;
 
-  DS_CXX14_CONSTEXPR
+  GUL_CXX14_CONSTEXPR
   optional_move_construct_base(optional_move_construct_base&& other)
   {
     this->construct_from(std::move(other));
   }
 
-  DS_CXX14_CONSTEXPR optional_move_construct_base&
+  GUL_CXX14_CONSTEXPR optional_move_construct_base&
   operator=(const optional_move_construct_base&)
       = default;
 
-  DS_CXX14_CONSTEXPR optional_move_construct_base&
+  GUL_CXX14_CONSTEXPR optional_move_construct_base&
   operator=(optional_move_construct_base&&)
       = default;
 };
@@ -478,22 +480,22 @@ template <typename T>
 struct optional_copy_assign_base<T, false> : optional_move_construct_base<T> {
   using optional_move_construct_base<T>::optional_move_construct_base;
 
-  DS_CXX14_CONSTEXPR optional_copy_assign_base() = default;
+  GUL_CXX14_CONSTEXPR optional_copy_assign_base() = default;
 
-  DS_CXX14_CONSTEXPR
+  GUL_CXX14_CONSTEXPR
   optional_copy_assign_base(const optional_copy_assign_base&) = default;
 
-  DS_CXX14_CONSTEXPR
+  GUL_CXX14_CONSTEXPR
   optional_copy_assign_base(optional_copy_assign_base&&) = default;
 
-  DS_CXX14_CONSTEXPR optional_copy_assign_base&
+  GUL_CXX14_CONSTEXPR optional_copy_assign_base&
   operator=(const optional_copy_assign_base& other)
   {
     this->assign_from(other);
     return *this;
   }
 
-  DS_CXX14_CONSTEXPR optional_copy_assign_base&
+  GUL_CXX14_CONSTEXPR optional_copy_assign_base&
   operator=(optional_copy_assign_base&&)
       = default;
 };
@@ -512,19 +514,19 @@ template <typename T>
 struct optional_move_assign_base<T, false> : optional_copy_assign_base<T> {
   using optional_copy_assign_base<T>::optional_copy_assign_base;
 
-  DS_CXX14_CONSTEXPR optional_move_assign_base() = default;
+  GUL_CXX14_CONSTEXPR optional_move_assign_base() = default;
 
-  DS_CXX14_CONSTEXPR
+  GUL_CXX14_CONSTEXPR
   optional_move_assign_base(const optional_move_assign_base&) = default;
 
-  DS_CXX14_CONSTEXPR
+  GUL_CXX14_CONSTEXPR
   optional_move_assign_base(optional_move_assign_base&&) = default;
 
-  DS_CXX14_CONSTEXPR optional_move_assign_base&
+  GUL_CXX14_CONSTEXPR optional_move_assign_base&
   operator=(const optional_move_assign_base&)
       = default;
 
-  DS_CXX14_CONSTEXPR optional_move_assign_base&
+  GUL_CXX14_CONSTEXPR optional_move_assign_base&
   operator=(optional_move_assign_base&& other)
   {
     this->assign_from(std::move(other));
@@ -564,7 +566,7 @@ class optional : private detail::optional_move_assign_base<T> {
             is_assignable<add_lvalue_reference_t<T>, const optional<U>&&>>> { };
 
   template <typename Self, typename F>
-  static DS_CXX14_CONSTEXPR auto
+  static GUL_CXX14_CONSTEXPR auto
   optional_and_then_impl(std::true_type, Self&& self, F&& f)
       -> remove_cvref_t<decltype(invoke(std::forward<F>(f)))>
   {
@@ -577,7 +579,7 @@ class optional : private detail::optional_move_assign_base<T> {
   }
 
   template <typename Self, typename F>
-  static DS_CXX14_CONSTEXPR auto
+  static GUL_CXX14_CONSTEXPR auto
   optional_and_then_impl(std::false_type, Self&& self, F&& f)
       -> remove_cvref_t<decltype(invoke(std::forward<F>(f),
                                         std::forward<Self>(self).value()))>
@@ -592,7 +594,7 @@ class optional : private detail::optional_move_assign_base<T> {
   }
 
   template <typename Self, typename F>
-  static DS_CXX14_CONSTEXPR auto
+  static GUL_CXX14_CONSTEXPR auto
   optional_transform_impl(std::true_type, Self&& self, F&& f)
       -> optional<remove_cvref_t<decltype(invoke(std::forward<F>(f)))>>
   {
@@ -605,7 +607,7 @@ class optional : private detail::optional_move_assign_base<T> {
   }
 
   template <typename Self, typename F>
-  static DS_CXX14_CONSTEXPR auto
+  static GUL_CXX14_CONSTEXPR auto
   optional_transform_impl(std::false_type, Self&& self, F&& f)
       -> optional<remove_cvref_t<decltype(invoke(
           std::forward<F>(f), std::forward<Self>(self).value()))>>
@@ -620,7 +622,7 @@ class optional : private detail::optional_move_assign_base<T> {
   }
 
   template <typename Self, typename F>
-  static DS_CXX14_CONSTEXPR auto
+  static GUL_CXX14_CONSTEXPR auto
   optional_or_else_impl(std::true_type, Self&& self, F&& f)
       -> remove_cvref_t<decltype(invoke(std::forward<F>(f)))>
   {
@@ -633,7 +635,7 @@ class optional : private detail::optional_move_assign_base<T> {
   }
 
   template <typename Self, typename F>
-  static DS_CXX14_CONSTEXPR auto
+  static GUL_CXX14_CONSTEXPR auto
   optional_or_else_impl(std::false_type, Self&& self, F&& f)
       -> remove_cvref_t<decltype(invoke(std::forward<F>(f)))>
   {
@@ -658,16 +660,16 @@ public:
 
   using value_type = T;
 
-  DS_CXX14_CONSTEXPR optional() noexcept = default;
+  GUL_CXX14_CONSTEXPR optional() noexcept = default;
 
-  DS_CXX14_CONSTEXPR optional(nullopt_t) noexcept { }
+  GUL_CXX14_CONSTEXPR optional(nullopt_t) noexcept { }
 
   template <
       typename... Args,
       enable_if_t<disjunction<is_void<T>, is_constructible<T, Args...>>::value,
                   int>
       = 0>
-  DS_CXX14_CONSTEXPR explicit optional(in_place_t, Args&&... args)
+  GUL_CXX14_CONSTEXPR explicit optional(in_place_t, Args&&... args)
       : base_type(in_place, std::forward<Args>(args)...)
   {
   }
@@ -681,7 +683,7 @@ public:
               is_constructible<T, std::initializer_list<U>&, Args...>>::value,
           int>
       = 0>
-  DS_CXX14_CONSTEXPR
+  GUL_CXX14_CONSTEXPR
   optional(in_place_t, std::initializer_list<U> init, Args&&... args)
       : base_type(in_place, init, std::forward<Args>(args)...)
   {
@@ -695,14 +697,14 @@ public:
                               is_constructible<T, U>>::value,
                   int>
       = 0>
-  DS_CXX14_CONSTEXPR optional(U&& val)
+  GUL_CXX14_CONSTEXPR optional(U&& val)
       : base_type(in_place, std::forward<U>(val))
   {
   }
 
-  DS_CXX14_CONSTEXPR optional(const optional&) = default;
+  GUL_CXX14_CONSTEXPR optional(const optional&) = default;
 
-  DS_CXX14_CONSTEXPR
+  GUL_CXX14_CONSTEXPR
   optional(optional&&) noexcept(is_nothrow_move_constructible<T>::value)
       = default;
 
@@ -711,7 +713,7 @@ public:
                                     is_optional_constructible<U>>::value,
                         int>
             = 0>
-  DS_CXX14_CONSTEXPR optional(const optional<U>& other)
+  GUL_CXX14_CONSTEXPR optional(const optional<U>& other)
   {
     this->construct_from(other);
   }
@@ -721,14 +723,14 @@ public:
                                     is_optional_constructible<U>>::value,
                         int>
             = 0>
-  DS_CXX14_CONSTEXPR optional(optional<U>&& other)
+  GUL_CXX14_CONSTEXPR optional(optional<U>&& other)
   {
     this->construct_from(std::move(other));
   }
 
   ~optional() noexcept = default;
 
-  DS_CXX14_CONSTEXPR optional& operator=(nullopt_t) noexcept
+  GUL_CXX14_CONSTEXPR optional& operator=(nullopt_t) noexcept
   {
     this->reset();
     return *this;
@@ -745,7 +747,7 @@ public:
                                   negation<is_same<decay_t<U>, T>>>>::value,
           int>
       = 0>
-  DS_CXX14_CONSTEXPR optional& operator=(U&& u)
+  GUL_CXX14_CONSTEXPR optional& operator=(U&& u)
   {
     if (this->has_value()) {
       this->value() = std::forward<U>(u);
@@ -755,9 +757,9 @@ public:
     return *this;
   }
 
-  DS_CXX14_CONSTEXPR optional& operator=(const optional&) = default;
+  GUL_CXX14_CONSTEXPR optional& operator=(const optional&) = default;
 
-  DS_CXX14_CONSTEXPR optional& operator=(optional&&) noexcept(
+  GUL_CXX14_CONSTEXPR optional& operator=(optional&&) noexcept(
       conjunction<is_nothrow_move_assignable<T>,
                   std::is_nothrow_move_constructible<T>>::value)
       = default;
@@ -769,7 +771,7 @@ public:
                             is_optional_assignable<U>>::value,
                 int>
             = 0>
-  DS_CXX14_CONSTEXPR optional& operator=(const optional<U>& other)
+  GUL_CXX14_CONSTEXPR optional& operator=(const optional<U>& other)
   {
     this->assign_from(other);
     return *this;
@@ -782,25 +784,25 @@ public:
                               is_optional_assignable<U>>::value,
                   int>
       = 0>
-  DS_CXX14_CONSTEXPR optional& operator=(optional<U>&& other)
+  GUL_CXX14_CONSTEXPR optional& operator=(optional<U>&& other)
   {
     this->assign_from(std::move(other));
     return *this;
   }
 
-  DS_CXX14_CONSTEXPR explicit operator bool() const noexcept
+  GUL_CXX14_CONSTEXPR explicit operator bool() const noexcept
   {
     return this->has_value();
   }
 
   template <bool B = !is_void<T>::value, enable_if_t<B, int> = 0>
-  DS_CXX14_CONSTEXPR add_pointer_t<T> operator->() noexcept
+  GUL_CXX14_CONSTEXPR add_pointer_t<T> operator->() noexcept
   {
     return std::addressof(value());
   }
 
   template <bool B = !is_void<T>::value, enable_if_t<B, int> = 0>
-  DS_CXX14_CONSTEXPR add_pointer_t<const T> operator->() const noexcept
+  GUL_CXX14_CONSTEXPR add_pointer_t<const T> operator->() const noexcept
   {
     return std::addressof(value());
   }
@@ -812,7 +814,7 @@ public:
   using base_type::value;
 
   template <typename U>
-  DS_CXX14_CONSTEXPR remove_reference_t<T> value_or(U&& default_value) const&
+  GUL_CXX14_CONSTEXPR remove_reference_t<T> value_or(U&& default_value) const&
   {
     if (this->has_value()) {
       return value();
@@ -822,7 +824,7 @@ public:
   }
 
   template <typename U>
-  DS_CXX14_CONSTEXPR remove_reference_t<T> value_or(U&& default_value) &&
+  GUL_CXX14_CONSTEXPR remove_reference_t<T> value_or(U&& default_value) &&
   {
     if (this->has_value()) {
       return std::move(value());
@@ -836,7 +838,7 @@ public:
       enable_if_t<disjunction<is_void<T>, is_constructible<T, Args...>>::value,
                   int>
       = 0>
-  DS_CXX14_CONSTEXPR auto emplace(Args&&... args) -> add_lvalue_reference_t<T>
+  GUL_CXX14_CONSTEXPR auto emplace(Args&&... args) -> add_lvalue_reference_t<T>
   {
     if (this->has_value()) {
       this->reset();
@@ -852,8 +854,8 @@ public:
           is_constructible<T, std::initializer_list<U>&, Args&&...>::value,
           int>
       = 0>
-  DS_CXX14_CONSTEXPR auto emplace(std::initializer_list<U> init, Args&&... args)
-      -> add_lvalue_reference_t<T>
+  GUL_CXX14_CONSTEXPR auto emplace(std::initializer_list<U> init,
+                                   Args&&... args) -> add_lvalue_reference_t<T>
   {
     if (this->has_value()) {
       this->destroy();
@@ -865,7 +867,7 @@ public:
   using base_type::reset;
 
   template <typename F>
-  DS_CXX14_CONSTEXPR auto and_then(F&& f) & -> decltype(optional_and_then_impl(
+  GUL_CXX14_CONSTEXPR auto and_then(F&& f) & -> decltype(optional_and_then_impl(
       is_void<T> {}, *this, std::forward<F>(f)))
 
   {
@@ -873,7 +875,7 @@ public:
   }
 
   template <typename F>
-  DS_CXX14_CONSTEXPR auto
+  GUL_CXX14_CONSTEXPR auto
   and_then(F&& f) const& -> decltype(optional_and_then_impl(is_void<T> {},
                                                             *this,
                                                             std::forward<F>(f)))
@@ -882,15 +884,17 @@ public:
   }
 
   template <typename F>
-  DS_CXX14_CONSTEXPR auto and_then(F&& f) && -> decltype(optional_and_then_impl(
-      is_void<T> {}, std::move(*this), std::forward<F>(f)))
+  GUL_CXX14_CONSTEXPR auto
+  and_then(F&& f) && -> decltype(optional_and_then_impl(is_void<T> {},
+                                                        std::move(*this),
+                                                        std::forward<F>(f)))
   {
     return optional_and_then_impl(is_void<T> {}, std::move(*this),
                                   std::forward<F>(f));
   }
 
   template <typename F>
-  DS_CXX14_CONSTEXPR auto
+  GUL_CXX14_CONSTEXPR auto
   and_then(F&& f) const&& -> decltype(optional_and_then_impl(
       is_void<T> {}, std::move(*this), std::forward<F>(f)))
   {
@@ -899,7 +903,7 @@ public:
   }
 
   template <typename F>
-  DS_CXX14_CONSTEXPR auto
+  GUL_CXX14_CONSTEXPR auto
   transform(F&& f) & -> decltype(optional_transform_impl(is_void<T> {},
                                                          *this,
                                                          std::forward<F>(f)))
@@ -908,7 +912,7 @@ public:
   }
 
   template <typename F>
-  DS_CXX14_CONSTEXPR auto
+  GUL_CXX14_CONSTEXPR auto
   transform(F&& f) const& -> decltype(optional_transform_impl(
       is_void<T> {}, *this, std::forward<F>(f)))
   {
@@ -916,7 +920,7 @@ public:
   }
 
   template <typename F>
-  DS_CXX14_CONSTEXPR auto
+  GUL_CXX14_CONSTEXPR auto
   transform(F&& f) && -> decltype(optional_transform_impl(is_void<T> {},
                                                           std::move(*this),
                                                           std::forward<F>(f)))
@@ -926,7 +930,7 @@ public:
   }
 
   template <typename F>
-  DS_CXX14_CONSTEXPR auto
+  GUL_CXX14_CONSTEXPR auto
   transform(F&& f) const&& -> decltype(optional_transform_impl(
       is_void<T> {}, std::move(*this), std::forward<F>(f)))
   {
@@ -935,14 +939,14 @@ public:
   }
 
   template <typename F>
-  DS_CXX14_CONSTEXPR auto or_else(F&& f) & -> decltype(optional_or_else_impl(
+  GUL_CXX14_CONSTEXPR auto or_else(F&& f) & -> decltype(optional_or_else_impl(
       is_void<T> {}, *this, std::forward<F>(f)))
   {
     return optional_or_else_impl(is_void<T> {}, *this, std::forward<F>(f));
   }
 
   template <typename F>
-  DS_CXX14_CONSTEXPR auto
+  GUL_CXX14_CONSTEXPR auto
   or_else(F&& f) const& -> decltype(optional_or_else_impl(is_void<T> {},
                                                           *this,
                                                           std::forward<F>(f)))
@@ -951,7 +955,7 @@ public:
   }
 
   template <typename F>
-  DS_CXX14_CONSTEXPR auto or_else(F&& f) && -> decltype(optional_or_else_impl(
+  GUL_CXX14_CONSTEXPR auto or_else(F&& f) && -> decltype(optional_or_else_impl(
       is_void<T> {}, std::move(*this), std::forward<F>(f)))
   {
     return optional_or_else_impl(is_void<T> {}, std::move(*this),
@@ -959,7 +963,7 @@ public:
   }
 
   template <typename F>
-  DS_CXX14_CONSTEXPR auto
+  GUL_CXX14_CONSTEXPR auto
   or_else(F&& f) const&& -> decltype(optional_or_else_impl(is_void<T> {},
                                                            std::move(*this),
                                                            std::forward<F>(f)))
@@ -968,7 +972,7 @@ public:
                                  std::forward<F>(f));
   }
 
-  DS_CXX14_CONSTEXPR void
+  GUL_CXX14_CONSTEXPR void
   swap(optional& other) noexcept(conjunction<is_nothrow_move_constructible<T>,
                                              is_nothrow_swappable<T>>::value)
   {
@@ -992,52 +996,52 @@ public:
     }
   }
 
-  friend DS_CXX14_CONSTEXPR void
+  friend GUL_CXX14_CONSTEXPR void
   swap(optional& lhs, optional& rhs) noexcept(noexcept(lhs.swap(rhs)))
   {
     lhs.swap(rhs);
   }
 };
 
-#ifdef DS_HAS_CXX17
+#ifdef GUL_HAS_CXX17
 
 template <typename T>
 optional(T) -> optional<T>;
 
 #endif
 
-inline DS_CXX14_CONSTEXPR bool operator==(const optional<void>& lhs,
-                                          const optional<void>& rhs)
+inline GUL_CXX14_CONSTEXPR bool operator==(const optional<void>& lhs,
+                                           const optional<void>& rhs)
 {
   return lhs.has_value() == rhs.has_value();
 }
 
-inline DS_CXX14_CONSTEXPR bool operator!=(const optional<void>& lhs,
-                                          const optional<void>& rhs)
+inline GUL_CXX14_CONSTEXPR bool operator!=(const optional<void>& lhs,
+                                           const optional<void>& rhs)
 {
   return lhs.has_value() != rhs.has_value();
 }
 
-inline DS_CXX14_CONSTEXPR bool operator<(const optional<void>& lhs,
-                                         const optional<void>& rhs)
+inline GUL_CXX14_CONSTEXPR bool operator<(const optional<void>& lhs,
+                                          const optional<void>& rhs)
 {
   return !lhs && rhs;
 }
 
-inline DS_CXX14_CONSTEXPR bool operator<=(const optional<void>& lhs,
-                                          const optional<void>& rhs)
+inline GUL_CXX14_CONSTEXPR bool operator<=(const optional<void>& lhs,
+                                           const optional<void>& rhs)
 {
   return !lhs || rhs;
 }
 
-inline DS_CXX14_CONSTEXPR bool operator>(const optional<void>& lhs,
-                                         const optional<void>& rhs)
+inline GUL_CXX14_CONSTEXPR bool operator>(const optional<void>& lhs,
+                                          const optional<void>& rhs)
 {
   return lhs && !rhs;
 }
 
-inline DS_CXX14_CONSTEXPR bool operator>=(const optional<void>& lhs,
-                                          const optional<void>& rhs)
+inline GUL_CXX14_CONSTEXPR bool operator>=(const optional<void>& lhs,
+                                           const optional<void>& rhs)
 {
   return lhs || !rhs;
 }
@@ -1045,8 +1049,8 @@ inline DS_CXX14_CONSTEXPR bool operator>=(const optional<void>& lhs,
 template <typename T1,
           typename T2,
           enable_if_t<detail::is_eq_comparable_with<T1, T2>::value, int> = 0>
-DS_CXX14_CONSTEXPR bool operator==(const optional<T1>& lhs,
-                                   const optional<T2>& rhs)
+GUL_CXX14_CONSTEXPR bool operator==(const optional<T1>& lhs,
+                                    const optional<T2>& rhs)
 {
   if (lhs.has_value() != rhs.has_value()) {
     return false;
@@ -1062,8 +1066,8 @@ DS_CXX14_CONSTEXPR bool operator==(const optional<T1>& lhs,
 template <typename T1,
           typename T2,
           enable_if_t<detail::is_ne_comparable_with<T1, T2>::value, int> = 0>
-DS_CXX14_CONSTEXPR bool operator!=(const optional<T1>& lhs,
-                                   const optional<T2>& rhs)
+GUL_CXX14_CONSTEXPR bool operator!=(const optional<T1>& lhs,
+                                    const optional<T2>& rhs)
 {
   if (lhs.has_value() != rhs.has_value()) {
     return true;
@@ -1079,8 +1083,8 @@ DS_CXX14_CONSTEXPR bool operator!=(const optional<T1>& lhs,
 template <typename T1,
           typename T2,
           enable_if_t<detail::is_lt_comparable_with<T1, T2>::value, int> = 0>
-DS_CXX14_CONSTEXPR bool operator<(const optional<T1>& lhs,
-                                  const optional<T2>& rhs)
+GUL_CXX14_CONSTEXPR bool operator<(const optional<T1>& lhs,
+                                   const optional<T2>& rhs)
 {
   if (!rhs) {
     return false;
@@ -1095,8 +1099,8 @@ DS_CXX14_CONSTEXPR bool operator<(const optional<T1>& lhs,
 template <typename T1,
           typename T2,
           enable_if_t<detail::is_le_comparable_with<T1, T2>::value, int> = 0>
-DS_CXX14_CONSTEXPR bool operator<=(const optional<T1>& lhs,
-                                   const optional<T2>& rhs)
+GUL_CXX14_CONSTEXPR bool operator<=(const optional<T1>& lhs,
+                                    const optional<T2>& rhs)
 {
   if (!lhs) {
     return true;
@@ -1111,8 +1115,8 @@ DS_CXX14_CONSTEXPR bool operator<=(const optional<T1>& lhs,
 template <typename T1,
           typename T2,
           enable_if_t<detail::is_gt_comparable_with<T1, T2>::value, int> = 0>
-DS_CXX14_CONSTEXPR bool operator>(const optional<T1>& lhs,
-                                  const optional<T2>& rhs)
+GUL_CXX14_CONSTEXPR bool operator>(const optional<T1>& lhs,
+                                   const optional<T2>& rhs)
 {
   if (!lhs) {
     return false;
@@ -1127,8 +1131,8 @@ DS_CXX14_CONSTEXPR bool operator>(const optional<T1>& lhs,
 template <typename T1,
           typename T2,
           enable_if_t<detail::is_ge_comparable_with<T1, T2>::value, int> = 0>
-DS_CXX14_CONSTEXPR bool operator>=(const optional<T1>& lhs,
-                                   const optional<T2>& rhs)
+GUL_CXX14_CONSTEXPR bool operator>=(const optional<T1>& lhs,
+                                    const optional<T2>& rhs)
 {
   if (!rhs) {
     return true;
@@ -1141,79 +1145,79 @@ DS_CXX14_CONSTEXPR bool operator>=(const optional<T1>& lhs,
 }
 
 template <typename T>
-DS_CXX14_CONSTEXPR bool operator==(const optional<T>& opt, nullopt_t) noexcept
+GUL_CXX14_CONSTEXPR bool operator==(const optional<T>& opt, nullopt_t) noexcept
 {
   return !opt;
 }
 
-#ifndef DS_HAS_CXX20
+#ifndef GUL_HAS_CXX20
 
 template <typename T>
-DS_CXX14_CONSTEXPR bool operator==(nullopt_t, const optional<T>& opt) noexcept
+GUL_CXX14_CONSTEXPR bool operator==(nullopt_t, const optional<T>& opt) noexcept
 {
   return !opt;
 }
 
 template <typename T>
-DS_CXX14_CONSTEXPR bool operator!=(const optional<T>& opt, nullopt_t) noexcept
+GUL_CXX14_CONSTEXPR bool operator!=(const optional<T>& opt, nullopt_t) noexcept
 {
   return !!opt;
 }
 
 template <typename T>
-DS_CXX14_CONSTEXPR bool operator!=(nullopt_t, const optional<T>& opt) noexcept
+GUL_CXX14_CONSTEXPR bool operator!=(nullopt_t, const optional<T>& opt) noexcept
 {
   return !!opt;
 }
 
 template <typename T>
-DS_CXX14_CONSTEXPR bool operator<(const optional<T>& opt, nullopt_t) noexcept
+GUL_CXX14_CONSTEXPR bool operator<(const optional<T>& opt, nullopt_t) noexcept
 {
-  DS_UNUSED(opt);
+  GUL_UNUSED(opt);
   return false;
 }
 
 template <typename T>
-DS_CXX14_CONSTEXPR bool operator<(nullopt_t, const optional<T>& opt) noexcept
+GUL_CXX14_CONSTEXPR bool operator<(nullopt_t, const optional<T>& opt) noexcept
 {
   return !!opt;
 }
 
 template <typename T>
-DS_CXX14_CONSTEXPR bool operator<=(const optional<T>& opt, nullopt_t) noexcept
+GUL_CXX14_CONSTEXPR bool operator<=(const optional<T>& opt, nullopt_t) noexcept
 {
   return !opt;
 }
 
 template <typename T>
-DS_CXX14_CONSTEXPR bool operator<=(nullopt_t, const optional<T>& opt) noexcept
+GUL_CXX14_CONSTEXPR bool operator<=(nullopt_t, const optional<T>& opt) noexcept
 {
-  DS_UNUSED(opt);
+  GUL_UNUSED(opt);
   return true;
 }
 
 template <typename T>
-DS_CXX14_CONSTEXPR bool operator>(const optional<T>& opt, nullopt_t) noexcept
+GUL_CXX14_CONSTEXPR bool operator>(const optional<T>& opt, nullopt_t) noexcept
 {
   return !!opt;
 }
 
 template <typename T>
-DS_CXX14_CONSTEXPR bool operator>(nullopt_t, const optional<T>& opt) noexcept
+GUL_CXX14_CONSTEXPR bool operator>(nullopt_t, const optional<T>& opt) noexcept
 {
-  DS_UNUSED(opt);
+  GUL_UNUSED(opt);
   return false;
 }
 
 template <typename T>
-DS_CXX14_CONSTEXPR bool operator>=(const optional<T>& opt, nullopt_t) noexcept
+GUL_CXX14_CONSTEXPR bool operator>=(const optional<T>& opt, nullopt_t) noexcept
 {
-  DS_UNUSED(opt);
+  GUL_UNUSED(opt);
   return true;
 }
 
 template <typename T>
-DS_CXX14_CONSTEXPR bool operator>=(nullopt_t, const optional<T>& opt) noexcept
+GUL_CXX14_CONSTEXPR bool operator>=(nullopt_t, const optional<T>& opt) noexcept
 {
   return !opt;
 }
@@ -1232,7 +1236,7 @@ constexpr std::strong_ordering operator<=>(const optional<T>& opt,
 template <typename T,
           typename U,
           enable_if_t<detail::is_eq_comparable_with<T, U>::value, int> = 0>
-DS_CXX14_CONSTEXPR bool operator==(const optional<T>& opt, const U& val)
+GUL_CXX14_CONSTEXPR bool operator==(const optional<T>& opt, const U& val)
 {
   return opt && opt.value() == val;
 }
@@ -1240,7 +1244,7 @@ DS_CXX14_CONSTEXPR bool operator==(const optional<T>& opt, const U& val)
 template <typename T,
           typename U,
           enable_if_t<detail::is_eq_comparable_with<T, U>::value, int> = 0>
-DS_CXX14_CONSTEXPR bool operator==(const T& val, const optional<U>& opt)
+GUL_CXX14_CONSTEXPR bool operator==(const T& val, const optional<U>& opt)
 {
   return opt && val == opt.value();
 }
@@ -1248,7 +1252,7 @@ DS_CXX14_CONSTEXPR bool operator==(const T& val, const optional<U>& opt)
 template <typename T,
           typename U,
           enable_if_t<detail::is_ne_comparable_with<T, U>::value, int> = 0>
-DS_CXX14_CONSTEXPR bool operator!=(const optional<T>& opt, const U& val)
+GUL_CXX14_CONSTEXPR bool operator!=(const optional<T>& opt, const U& val)
 {
   return !opt || opt.value() != val;
 }
@@ -1256,7 +1260,7 @@ DS_CXX14_CONSTEXPR bool operator!=(const optional<T>& opt, const U& val)
 template <typename T,
           typename U,
           enable_if_t<detail::is_ne_comparable_with<T, U>::value, int> = 0>
-DS_CXX14_CONSTEXPR bool operator!=(const T& val, const optional<U>& opt)
+GUL_CXX14_CONSTEXPR bool operator!=(const T& val, const optional<U>& opt)
 {
   return !opt || val != opt.value();
 }
@@ -1264,7 +1268,7 @@ DS_CXX14_CONSTEXPR bool operator!=(const T& val, const optional<U>& opt)
 template <typename T,
           typename U,
           enable_if_t<detail::is_lt_comparable_with<T, U>::value, int> = 0>
-DS_CXX14_CONSTEXPR bool operator<(const optional<T>& opt, const U& val)
+GUL_CXX14_CONSTEXPR bool operator<(const optional<T>& opt, const U& val)
 {
   return !opt || opt.value() < val;
 }
@@ -1272,7 +1276,7 @@ DS_CXX14_CONSTEXPR bool operator<(const optional<T>& opt, const U& val)
 template <typename T,
           typename U,
           enable_if_t<detail::is_lt_comparable_with<T, U>::value, int> = 0>
-DS_CXX14_CONSTEXPR bool operator<(const T& val, const optional<U>& opt)
+GUL_CXX14_CONSTEXPR bool operator<(const T& val, const optional<U>& opt)
 {
   return opt && val < opt.value();
 }
@@ -1280,7 +1284,7 @@ DS_CXX14_CONSTEXPR bool operator<(const T& val, const optional<U>& opt)
 template <typename T,
           typename U,
           enable_if_t<detail::is_le_comparable_with<T, U>::value, int> = 0>
-DS_CXX14_CONSTEXPR bool operator<=(const optional<T>& opt, const U& val)
+GUL_CXX14_CONSTEXPR bool operator<=(const optional<T>& opt, const U& val)
 {
   return !opt || opt.value() <= val;
 }
@@ -1288,7 +1292,7 @@ DS_CXX14_CONSTEXPR bool operator<=(const optional<T>& opt, const U& val)
 template <typename T,
           typename U,
           enable_if_t<detail::is_le_comparable_with<T, U>::value, int> = 0>
-DS_CXX14_CONSTEXPR bool operator<=(const T& val, const optional<U>& opt)
+GUL_CXX14_CONSTEXPR bool operator<=(const T& val, const optional<U>& opt)
 {
   return opt && val <= opt.value();
 }
@@ -1296,7 +1300,7 @@ DS_CXX14_CONSTEXPR bool operator<=(const T& val, const optional<U>& opt)
 template <typename T,
           typename U,
           enable_if_t<detail::is_gt_comparable_with<T, U>::value, int> = 0>
-DS_CXX14_CONSTEXPR bool operator>(const optional<T>& opt, const U& val)
+GUL_CXX14_CONSTEXPR bool operator>(const optional<T>& opt, const U& val)
 {
   return !(opt <= val);
 }
@@ -1304,7 +1308,7 @@ DS_CXX14_CONSTEXPR bool operator>(const optional<T>& opt, const U& val)
 template <typename T,
           typename U,
           enable_if_t<detail::is_gt_comparable_with<T, U>::value, int> = 0>
-DS_CXX14_CONSTEXPR bool operator>(const T& val, const optional<U>& opt)
+GUL_CXX14_CONSTEXPR bool operator>(const T& val, const optional<U>& opt)
 {
   return !(val <= opt);
 }
@@ -1312,7 +1316,7 @@ DS_CXX14_CONSTEXPR bool operator>(const T& val, const optional<U>& opt)
 template <typename T,
           typename U,
           enable_if_t<detail::is_ge_comparable_with<T, U>::value, int> = 0>
-DS_CXX14_CONSTEXPR bool operator>=(const optional<T>& opt, const U& val)
+GUL_CXX14_CONSTEXPR bool operator>=(const optional<T>& opt, const U& val)
 {
   return !(opt < val);
 }
@@ -1320,7 +1324,7 @@ DS_CXX14_CONSTEXPR bool operator>=(const optional<T>& opt, const U& val)
 template <typename T,
           typename U,
           enable_if_t<detail::is_ge_comparable_with<T, U>::value, int> = 0>
-DS_CXX14_CONSTEXPR bool operator>=(const T& val, const optional<U>& opt)
+GUL_CXX14_CONSTEXPR bool operator>=(const T& val, const optional<U>& opt)
 {
   return !(val < opt);
 }
@@ -1344,4 +1348,4 @@ constexpr optional<T> make_optional(std::initializer_list<U> init,
   return optional<T>(in_place, std::move(init), std::forward<Args>(args)...);
 }
 
-DS_NAMESPACE_END
+GUL_NAMESPACE_END

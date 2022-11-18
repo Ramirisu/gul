@@ -7,13 +7,13 @@
 
 #pragma once
 
-#include <ds/config.hpp>
+#include <gul/config.hpp>
 
-#include <ds/byte.hpp>
-#include <ds/expected.hpp>
-#include <ds/optional.hpp>
-#include <ds/span.hpp>
-#include <ds/string_view.hpp>
+#include <gul/byte.hpp>
+#include <gul/expected.hpp>
+#include <gul/optional.hpp>
+#include <gul/span.hpp>
+#include <gul/string_view.hpp>
 
-#include <ds/fifo_map.hpp>
-#include <ds/lru_map.hpp>
+#include <gul/fifo_map.hpp>
+#include <gul/lru_map.hpp>

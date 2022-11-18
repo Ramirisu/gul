@@ -5,11 +5,11 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#include <ds_test.h>
+#include <gul_test.h>
 
-#include <ds/expected.hpp>
+#include <gul/expected.hpp>
 
-using namespace ds;
+using namespace gul;
 
 TEST_SUITE_BEGIN("expected");
 
@@ -114,84 +114,84 @@ struct assert_is_same {
 TEST_CASE("unexpected")
 {
   {
-    auto s = ds::unexpected<int>(1);
+    auto s = gul::unexpected<int>(1);
     CHECK_EQ(s.error(), 1);
   }
   {
-    auto s = ds::unexpected<dc<int>>(in_place, 1);
+    auto s = gul::unexpected<dc<int>>(in_place, 1);
     CHECK_EQ(s.error(), dc<int>(1));
   }
   {
-    auto s = ds::unexpected<dc<int>>(in_place, { 0, 1, 2 });
+    auto s = gul::unexpected<dc<int>>(in_place, { 0, 1, 2 });
     CHECK_EQ(s.error(), dc<int>({ 0, 1, 2 }));
   }
   {
-    auto s = ds::unexpected<dc<int>>(1);
-    ds::unexpected<dc<int>> d(s);
+    auto s = gul::unexpected<dc<int>>(1);
+    gul::unexpected<dc<int>> d(s);
     CHECK_EQ(s.error(), dc<int>(1));
     CHECK_EQ(d.error(), dc<int>(1));
   }
   {
-    const auto s = ds::unexpected<dc<int>>(1);
-    ds::unexpected<dc<int>> d(s);
+    const auto s = gul::unexpected<dc<int>>(1);
+    gul::unexpected<dc<int>> d(s);
     CHECK_EQ(s.error(), dc<int>(1));
     CHECK_EQ(d.error(), dc<int>(1));
   }
   {
-    auto s = ds::unexpected<dc<int>>(1);
-    ds::unexpected<dc<int>> d(std::move(s));
+    auto s = gul::unexpected<dc<int>>(1);
+    gul::unexpected<dc<int>> d(std::move(s));
     CHECK_EQ(s.error(), dc<int>());
     CHECK_EQ(d.error(), dc<int>(1));
   }
   {
-    const auto s = ds::unexpected<dc<int>>(1);
-    ds::unexpected<dc<int>> d(std::move(s));
+    const auto s = gul::unexpected<dc<int>>(1);
+    gul::unexpected<dc<int>> d(std::move(s));
     CHECK_EQ(s.error(), dc<int>(1));
     CHECK_EQ(d.error(), dc<int>(1));
   }
   {
-    auto s = ds::unexpected<dc<int>>(1);
+    auto s = gul::unexpected<dc<int>>(1);
     auto d = s;
     CHECK_EQ(s.error(), dc<int>(1));
     CHECK_EQ(d.error(), dc<int>(1));
   }
   {
-    const auto s = ds::unexpected<dc<int>>(1);
+    const auto s = gul::unexpected<dc<int>>(1);
     auto d = s;
     CHECK_EQ(s.error(), dc<int>(1));
     CHECK_EQ(d.error(), dc<int>(1));
   }
   {
-    auto s = ds::unexpected<dc<int>>(1);
+    auto s = gul::unexpected<dc<int>>(1);
     auto d = std::move(s);
     CHECK_EQ(s.error(), dc<int>());
     CHECK_EQ(d.error(), dc<int>(1));
   }
   {
-    const auto s = ds::unexpected<dc<int>>(1);
+    const auto s = gul::unexpected<dc<int>>(1);
     auto d = std::move(s);
     CHECK_EQ(s.error(), dc<int>(1));
     CHECK_EQ(d.error(), dc<int>(1));
   }
   {
-    auto s = ds::unexpected<dc<int>>(1);
+    auto s = gul::unexpected<dc<int>>(1);
     CHECK_EQ(s.error(), dc<int>(1));
   }
   {
-    const auto s = ds::unexpected<dc<int>>(1);
+    const auto s = gul::unexpected<dc<int>>(1);
     CHECK_EQ(s.error(), dc<int>(1));
   }
   {
-    auto s = ds::unexpected<dc<int>>(1);
+    auto s = gul::unexpected<dc<int>>(1);
     CHECK_EQ(std::move(s).error(), dc<int>(1));
   }
   {
-    const auto s = ds::unexpected<dc<int>>(1);
+    const auto s = gul::unexpected<dc<int>>(1);
     CHECK_EQ(std::move(s).error(), dc<int>(1));
   }
   {
-    auto lhs = ds::unexpected<dc<int>>(1);
-    auto rhs = ds::unexpected<dc<int>>(2);
+    auto lhs = gul::unexpected<dc<int>>(1);
+    auto rhs = gul::unexpected<dc<int>>(2);
     swap(lhs, rhs);
     CHECK_EQ(lhs.error(), dc<int>(2));
     CHECK_EQ(rhs.error(), dc<int>(1));
@@ -336,12 +336,12 @@ TEST_CASE("converting constructor")
     CHECK_EQ(b.value(), ndc<int>(std::vector<int> { 0, 1, 2 }));
   }
   {
-    auto d = ds::unexpected<int>(1);
+    auto d = gul::unexpected<int>(1);
     auto b = expected<ndc<int>, int>(d);
     CHECK(!b);
   }
   {
-    auto d = ds::unexpected<int>(1);
+    auto d = gul::unexpected<int>(1);
     auto b = expected<ndc<int>, int>(std::move(d));
     CHECK(!b);
   }
@@ -407,25 +407,25 @@ TEST_CASE("converting assignment operator")
 {
   {
     auto exp = expected<void, int>();
-    auto une = ds::unexpected<int>(1);
+    auto une = gul::unexpected<int>(1);
     exp = une;
     CHECK_EQ(exp.error(), 1);
   }
   {
     auto exp = expected<void, int>();
-    auto une = ds::unexpected<int>(1);
+    auto une = gul::unexpected<int>(1);
     exp = std::move(une);
     CHECK_EQ(exp.error(), 1);
   }
   {
     auto exp = expected<int, int>();
-    auto une = ds::unexpected<int>(1);
+    auto une = gul::unexpected<int>(1);
     exp = une;
     CHECK_EQ(exp.error(), 1);
   }
   {
     auto exp = expected<int, int>();
-    auto une = ds::unexpected<int>(1);
+    auto une = gul::unexpected<int>(1);
     exp = std::move(une);
     CHECK_EQ(exp.error(), 1);
   }
@@ -519,7 +519,7 @@ TEST_CASE("value")
   assert_is_same<fn_value, const expected<int, int>&, const int&>();
   assert_is_same<fn_value, expected<int, int>, int&&>();
   assert_is_same<fn_value, const expected<int, int>, const int&&>();
-#if !DS_NO_EXCEPTIONS
+#if !GUL_NO_EXCEPTIONS
   {
     auto exp = expected<void, int>(unexpect);
     CHECK_THROWS_AS(exp.value(), bad_expected_access<int>);
@@ -553,7 +553,7 @@ TEST_CASE("value")
     const auto exp = expected<int, int>(1);
     CHECK_EQ(std::move(exp).value(), 1);
   }
-#if !DS_NO_EXCEPTIONS
+#if !GUL_NO_EXCEPTIONS
   {
     auto exp = expected<int, int>(unexpect);
     CHECK_THROWS_AS(exp.value(), bad_expected_access<int>);
@@ -797,7 +797,7 @@ TEST_CASE("and_then")
 TEST_CASE("or_else")
 {
   auto i_to_s = [](int i) -> expected<int, std::string> {
-    return ds::unexpected<std::string>(std::to_string(i));
+    return gul::unexpected<std::string>(std::to_string(i));
   };
   {
     auto u = expected<int, int>(unexpect);
@@ -1032,10 +1032,10 @@ TEST_CASE("compare")
   CHECK(!(expected<int, int>() != 0));
   CHECK(expected<int, int>(unexpect) != 0);
 
-  CHECK(!(expected<int, int>() == ds::unexpected<int>(0)));
-  CHECK(expected<int, int>(unexpect) == ds::unexpected<int>(0));
-  CHECK(expected<int, int>() != ds::unexpected<int>(0));
-  CHECK(!(expected<int, int>(unexpect) != ds::unexpected<int>(0)));
+  CHECK(!(expected<int, int>() == gul::unexpected<int>(0)));
+  CHECK(expected<int, int>(unexpect) == gul::unexpected<int>(0));
+  CHECK(expected<int, int>() != gul::unexpected<int>(0));
+  CHECK(!(expected<int, int>(unexpect) != gul::unexpected<int>(0)));
 }
 
 TEST_SUITE_END();

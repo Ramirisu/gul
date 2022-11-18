@@ -7,11 +7,11 @@
 
 #pragma once
 
-#include <ds/config.hpp>
+#include <gul/config.hpp>
 
-#include <ds/type_traits.hpp>
+#include <gul/type_traits.hpp>
 
-DS_NAMESPACE_BEGIN
+GUL_NAMESPACE_BEGIN
 
 namespace detail {
 template <typename C,
@@ -146,4 +146,4 @@ constexpr auto invoke_r(F&& f, Args&&... args) noexcept(noexcept(
   return detail::invoke_impl(std::forward<F>(f), std::forward<Args>(args)...);
 }
 
-DS_NAMESPACE_END
+GUL_NAMESPACE_END

@@ -7,10 +7,10 @@
 
 #pragma once
 
-#include <ds/config.hpp>
+#include <gul/config.hpp>
 
-#include <ds/optional.hpp>
-#include <ds/type_traits.hpp>
+#include <gul/optional.hpp>
+#include <gul/type_traits.hpp>
 
 #include <deque>
 #include <initializer_list>
@@ -18,7 +18,7 @@
 #include <map>
 #include <memory>
 
-DS_NAMESPACE_BEGIN
+GUL_NAMESPACE_BEGIN
 
 template <typename Key, typename T>
 class fifo_map {
@@ -292,4 +292,4 @@ private:
   queue_type queue_;
 };
 
-DS_NAMESPACE_END
+GUL_NAMESPACE_END

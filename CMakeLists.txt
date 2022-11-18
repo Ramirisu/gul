@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.15)
 
 project(
-  ds
+  gul
   VERSION 0.0.0
   LANGUAGES CXX)
 
-option(DS_BUILD_TESTS "Build tests" OFF)
+option(GUL_BUILD_TESTS "Build tests" OFF)
 
 include(cmake/CPM.cmake)
 
@@ -14,10 +14,10 @@ if(NOT DEFINED CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD_REQUIRED ON)
 endif()
 
-add_library(ds INTERFACE)
-target_include_directories(ds INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+add_library(gul INTERFACE)
+target_include_directories(gul INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-if(DS_BUILD_TESTS)
+if(GUL_BUILD_TESTS)
   cpmaddpackage("gh:doctest/doctest@2.4.9")
 
   enable_testing()

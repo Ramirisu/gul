@@ -7,14 +7,14 @@
 
 #pragma once
 
-#include <ds/config.hpp>
+#include <gul/config.hpp>
 
-DS_NAMESPACE_BEGIN
+GUL_NAMESPACE_BEGIN
 
 struct in_place_t {
   explicit in_place_t() = default;
 };
 
-DS_CXX17_INLINE constexpr in_place_t in_place {};
+GUL_CXX17_INLINE constexpr in_place_t in_place {};
 
-DS_NAMESPACE_END
+GUL_NAMESPACE_END

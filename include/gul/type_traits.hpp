@@ -7,11 +7,11 @@
 
 #pragma once
 
-#include <ds/config.hpp>
+#include <gul/config.hpp>
 
 #include <type_traits>
 
-DS_NAMESPACE_BEGIN
+GUL_NAMESPACE_BEGIN
 
 namespace detail {
 template <typename... Ts>
@@ -60,7 +60,7 @@ using std::is_trivially_move_assignable;
 using std::is_trivially_move_constructible;
 using std::is_void;
 
-#ifndef DS_HAS_CXX14
+#ifndef GUL_HAS_CXX14
 
 template <typename T>
 using add_lvalue_reference_t = typename add_lvalue_reference<T>::type;
@@ -118,7 +118,7 @@ template <typename T, typename... Ts>
 struct disjunction<T, Ts...>
     : conditional<static_cast<bool>(T::value), T, disjunction<Ts...>>::type { };
 
-#ifndef DS_HAS_CXX17
+#ifndef GUL_HAS_CXX17
 
 template <typename F, typename... Args>
 struct invoke_result : std::result_of<F(Args...)> { };
@@ -188,7 +188,7 @@ using std::is_swappable_with;
 
 #endif
 
-#ifndef DS_HAS_CXX20
+#ifndef GUL_HAS_CXX20
 
 template <typename T>
 struct remove_cvref : remove_cv<remove_reference_t<T>> { };
@@ -413,7 +413,7 @@ template <typename F, typename... Args>
 struct is_invocable
     : detail::is_invocable_impl<void, F, Args...>::is_invocable { };
 
-#ifdef DS_HAS_CXX17
+#ifdef GUL_HAS_CXX17
 // requires noexcept-specification as a part of function type
 template <typename F, typename... Args>
 struct is_nothrow_invocable
@@ -425,11 +425,11 @@ struct is_invocable_r
     : detail::is_invocable_impl<void, F, Args...>::template is_invocable_r<R> {
 };
 
-#ifdef DS_HAS_CXX17
+#ifdef GUL_HAS_CXX17
 // requires noexcept-specification as a part of function type
 template <typename R, typename F, typename... Args>
 struct is_nothrow_invocable_r : detail::is_invocable_impl<void, F, Args...>::
                                     template is_nothrow_invocable_r<R> { };
 #endif
 
-DS_NAMESPACE_END
+GUL_NAMESPACE_END

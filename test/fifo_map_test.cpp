@@ -5,16 +5,17 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#include <ds_test.h>
+#include <gul_test.h>
 
-#include <ds/fifo_map.hpp>
-#include <initializer_list>
+#include <gul/fifo_map.hpp>
+
+using namespace gul;
 
 TEST_SUITE_BEGIN("fifo_map");
 
 TEST_CASE("basic")
 {
-  ds::fifo_map<int, int> m;
+  fifo_map<int, int> m;
   CHECK_EQ(m.size(), 0);
   CHECK(m.try_insert(1, 10));
   CHECK_EQ(m.size(), 1);
@@ -43,8 +44,8 @@ TEST_CASE("copy ctor")
   const std::initializer_list<std::pair<const int, int>> init { { 3, 30 },
                                                                 { 1, 10 },
                                                                 { 2, 20 } };
-  ds::fifo_map<int, int> m(init);
-  ds::fifo_map<int, int> c(m);
+  fifo_map<int, int> m(init);
+  fifo_map<int, int> c(m);
   m.clear();
   CHECK_EQ(c.size(), 3);
   auto it = c.begin();
@@ -59,8 +60,8 @@ TEST_CASE("copy assigment operator")
   const std::initializer_list<std::pair<const int, int>> init { { 3, 30 },
                                                                 { 1, 10 },
                                                                 { 2, 20 } };
-  ds::fifo_map<int, int> m(init);
-  ds::fifo_map<int, int> c;
+  fifo_map<int, int> m(init);
+  fifo_map<int, int> c;
   c = m;
   m.clear();
   CHECK_EQ(c.size(), 3);
@@ -74,18 +75,18 @@ TEST_CASE("copy assigment operator")
 TEST_CASE("get|cget")
 {
   {
-    ds::fifo_map<int, int> m({ { 1, 10 }, { 2, 20 } });
-    static_assert_same<decltype(m.get(1)), ds::optional<int&>>();
-    static_assert_same<decltype(m.cget(1)), ds::optional<const int&>>();
+    fifo_map<int, int> m({ { 1, 10 }, { 2, 20 } });
+    static_assert_same<decltype(m.get(1)), optional<int&>>();
+    static_assert_same<decltype(m.cget(1)), optional<const int&>>();
     CHECK_EQ(m.get(1), 10);
     CHECK_EQ(m.cget(1), 10);
     m.get(1).value() = 100;
     CHECK_EQ(m.get(1), 100);
   }
   {
-    const ds::fifo_map<int, int> m({ { 1, 10 }, { 2, 20 } });
-    static_assert_same<decltype(m.get(1)), ds::optional<const int&>>();
-    static_assert_same<decltype(m.cget(1)), ds::optional<const int&>>();
+    const fifo_map<int, int> m({ { 1, 10 }, { 2, 20 } });
+    static_assert_same<decltype(m.get(1)), optional<const int&>>();
+    static_assert_same<decltype(m.cget(1)), optional<const int&>>();
     CHECK_EQ(m.get(1), 10);
     CHECK_EQ(m.cget(1), 10);
   }
@@ -93,7 +94,7 @@ TEST_CASE("get|cget")
 
 TEST_CASE("try_assign")
 {
-  ds::fifo_map<int, int> m({ { 1, 10 }, { 2, 20 } });
+  fifo_map<int, int> m({ { 1, 10 }, { 2, 20 } });
   CHECK(!m.try_assign(3, 30));
   CHECK(m.try_assign(1, 100));
   CHECK_EQ(m.get(1), 100);
@@ -101,7 +102,7 @@ TEST_CASE("try_assign")
 
 TEST_CASE("insert_or_assign")
 {
-  ds::fifo_map<int, int> m({ { 1, 10 }, { 2, 20 } });
+  fifo_map<int, int> m({ { 1, 10 }, { 2, 20 } });
   CHECK(m.insert_or_assign(3, 30));
   CHECK_EQ(m.get(3), 30);
   CHECK(!m.insert_or_assign(1, 100));
@@ -113,7 +114,7 @@ TEST_CASE("insertion order")
   const std::initializer_list<std::pair<const int, int>> init { { 3, 30 },
                                                                 { 1, 10 },
                                                                 { 2, 20 } };
-  ds::fifo_map<int, int> m(init);
+  fifo_map<int, int> m(init);
   CHECK_EQ(m.size(), 3);
   auto it = m.begin();
   for (auto init_it = init.begin(); it != m.end(); ++it, ++init_it) {
@@ -124,7 +125,7 @@ TEST_CASE("insertion order")
 
 TEST_CASE("iterator dereferece type")
 {
-  ds::fifo_map<char, int> m;
+  fifo_map<char, int> m;
   static_assert_same<decltype(*m.begin()), std::pair<const char, int>&>();
   static_assert_same<decltype(*m.cbegin()),
                      const std::pair<const char, int>&>();
@@ -136,7 +137,7 @@ TEST_CASE("iterator dereferece type")
   static_assert_same<decltype(*m.rend()), std::pair<const char, int>&>();
   static_assert_same<decltype(*m.crend()), const std::pair<const char, int>&>();
 
-  const ds::fifo_map<char, int> cm;
+  const fifo_map<char, int> cm;
   static_assert_same<decltype(*cm.begin()),
                      const std::pair<const char, int>&>();
   static_assert_same<decltype(*cm.cbegin()),

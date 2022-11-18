@@ -7,11 +7,11 @@
 
 #pragma once
 
-#include <ds/config.hpp>
+#include <gul/config.hpp>
 
-#include <ds/type_traits.hpp>
+#include <gul/type_traits.hpp>
 
-DS_NAMESPACE_BEGIN
+GUL_NAMESPACE_BEGIN
 
 enum class byte : unsigned char {};
 
@@ -68,7 +68,7 @@ constexpr byte& operator>>=(byte& b, Integral shift) noexcept
   return b = b >> shift;
 }
 
-#if !defined(__GNUC__) || defined(DS_HAS_CXX14)
+#if !defined(__GNUC__) || defined(GUL_HAS_CXX14)
 constexpr
 #endif
     byte&
@@ -77,7 +77,7 @@ constexpr
   return lhs = lhs & rhs;
 }
 
-#if !defined(__GNUC__) || defined(DS_HAS_CXX14)
+#if !defined(__GNUC__) || defined(GUL_HAS_CXX14)
 constexpr
 #endif
     byte&
@@ -86,7 +86,7 @@ constexpr
   return lhs = lhs | rhs;
 }
 
-#if !defined(__GNUC__) || defined(DS_HAS_CXX14)
+#if !defined(__GNUC__) || defined(GUL_HAS_CXX14)
 constexpr
 #endif
     byte&
@@ -101,4 +101,4 @@ constexpr byte to_byte(Integral i) noexcept
   return static_cast<byte>(i);
 }
 
-DS_NAMESPACE_END
+GUL_NAMESPACE_END

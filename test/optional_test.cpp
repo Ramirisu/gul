@@ -5,11 +5,11 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#include <ds_test.h>
+#include <gul_test.h>
 
-#include <ds/optional.hpp>
+#include <gul/optional.hpp>
 
-using namespace ds;
+using namespace gul;
 
 TEST_SUITE_BEGIN("optional");
 
@@ -644,7 +644,7 @@ TEST_CASE("value")
   assert_is_same<fn_value, const optional<int&>&, int&>();
   assert_is_same<fn_value, optional<int&>, int&>();
   assert_is_same<fn_value, const optional<int&>, int&>();
-#if !DS_NO_EXCEPTIONS
+#if !GUL_NO_EXCEPTIONS
   {
     auto o = optional<void>();
     CHECK_THROWS_AS(o.value(), bad_optional_access);
@@ -678,7 +678,7 @@ TEST_CASE("value")
     const auto o = optional<int>(1);
     CHECK_EQ(std::move(o).value(), 1);
   }
-#if !DS_NO_EXCEPTIONS
+#if !GUL_NO_EXCEPTIONS
   {
     auto o = optional<int>();
     CHECK_THROWS_AS(o.value(), bad_optional_access);
@@ -716,7 +716,7 @@ TEST_CASE("value")
     const auto o = optional<int&>(val);
     CHECK_EQ(std::move(o).value(), 1);
   }
-#if !DS_NO_EXCEPTIONS
+#if !GUL_NO_EXCEPTIONS
   {
     auto o = optional<int&>();
     CHECK_THROWS_AS(o.value(), bad_optional_access);

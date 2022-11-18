@@ -7,14 +7,14 @@
 
 #pragma once
 
-#include <ds/config.hpp>
+#include <gul/config.hpp>
 
-#include <ds/type_traits.hpp>
+#include <gul/type_traits.hpp>
 
 #include <climits>
 #include <string>
 
-DS_NAMESPACE_BEGIN
+GUL_NAMESPACE_BEGIN
 
 template <typename CharT, typename Traits = std::char_traits<CharT>>
 class basic_string_view {
@@ -33,120 +33,120 @@ class basic_string_view {
     {
     }
 
-    DS_CXX14_CONSTEXPR reference operator*() noexcept
+    GUL_CXX14_CONSTEXPR reference operator*() noexcept
     {
       return *curr_;
     }
 
-    DS_CXX14_CONSTEXPR pointer operator->() noexcept
+    GUL_CXX14_CONSTEXPR pointer operator->() noexcept
     {
       return curr_;
     }
 
-    DS_CXX14_CONSTEXPR reference operator[](difference_type n)
+    GUL_CXX14_CONSTEXPR reference operator[](difference_type n)
     {
       return *(curr_ + n);
     }
 
-    DS_CXX14_CONSTEXPR const_iterator_impl& operator++()
+    GUL_CXX14_CONSTEXPR const_iterator_impl& operator++()
     {
       ++curr_;
       return *this;
     }
 
-    DS_CXX14_CONSTEXPR const_iterator_impl operator++(int)
+    GUL_CXX14_CONSTEXPR const_iterator_impl operator++(int)
     {
       auto it = *this;
       ++*this;
       return it;
     }
 
-    DS_CXX14_CONSTEXPR const_iterator_impl& operator--()
+    GUL_CXX14_CONSTEXPR const_iterator_impl& operator--()
     {
       --curr_;
       return *this;
     }
 
-    DS_CXX14_CONSTEXPR const_iterator_impl operator--(int)
+    GUL_CXX14_CONSTEXPR const_iterator_impl operator--(int)
     {
       auto it = *this;
       --*this;
       return it;
     }
 
-    friend DS_CXX14_CONSTEXPR const_iterator_impl&
+    friend GUL_CXX14_CONSTEXPR const_iterator_impl&
     operator+=(const_iterator_impl& it, difference_type n)
     {
       it.curr_ += n;
       return it;
     }
 
-    friend DS_CXX14_CONSTEXPR const_iterator_impl&
+    friend GUL_CXX14_CONSTEXPR const_iterator_impl&
     operator-=(const_iterator_impl& it, difference_type n)
     {
       it.curr_ -= n;
       return it;
     }
 
-    friend DS_CXX14_CONSTEXPR const_iterator_impl
+    friend GUL_CXX14_CONSTEXPR const_iterator_impl
     operator+(const const_iterator_impl& it, difference_type n)
     {
       auto temp = it;
       return temp += n;
     }
 
-    friend DS_CXX14_CONSTEXPR const_iterator_impl
+    friend GUL_CXX14_CONSTEXPR const_iterator_impl
     operator+(difference_type n, const const_iterator_impl& it)
     {
       auto temp = it;
       return temp += n;
     }
 
-    friend DS_CXX14_CONSTEXPR const_iterator_impl
+    friend GUL_CXX14_CONSTEXPR const_iterator_impl
     operator-(const const_iterator_impl& it, difference_type n)
     {
       auto temp = it;
       return temp -= n;
     }
 
-    friend DS_CXX14_CONSTEXPR difference_type
+    friend GUL_CXX14_CONSTEXPR difference_type
     operator-(const const_iterator_impl& lhs, const const_iterator_impl& rhs)
     {
       return lhs.curr_ - rhs.curr_;
     }
 
-    friend DS_CXX14_CONSTEXPR bool operator==(const const_iterator_impl& lhs,
-                                              const const_iterator_impl& rhs)
+    friend GUL_CXX14_CONSTEXPR bool operator==(const const_iterator_impl& lhs,
+                                               const const_iterator_impl& rhs)
     {
       return lhs.curr_ == rhs.curr_;
     }
 
-    friend DS_CXX14_CONSTEXPR bool operator!=(const const_iterator_impl& lhs,
-                                              const const_iterator_impl& rhs)
+    friend GUL_CXX14_CONSTEXPR bool operator!=(const const_iterator_impl& lhs,
+                                               const const_iterator_impl& rhs)
     {
       return lhs.curr_ != rhs.curr_;
     }
 
-    friend DS_CXX14_CONSTEXPR bool operator<(const const_iterator_impl& lhs,
-                                             const const_iterator_impl& rhs)
+    friend GUL_CXX14_CONSTEXPR bool operator<(const const_iterator_impl& lhs,
+                                              const const_iterator_impl& rhs)
     {
       return lhs.curr_ < rhs.curr_;
     }
 
-    friend DS_CXX14_CONSTEXPR bool operator<=(const const_iterator_impl& lhs,
-                                              const const_iterator_impl& rhs)
+    friend GUL_CXX14_CONSTEXPR bool operator<=(const const_iterator_impl& lhs,
+                                               const const_iterator_impl& rhs)
     {
       return lhs.curr_ <= rhs.curr_;
     }
 
-    friend DS_CXX14_CONSTEXPR bool operator>(const const_iterator_impl& lhs,
-                                             const const_iterator_impl& rhs)
+    friend GUL_CXX14_CONSTEXPR bool operator>(const const_iterator_impl& lhs,
+                                              const const_iterator_impl& rhs)
     {
       return lhs.curr_ > rhs.curr_;
     }
 
-    friend DS_CXX14_CONSTEXPR bool operator>=(const const_iterator_impl& lhs,
-                                              const const_iterator_impl& rhs)
+    friend GUL_CXX14_CONSTEXPR bool operator>=(const const_iterator_impl& lhs,
+                                               const const_iterator_impl& rhs)
     {
       return lhs.curr_ >= rhs.curr_;
     }
@@ -157,8 +157,8 @@ class basic_string_view {
 
   void throw_out_of_range(const char* msg) const
   {
-#if DS_NO_EXCEPTIONS
-    DS_UNUSED(msg);
+#if GUL_NO_EXCEPTIONS
+    GUL_UNUSED(msg);
     std::abort();
 #else
     throw std::out_of_range(msg);
@@ -203,17 +203,17 @@ public:
 
   constexpr basic_string_view(const basic_string_view&) noexcept = default;
 
-  DS_CXX14_CONSTEXPR basic_string_view&
+  GUL_CXX14_CONSTEXPR basic_string_view&
   operator=(const basic_string_view&) noexcept
       = default;
 
-  DS_CXX14_CONSTEXPR const_reference operator[](size_type index) const
+  GUL_CXX14_CONSTEXPR const_reference operator[](size_type index) const
   {
-    DS_ASSERT(index < size());
+    GUL_ASSERT(index < size());
     return *(start_ + index);
   }
 
-  DS_CXX14_CONSTEXPR const_reference at(size_type index) const
+  GUL_CXX14_CONSTEXPR const_reference at(size_type index) const
   {
     if (index >= size()) {
       throw_out_of_range("[basic_string_view::at] index out of range");
@@ -222,15 +222,15 @@ public:
     return *(start_ + index);
   }
 
-  DS_CXX14_CONSTEXPR const_reference front() const
+  GUL_CXX14_CONSTEXPR const_reference front() const
   {
-    DS_ASSERT(size() > 0);
+    GUL_ASSERT(size() > 0);
     return *start_;
   }
 
-  DS_CXX14_CONSTEXPR const_reference back() const
+  GUL_CXX14_CONSTEXPR const_reference back() const
   {
-    DS_ASSERT(size() > 0);
+    GUL_ASSERT(size() > 0);
     return *(start_ + (size() - 1));
   }
 
@@ -259,28 +259,28 @@ public:
     return size() == 0;
   }
 
-  DS_CXX14_CONSTEXPR void remove_prefix(size_type count)
+  GUL_CXX14_CONSTEXPR void remove_prefix(size_type count)
   {
-    DS_ASSERT(count <= size_);
+    GUL_ASSERT(count <= size_);
     start_ += count;
     size_ -= count;
   }
 
-  DS_CXX14_CONSTEXPR void remove_suffix(size_type count)
+  GUL_CXX14_CONSTEXPR void remove_suffix(size_type count)
   {
-    DS_ASSERT(count <= size_);
+    GUL_ASSERT(count <= size_);
     size_ -= count;
   }
 
-  DS_CXX14_CONSTEXPR void swap(basic_string_view& other) noexcept
+  GUL_CXX14_CONSTEXPR void swap(basic_string_view& other) noexcept
   {
     std::swap(start_, other.start_);
     std::swap(size_, other.size_);
   }
 
-  DS_CXX14_CONSTEXPR size_type copy(CharT* dest,
-                                    size_type count,
-                                    size_type index) const
+  GUL_CXX14_CONSTEXPR size_type copy(CharT* dest,
+                                     size_type count,
+                                     size_type index) const
   {
     if (index > size_) {
       throw_out_of_range("[basic_string_view::copy] index out of range");
@@ -297,7 +297,7 @@ public:
     return basic_string_view(start_ + index, std::min(count, size_ - index));
   }
 
-  DS_CXX14_CONSTEXPR int compare(basic_string_view sv) const noexcept
+  GUL_CXX14_CONSTEXPR int compare(basic_string_view sv) const noexcept
   {
     const auto len = std::min(size(), sv.size());
 
@@ -318,91 +318,91 @@ public:
     return 0;
   }
 
-  DS_CXX14_CONSTEXPR int
+  GUL_CXX14_CONSTEXPR int
   compare(size_type index1, size_type count1, basic_string_view sv) const
 
   {
     return substr(index1, count1).compare(sv);
   }
 
-  DS_CXX14_CONSTEXPR int compare(size_type index1,
-                                 size_type count1,
-                                 basic_string_view sv,
-                                 size_type index2,
-                                 size_type count2) const
+  GUL_CXX14_CONSTEXPR int compare(size_type index1,
+                                  size_type count1,
+                                  basic_string_view sv,
+                                  size_type index2,
+                                  size_type count2) const
 
   {
     return substr(index1, count1).compare(sv.substr(index2, count2));
   }
 
-  DS_CXX14_CONSTEXPR int compare(const CharT* s) const
+  GUL_CXX14_CONSTEXPR int compare(const CharT* s) const
   {
     return compare(basic_string_view(s));
   }
 
-  DS_CXX14_CONSTEXPR int
+  GUL_CXX14_CONSTEXPR int
   compare(size_type index1, size_type count1, const CharT* s) const
 
   {
     return substr(index1, count1).compare(basic_string_view(s));
   }
 
-  DS_CXX14_CONSTEXPR int compare(size_type index1,
-                                 size_type count1,
-                                 const CharT* s,
-                                 size_type count2) const
+  GUL_CXX14_CONSTEXPR int compare(size_type index1,
+                                  size_type count1,
+                                  const CharT* s,
+                                  size_type count2) const
 
   {
     return substr(index1, count1).compare(basic_string_view(s, count2));
   }
 
-  DS_CXX14_CONSTEXPR bool starts_with(basic_string_view sv) const noexcept
+  GUL_CXX14_CONSTEXPR bool starts_with(basic_string_view sv) const noexcept
   {
     return substr(0, sv.size()) == sv;
   }
 
-  DS_CXX14_CONSTEXPR bool starts_with(CharT c) const noexcept
+  GUL_CXX14_CONSTEXPR bool starts_with(CharT c) const noexcept
   {
     return !empty() && Traits::eq(front(), c);
   }
 
-  DS_CXX14_CONSTEXPR bool starts_with(const CharT* s) const
+  GUL_CXX14_CONSTEXPR bool starts_with(const CharT* s) const
   {
     return starts_with(basic_string_view(s));
   }
 
-  DS_CXX14_CONSTEXPR bool ends_with(basic_string_view sv) const noexcept
+  GUL_CXX14_CONSTEXPR bool ends_with(basic_string_view sv) const noexcept
   {
     return size() >= sv.size() && compare(size() - sv.size(), npos, sv) == 0;
   }
 
-  DS_CXX14_CONSTEXPR bool ends_with(CharT c) const noexcept
+  GUL_CXX14_CONSTEXPR bool ends_with(CharT c) const noexcept
   {
     return !empty() && Traits::eq(back(), c);
   }
 
-  DS_CXX14_CONSTEXPR bool ends_with(const CharT* s) const
+  GUL_CXX14_CONSTEXPR bool ends_with(const CharT* s) const
   {
     return ends_with(basic_string_view(s));
   }
 
-  DS_CXX14_CONSTEXPR bool contains(basic_string_view sv) const noexcept
+  GUL_CXX14_CONSTEXPR bool contains(basic_string_view sv) const noexcept
   {
     return find(sv) != npos;
   }
 
-  DS_CXX14_CONSTEXPR bool contains(CharT c) const noexcept
+  GUL_CXX14_CONSTEXPR bool contains(CharT c) const noexcept
   {
     return find(c) != npos;
   }
 
-  DS_CXX14_CONSTEXPR bool contains(const CharT* s) const
+  GUL_CXX14_CONSTEXPR bool contains(const CharT* s) const
   {
     return find(s) != npos;
   }
 
-  DS_CXX14_CONSTEXPR size_type find(basic_string_view sv,
-                                    size_type index = 0) const noexcept
+  GUL_CXX14_CONSTEXPR size_type find(basic_string_view sv,
+                                     size_type index = 0) const noexcept
   {
     if (sv.size() > size() || index > (size() - sv.size())) {
       return npos;
@@ -427,26 +427,26 @@ public:
     return npos;
   }
 
-  DS_CXX14_CONSTEXPR size_type find(CharT ch,
-                                    size_type index = 0) const noexcept
+  GUL_CXX14_CONSTEXPR size_type find(CharT ch,
+                                     size_type index = 0) const noexcept
   {
     return find(basic_string_view(std::addressof(ch), 1), index);
   }
 
-  DS_CXX14_CONSTEXPR size_type find(const CharT* s,
-                                    size_type index,
-                                    size_type count) const
+  GUL_CXX14_CONSTEXPR size_type find(const CharT* s,
+                                     size_type index,
+                                     size_type count) const
   {
     return find(basic_string_view(s, count), index);
   }
 
-  DS_CXX14_CONSTEXPR size_type find(const CharT* s, size_type index = 0) const
+  GUL_CXX14_CONSTEXPR size_type find(const CharT* s, size_type index = 0) const
   {
     return find(basic_string_view(s), index);
   }
 
-  DS_CXX14_CONSTEXPR size_type rfind(basic_string_view sv,
-                                     size_type index = npos) const noexcept
+  GUL_CXX14_CONSTEXPR size_type rfind(basic_string_view sv,
+                                      size_type index = npos) const noexcept
   {
     if (sv.empty()) {
       return std::min(index, size());
@@ -465,27 +465,28 @@ public:
     return npos;
   }
 
-  DS_CXX14_CONSTEXPR size_type rfind(CharT c,
-                                     size_type index = npos) const noexcept
+  GUL_CXX14_CONSTEXPR size_type rfind(CharT c,
+                                      size_type index = npos) const noexcept
   {
     return rfind(basic_string_view(std::addressof(c), 1), index);
   }
 
-  DS_CXX14_CONSTEXPR size_type rfind(const CharT* s,
-                                     size_type index,
-                                     size_type count) const
+  GUL_CXX14_CONSTEXPR size_type rfind(const CharT* s,
+                                      size_type index,
+                                      size_type count) const
   {
     return rfind(basic_string_view(s, count), index);
   }
 
-  DS_CXX14_CONSTEXPR size_type rfind(const CharT* s,
-                                     size_type index = npos) const
+  GUL_CXX14_CONSTEXPR size_type rfind(const CharT* s,
+                                      size_type index = npos) const
   {
     return rfind(basic_string_view(s), index);
   }
 
-  DS_CXX14_CONSTEXPR size_type find_first_of(basic_string_view sv,
-                                             size_type index = 0) const noexcept
+  GUL_CXX14_CONSTEXPR size_type find_first_of(basic_string_view sv,
+                                              size_type index
+                                              = 0) const noexcept
   {
     if (sv.size() > 0 && index < size()) {
       const auto end = data() + size();
@@ -499,28 +500,29 @@ public:
     return npos;
   }
 
-  DS_CXX14_CONSTEXPR size_type find_first_of(CharT c,
-                                             size_type index = 0) const noexcept
+  GUL_CXX14_CONSTEXPR size_type find_first_of(CharT c,
+                                              size_type index
+                                              = 0) const noexcept
   {
     return find_first_of(basic_string_view(std::addressof(c), 1), index);
   }
 
-  DS_CXX14_CONSTEXPR size_type find_first_of(const CharT* s,
-                                             size_type index,
-                                             size_type count) const
+  GUL_CXX14_CONSTEXPR size_type find_first_of(const CharT* s,
+                                              size_type index,
+                                              size_type count) const
   {
     return find_first_of(basic_string_view(s, count), index);
   }
 
-  DS_CXX14_CONSTEXPR size_type find_first_of(const CharT* s,
-                                             size_type index = 0) const
+  GUL_CXX14_CONSTEXPR size_type find_first_of(const CharT* s,
+                                              size_type index = 0) const
   {
     return find_first_of(basic_string_view(s), index);
   }
 
-  DS_CXX14_CONSTEXPR size_type find_last_of(basic_string_view sv,
-                                            size_type index
-                                            = npos) const noexcept
+  GUL_CXX14_CONSTEXPR size_type find_last_of(basic_string_view sv,
+                                             size_type index
+                                             = npos) const noexcept
   {
     if (sv.size() > 0 && size() > 0) {
       const auto end = data();
@@ -535,29 +537,29 @@ public:
     return npos;
   }
 
-  DS_CXX14_CONSTEXPR size_type find_last_of(CharT c,
-                                            size_type index
-                                            = npos) const noexcept
+  GUL_CXX14_CONSTEXPR size_type find_last_of(CharT c,
+                                             size_type index
+                                             = npos) const noexcept
   {
     return find_last_of(basic_string_view(std::addressof(c), 1), index);
   }
 
-  DS_CXX14_CONSTEXPR size_type find_last_of(const CharT* s,
-                                            size_type index,
-                                            size_type count) const
+  GUL_CXX14_CONSTEXPR size_type find_last_of(const CharT* s,
+                                             size_type index,
+                                             size_type count) const
   {
     return find_last_of(basic_string_view(s, count), index);
   }
 
-  DS_CXX14_CONSTEXPR size_type find_last_of(const CharT* s,
-                                            size_type index = npos) const
+  GUL_CXX14_CONSTEXPR size_type find_last_of(const CharT* s,
+                                             size_type index = npos) const
   {
     return find_last_of(basic_string_view(s), index);
   }
 
-  DS_CXX14_CONSTEXPR size_type find_first_not_of(basic_string_view sv,
-                                                 size_type index
-                                                 = 0) const noexcept
+  GUL_CXX14_CONSTEXPR size_type find_first_not_of(basic_string_view sv,
+                                                  size_type index
+                                                  = 0) const noexcept
   {
     if (sv.size() > 0 && index < size()) {
       const auto end = data() + size();
@@ -571,29 +573,29 @@ public:
     return npos;
   }
 
-  DS_CXX14_CONSTEXPR size_type find_first_not_of(CharT c,
-                                                 size_type index
-                                                 = 0) const noexcept
+  GUL_CXX14_CONSTEXPR size_type find_first_not_of(CharT c,
+                                                  size_type index
+                                                  = 0) const noexcept
   {
     return find_first_not_of(basic_string_view(std::addressof(c), 1), index);
   }
 
-  DS_CXX14_CONSTEXPR size_type find_first_not_of(const CharT* s,
-                                                 size_type index,
-                                                 size_type count) const
+  GUL_CXX14_CONSTEXPR size_type find_first_not_of(const CharT* s,
+                                                  size_type index,
+                                                  size_type count) const
   {
     return find_first_not_of(basic_string_view(s, count), index);
   }
 
-  DS_CXX14_CONSTEXPR size_type find_first_not_of(const CharT* s,
-                                                 size_type index = 0) const
+  GUL_CXX14_CONSTEXPR size_type find_first_not_of(const CharT* s,
+                                                  size_type index = 0) const
   {
     return find_first_not_of(basic_string_view(s), index);
   }
 
-  DS_CXX14_CONSTEXPR size_type find_last_not_of(basic_string_view sv,
-                                                size_type index
-                                                = npos) const noexcept
+  GUL_CXX14_CONSTEXPR size_type find_last_not_of(basic_string_view sv,
+                                                 size_type index
+                                                 = npos) const noexcept
   {
 
     if (sv.size() > 0 && size() > 0) {
@@ -609,22 +611,22 @@ public:
     return npos;
   }
 
-  DS_CXX14_CONSTEXPR size_type find_last_not_of(CharT c,
-                                                size_type index
-                                                = npos) const noexcept
+  GUL_CXX14_CONSTEXPR size_type find_last_not_of(CharT c,
+                                                 size_type index
+                                                 = npos) const noexcept
   {
     return find_last_not_of(basic_string_view(std::addressof(c), 1), index);
   }
 
-  DS_CXX14_CONSTEXPR size_type find_last_not_of(const CharT* s,
-                                                size_type index,
-                                                size_type count) const
+  GUL_CXX14_CONSTEXPR size_type find_last_not_of(const CharT* s,
+                                                 size_type index,
+                                                 size_type count) const
   {
     return find_last_not_of(basic_string_view(s, count), index);
   }
 
-  DS_CXX14_CONSTEXPR size_type find_last_not_of(const CharT* s,
-                                                size_type index = npos) const
+  GUL_CXX14_CONSTEXPR size_type find_last_not_of(const CharT* s,
+                                                 size_type index = npos) const
   {
     return find_last_not_of(basic_string_view(s), index);
   }
@@ -758,33 +760,33 @@ inline namespace string_view_literals {
 }
 }
 
-DS_NAMESPACE_END
+GUL_NAMESPACE_END
 
 namespace std {
 template <>
-struct hash<ds::string_view> {
-  std::size_t operator()(ds::string_view sv) const
+struct hash<gul::string_view> {
+  std::size_t operator()(gul::string_view sv) const
   {
     return hash<string>()(static_cast<string>(sv));
   }
 };
 template <>
-struct hash<ds::wstring_view> {
-  std::size_t operator()(ds::wstring_view sv) const
+struct hash<gul::wstring_view> {
+  std::size_t operator()(gul::wstring_view sv) const
   {
     return hash<wstring>()(static_cast<wstring>(sv));
   }
 };
 template <>
-struct hash<ds::u16string_view> {
-  std::size_t operator()(ds::u16string_view sv) const
+struct hash<gul::u16string_view> {
+  std::size_t operator()(gul::u16string_view sv) const
   {
     return hash<u16string>()(static_cast<u16string>(sv));
   }
 };
 template <>
-struct hash<ds::u32string_view> {
-  std::size_t operator()(ds::u32string_view sv) const
+struct hash<gul::u32string_view> {
+  std::size_t operator()(gul::u32string_view sv) const
   {
     return hash<u32string>()(static_cast<u32string>(sv));
   }

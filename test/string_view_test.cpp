@@ -5,11 +5,11 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#include <ds_test.h>
+#include <gul_test.h>
 
-#include <ds/string_view.hpp>
+#include <gul/string_view.hpp>
 
-using namespace ds;
+using namespace gul;
 
 TEST_SUITE_BEGIN("string_view");
 
@@ -56,7 +56,7 @@ TEST_CASE("basic")
   {
     string_view sv(s);
     char buf[16] = {};
-#if !DS_NO_EXCEPTIONS
+#if !GUL_NO_EXCEPTIONS
     CHECK_THROWS_AS(sv.copy(buf, sv.size(), sv.size() + 1), std::out_of_range);
 #endif
     CHECK_EQ(sv.copy(buf, 3, 6), 3);

@@ -1,10 +1,10 @@
-# ds
+# GUL
 
-[![build](https://github.com/Ramirisu/ds/actions/workflows/build_matrix.yml/badge.svg)](https://github.com/Ramirisu/ds/actions/workflows/build_matrix.yml)
+[![build](https://github.com/Ramirisu/gul/actions/workflows/build_matrix.yml/badge.svg)](https://github.com/Ramirisu/gul/actions/workflows/build_matrix.yml)
 ![std](https://img.shields.io/badge/std-11%2F14%2F17%2F20-blue.svg)
 ![license](https://img.shields.io/badge/license-BSL--1.0-blue)
 
-ds is an open-source library providing general utilities for c++11. Many of them are backported from later standard version.
+gul is an open-source library providing general utilities for c++11. Many of them are backported from later standard version.
 
 ## Features
 
@@ -31,26 +31,26 @@ CMake
 
 ```cmake
   add_executable(your_exe)
-  target_link_libraries(your_exe PRIVATE ds)
+  target_link_libraries(your_exe PRIVATE gul)
 ```
 
-ds is header-only. Just `#include` the header file `all.hpp` to utilize all features.
+gul is header-only. Just `#include` the header file `all.hpp` to utilize all features.
 
 ```cpp
-  #include <ds/all.hpp>
+  #include <gul/all.hpp>
 ```
 
 ## Buiding tests
 
 CMake
 
-| Option         | Description | Value  | Default |
-| :------------- | :---------- | :----: | :-----: |
-| DS_BUILD_TESTS | Build tests | ON/OFF |   OFF   |
+| Option          | Description | Value  | Default |
+| :-------------- | :---------- | :----: | :-----: |
+| GUL_BUILD_TESTS | Build tests | ON/OFF |   OFF   |
 
 ```sh
-cd ds/
-cmake -B build -DDS_BUILD_TESTS=ON
+cd gul/
+cmake -B build -DGUL_BUILD_TESTS=ON
 cmake --build build
 cd build && ctest && cd ..
 ```
