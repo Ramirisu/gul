@@ -762,33 +762,53 @@ inline namespace string_view_literals {
 
 GUL_NAMESPACE_END
 
+#ifdef GUL_HAS_CXX17
+#include <string_view>
+#endif
+
 namespace std {
 template <>
 struct hash<gul::string_view> {
   std::size_t operator()(gul::string_view sv) const
   {
+#ifdef GUL_HAS_CXX17
+    return hash<string_view>()(string_view(sv.data(), sv.size()));
+#else
     return hash<string>()(static_cast<string>(sv));
+#endif
   }
 };
 template <>
 struct hash<gul::wstring_view> {
   std::size_t operator()(gul::wstring_view sv) const
   {
+#ifdef GUL_HAS_CXX17
+    return hash<wstring_view>()(wstring_view(sv.data(), sv.size()));
+#else
     return hash<wstring>()(static_cast<wstring>(sv));
+#endif
   }
 };
 template <>
 struct hash<gul::u16string_view> {
   std::size_t operator()(gul::u16string_view sv) const
   {
+#ifdef GUL_HAS_CXX17
+    return hash<u16string_view>()(u16string_view(sv.data(), sv.size()));
+#else
     return hash<u16string>()(static_cast<u16string>(sv));
+#endif
   }
 };
 template <>
 struct hash<gul::u32string_view> {
   std::size_t operator()(gul::u32string_view sv) const
   {
+#ifdef GUL_HAS_CXX17
+    return hash<u32string_view>()(u32string_view(sv.data(), sv.size()));
+#else
     return hash<u32string>()(static_cast<u32string>(sv));
+#endif
   }
 };
 }
