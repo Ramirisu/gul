@@ -20,10 +20,10 @@ GUL_CXX17_INLINE constexpr std::size_t dynamic_extent = std::size_t(-1);
 namespace detail {
 
 template <typename T, std::size_t Extent>
-struct span_storage {
-  constexpr span_storage() noexcept = default;
+struct span_storage_base {
+  constexpr span_storage_base() noexcept = default;
 
-  constexpr span_storage(T* pointer, std::size_t) noexcept
+  constexpr span_storage_base(T* pointer, std::size_t) noexcept
       : data_(pointer)
   {
   }
@@ -33,10 +33,10 @@ struct span_storage {
 };
 
 template <typename T>
-struct span_storage<T, dynamic_extent> {
-  constexpr span_storage() noexcept = default;
+struct span_storage_base<T, dynamic_extent> {
+  constexpr span_storage_base() noexcept = default;
 
-  constexpr span_storage(T* pointer, std::size_t count) noexcept
+  constexpr span_storage_base(T* pointer, std::size_t count) noexcept
       : data_(pointer)
       , size_(count)
   {
@@ -63,9 +63,9 @@ struct span_default_constructible<Extent, false> {
 }
 
 template <typename T, std::size_t Extent = dynamic_extent>
-class span : private detail::span_storage<T, Extent>,
+class span : private detail::span_storage_base<T, Extent>,
              private detail::span_default_constructible<Extent> {
-  using base_type = detail::span_storage<T, Extent>;
+  using base_type = detail::span_storage_base<T, Extent>;
   using dc_base_type = detail::span_default_constructible<Extent>;
 
   class iterator_impl {
@@ -240,7 +240,32 @@ public:
   }
 
   constexpr span(pointer first, pointer last)
-      : base_type(first, last - first)
+      : base_type(first, size_type(last - first))
+      , dc_base_type(in_place)
+  {
+  }
+
+  template <
+      typename It,
+      enable_if_t<is_convertible<typename std::iterator_traits<It>::reference,
+                                 element_type&>::value,
+                  int>
+      = 0>
+  constexpr GUL_CXX20_EXPLICIT(Extent != dynamic_extent)
+      span(It first, size_type size)
+      : base_type(first.operator->(), size)
+      , dc_base_type(in_place)
+  {
+  }
+
+  template <
+      typename It,
+      enable_if_t<is_convertible<typename std::iterator_traits<It>::reference,
+                                 element_type&>::value,
+                  int>
+      = 0>
+  constexpr GUL_CXX20_EXPLICIT(Extent != dynamic_extent) span(It first, It last)
+      : base_type(first.operator->(), size_type(last - first))
       , dc_base_type(in_place)
   {
   }
@@ -395,6 +420,14 @@ constexpr std::size_t span<T, Extent>::extent;
 #ifdef GUL_HAS_CXX17
 template <typename T>
 span(T) -> span<T>;
+
+template <typename It>
+span(It, std::size_t)
+    -> span<remove_reference_t<typename std::iterator_traits<It>::reference>>;
+
+template <typename It>
+span(It, It)
+    -> span<remove_reference_t<typename std::iterator_traits<It>::reference>>;
 #endif
 
 template <class T, std::size_t N>

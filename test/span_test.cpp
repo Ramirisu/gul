@@ -32,6 +32,30 @@ TEST_CASE("basic")
     CHECK(s.first(0).empty());
   }
   {
+    std::array<int, 4> arr { 0, 1, 2, 3 };
+    auto s = span<int>(arr.begin(), arr.size());
+    CHECK(!s.empty());
+    CHECK_EQ(s.data(), arr.data());
+    CHECK_EQ(s.size(), 4);
+    CHECK_EQ(s.size_bytes(), 16);
+    CHECK_EQ(s.front(), 0);
+    CHECK_EQ(s.back(), 3);
+    CHECK_EQ(s[1], 1);
+    CHECK_EQ(s[2], 2);
+  }
+  {
+    std::array<int, 4> arr { 0, 1, 2, 3 };
+    auto s = span<int>(arr.begin(), arr.end());
+    CHECK(!s.empty());
+    CHECK_EQ(s.data(), arr.data());
+    CHECK_EQ(s.size(), 4);
+    CHECK_EQ(s.size_bytes(), 16);
+    CHECK_EQ(s.front(), 0);
+    CHECK_EQ(s.back(), 3);
+    CHECK_EQ(s[1], 1);
+    CHECK_EQ(s[2], 2);
+  }
+  {
     int arr[] = { 0, 1, 2, 3 };
     auto s = span<int>(arr);
     CHECK(!s.empty());
