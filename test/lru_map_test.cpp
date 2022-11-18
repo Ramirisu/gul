@@ -265,6 +265,96 @@ TEST_CASE("iterator")
   }
 }
 
+TEST_CASE("lower_bound|upper_bound|equal_range")
+{
+  {
+    lru_map<int, int> m(4, { { 1, 10 }, { 3, 30 }, { 5, 50 } });
+    static_assert_same<decltype(m.lower_bound(0)), decltype(m)::iterator>();
+    CHECK_EQ(m.lower_bound(0), std::next(m.begin(), 0));
+    CHECK_EQ(m.lower_bound(1), std::next(m.begin(), 0));
+    CHECK_EQ(m.lower_bound(2), std::next(m.begin(), 1));
+    CHECK_EQ(m.lower_bound(3), std::next(m.begin(), 1));
+    CHECK_EQ(m.lower_bound(4), std::next(m.begin(), 2));
+    CHECK_EQ(m.lower_bound(5), std::next(m.begin(), 2));
+    CHECK_EQ(m.lower_bound(6), m.end());
+  }
+  {
+    const lru_map<int, int> m(4, { { 1, 10 }, { 3, 30 }, { 5, 50 } });
+    static_assert_same<decltype(m.lower_bound(0)),
+                       decltype(m)::const_iterator>();
+    CHECK_EQ(m.lower_bound(0), std::next(m.begin(), 0));
+    CHECK_EQ(m.lower_bound(1), std::next(m.begin(), 0));
+    CHECK_EQ(m.lower_bound(2), std::next(m.begin(), 1));
+    CHECK_EQ(m.lower_bound(3), std::next(m.begin(), 1));
+    CHECK_EQ(m.lower_bound(4), std::next(m.begin(), 2));
+    CHECK_EQ(m.lower_bound(5), std::next(m.begin(), 2));
+    CHECK_EQ(m.lower_bound(6), m.end());
+  }
+  {
+    lru_map<int, int> m(4, { { 1, 10 }, { 3, 30 }, { 5, 50 } });
+    static_assert_same<decltype(m.upper_bound(0)), decltype(m)::iterator>();
+    CHECK_EQ(m.upper_bound(0), std::next(m.begin(), 0));
+    CHECK_EQ(m.upper_bound(1), std::next(m.begin(), 1));
+    CHECK_EQ(m.upper_bound(2), std::next(m.begin(), 1));
+    CHECK_EQ(m.upper_bound(3), std::next(m.begin(), 2));
+    CHECK_EQ(m.upper_bound(4), std::next(m.begin(), 2));
+    CHECK_EQ(m.upper_bound(5), m.end());
+    CHECK_EQ(m.upper_bound(6), m.end());
+  }
+  {
+    const lru_map<int, int> m(4, { { 1, 10 }, { 3, 30 }, { 5, 50 } });
+    static_assert_same<decltype(m.upper_bound(0)),
+                       decltype(m)::const_iterator>();
+    CHECK_EQ(m.upper_bound(0), std::next(m.begin(), 0));
+    CHECK_EQ(m.upper_bound(1), std::next(m.begin(), 1));
+    CHECK_EQ(m.upper_bound(2), std::next(m.begin(), 1));
+    CHECK_EQ(m.upper_bound(3), std::next(m.begin(), 2));
+    CHECK_EQ(m.upper_bound(4), std::next(m.begin(), 2));
+    CHECK_EQ(m.upper_bound(5), m.end());
+    CHECK_EQ(m.upper_bound(6), m.end());
+  }
+  {
+    lru_map<int, int> m(4, { { 1, 10 }, { 3, 30 }, { 5, 50 } });
+    static_assert_same<
+        decltype(m.equal_range(0)),
+        std::pair<decltype(m)::iterator, decltype(m)::iterator>>();
+    CHECK_EQ(m.equal_range(0).first, std::next(m.begin(), 0));
+    CHECK_EQ(m.equal_range(0).second, std::next(m.begin(), 0));
+    CHECK_EQ(m.equal_range(1).first, std::next(m.begin(), 0));
+    CHECK_EQ(m.equal_range(1).second, std::next(m.begin(), 1));
+    CHECK_EQ(m.equal_range(2).first, std::next(m.begin(), 1));
+    CHECK_EQ(m.equal_range(2).second, std::next(m.begin(), 1));
+    CHECK_EQ(m.equal_range(3).first, std::next(m.begin(), 1));
+    CHECK_EQ(m.equal_range(3).second, std::next(m.begin(), 2));
+    CHECK_EQ(m.equal_range(4).first, std::next(m.begin(), 2));
+    CHECK_EQ(m.equal_range(4).second, std::next(m.begin(), 2));
+    CHECK_EQ(m.equal_range(5).first, std::next(m.begin(), 2));
+    CHECK_EQ(m.equal_range(5).second, m.end());
+    CHECK_EQ(m.equal_range(6).first, m.end());
+    CHECK_EQ(m.equal_range(6).second, m.end());
+  }
+  {
+    const lru_map<int, int> m(4, { { 1, 10 }, { 3, 30 }, { 5, 50 } });
+    static_assert_same<
+        decltype(m.equal_range(0)),
+        std::pair<decltype(m)::const_iterator, decltype(m)::const_iterator>>();
+    CHECK_EQ(m.equal_range(0).first, std::next(m.begin(), 0));
+    CHECK_EQ(m.equal_range(0).second, std::next(m.begin(), 0));
+    CHECK_EQ(m.equal_range(1).first, std::next(m.begin(), 0));
+    CHECK_EQ(m.equal_range(1).second, std::next(m.begin(), 1));
+    CHECK_EQ(m.equal_range(2).first, std::next(m.begin(), 1));
+    CHECK_EQ(m.equal_range(2).second, std::next(m.begin(), 1));
+    CHECK_EQ(m.equal_range(3).first, std::next(m.begin(), 1));
+    CHECK_EQ(m.equal_range(3).second, std::next(m.begin(), 2));
+    CHECK_EQ(m.equal_range(4).first, std::next(m.begin(), 2));
+    CHECK_EQ(m.equal_range(4).second, std::next(m.begin(), 2));
+    CHECK_EQ(m.equal_range(5).first, std::next(m.begin(), 2));
+    CHECK_EQ(m.equal_range(5).second, m.end());
+    CHECK_EQ(m.equal_range(6).first, m.end());
+    CHECK_EQ(m.equal_range(6).second, m.end());
+  }
+}
+
 TEST_CASE("random test")
 {
   auto m = lru_map<int, int>(64);

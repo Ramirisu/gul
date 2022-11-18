@@ -32,17 +32,15 @@ class lru_map {
   class iterator_impl {
     friend class lru_map;
 
-    using parent_iterator =
-        typename std::conditional<Const,
-                                  typename map_type::const_iterator,
-                                  typename map_type::iterator>::type;
+    using parent_iterator = conditional_t<Const,
+                                          typename map_type::const_iterator,
+                                          typename map_type::iterator>;
 
   public:
     using iterator_category = std::bidirectional_iterator_tag;
-    using value_type =
-        typename std::conditional<Const,
-                                  const typename list_type::value_type,
-                                  typename list_type::value_type>::type;
+    using value_type = conditional_t<Const,
+                                     const typename list_type::value_type,
+                                     typename list_type::value_type>;
     using reference = value_type&;
     using const_reference = const value_type&;
     using pointer = value_type*;
@@ -300,6 +298,43 @@ public:
     recently_used_.push_front({ key, value });
     map_[key] = recently_used_.begin();
     return true;
+  }
+
+  iterator lower_bound(const key_type& key)
+  {
+    return iterator(map_.lower_bound(key));
+  }
+
+  const_iterator lower_bound(const key_type& key) const
+  {
+    return const_iterator(map_.lower_bound(key));
+  }
+
+  iterator upper_bound(const key_type& key)
+  {
+    return iterator(map_.upper_bound(key));
+  }
+
+  const_iterator upper_bound(const key_type& key) const
+  {
+    return const_iterator(map_.upper_bound(key));
+  }
+
+  std::pair<iterator, iterator> equal_range(const key_type& key)
+  {
+    auto pair = map_.equal_range(key);
+    return std::pair<iterator, iterator> { iterator(std::move(pair.first)),
+                                           iterator(std::move(pair.second)) };
+  }
+
+  std::pair<const_iterator, const_iterator>
+  equal_range(const key_type& key) const
+  {
+    auto pair = map_.equal_range(key);
+    return std::pair<const_iterator, const_iterator> {
+      const_iterator(std::move(pair.first)),
+      const_iterator(std::move(pair.second))
+    };
   }
 
   bool erase(const key_type& key)
