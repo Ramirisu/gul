@@ -25,7 +25,7 @@ Requirements
 * CMake 3.15 (or later)
 * GCC 5.5 (or later)
 * Clang 9 (or later)
-* MSVC 2017 15.9 v141 (or later)
+* MSVC 2017 v141 (or later)
 
 CMake
 
@@ -40,7 +40,7 @@ gul is header-only. Just `#include` the header file `all.hpp` to utilize all fea
   #include <gul/all.hpp>
 ```
 
-## Buiding tests
+## Building tests
 
 CMake
 
