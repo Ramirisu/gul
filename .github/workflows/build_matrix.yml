@@ -51,6 +51,12 @@ jobs:
             build_type: Debug
             generators: Visual Studio 16 2019
             extra_args: -A x64 -T v141
+          - os: windows-2019
+            cxx: cl
+            std: 14
+            build_type: Debug
+            generators: Visual Studio 16 2019
+            extra_args: -A x64 -T v142
 
     steps:
       - uses: actions/checkout@v2
