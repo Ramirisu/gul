@@ -59,7 +59,7 @@ jobs:
             extra_args: -A x64 -T v142
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Add msbuild to PATH env
         if: matrix.cxx == 'cl'
@@ -105,7 +105,6 @@ jobs:
         run: |
           mkdir build
           cmake \
-            -S . \
             -B . \
             -G "${{matrix.generators}}" \
             -DCMAKE_BUILD_TYPE=${{matrix.build_type}} \
