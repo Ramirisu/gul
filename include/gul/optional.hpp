@@ -55,7 +55,7 @@ struct optional_throw_base {
   }
 };
 
-template <typename T, bool = is_trivially_destructible<T>::value>
+template <typename T, bool = std::is_trivially_destructible<T>::value>
 struct optional_destruct_base : optional_throw_base {
   union {
     char nul_;
@@ -131,7 +131,7 @@ struct optional_destruct_base<T, false> : optional_throw_base {
   }
 };
 
-template <typename T, bool = is_reference<T>::value>
+template <typename T, bool = std::is_reference<T>::value>
 struct optional_storage_base : optional_destruct_base<T> {
   using optional_destruct_base<T>::optional_destruct_base;
 
@@ -404,8 +404,8 @@ struct optional_storage_base<void, B> : optional_throw_base {
 };
 
 template <typename T,
-          bool
-          = disjunction<is_void<T>, is_trivially_copy_constructible<T>>::value>
+          bool = disjunction<std::is_void<T>,
+                             std::is_trivially_copy_constructible<T>>::value>
 struct optional_copy_construct_base : optional_storage_base<T> {
   using optional_storage_base<T>::optional_storage_base;
 };
@@ -435,8 +435,8 @@ struct optional_copy_construct_base<T, false> : optional_storage_base<T> {
 };
 
 template <typename T,
-          bool
-          = disjunction<is_void<T>, is_trivially_move_constructible<T>>::value>
+          bool = disjunction<std::is_void<T>,
+                             std::is_trivially_move_constructible<T>>::value>
 struct optional_move_construct_base : optional_copy_construct_base<T> {
   using optional_copy_construct_base<T>::optional_copy_construct_base;
 };
@@ -467,11 +467,11 @@ struct optional_move_construct_base<T, false>
 };
 
 template <typename T,
-          bool
-          = disjunction<is_void<T>,
-                        conjunction<is_trivially_destructible<T>,
-                                    is_trivially_copy_constructible<T>,
-                                    is_trivially_copy_assignable<T>>>::value>
+          bool = disjunction<
+              std::is_void<T>,
+              conjunction<std::is_trivially_destructible<T>,
+                          std::is_trivially_copy_constructible<T>,
+                          std::is_trivially_copy_assignable<T>>>::value>
 struct optional_copy_assign_base : optional_move_construct_base<T> {
   using optional_move_construct_base<T>::optional_move_construct_base;
 };
@@ -501,11 +501,11 @@ struct optional_copy_assign_base<T, false> : optional_move_construct_base<T> {
 };
 
 template <typename T,
-          bool
-          = disjunction<is_void<T>,
-                        conjunction<is_trivially_destructible<T>,
-                                    is_trivially_move_constructible<T>,
-                                    is_trivially_move_assignable<T>>>::value>
+          bool = disjunction<
+              std::is_void<T>,
+              conjunction<std::is_trivially_destructible<T>,
+                          std::is_trivially_move_constructible<T>,
+                          std::is_trivially_move_assignable<T>>>::value>
 struct optional_move_assign_base : optional_copy_assign_base<T> {
   using optional_copy_assign_base<T>::optional_copy_assign_base;
 };
@@ -541,29 +541,30 @@ class optional : private detail::optional_move_assign_base<T> {
 
   template <typename U>
   struct is_optional_constructible
-      : negation<conjunction<is_constructible<T, optional<U>&>,
-                             is_constructible<T, const optional<U>&>,
-                             is_constructible<T, optional<U>&&>,
-                             is_constructible<T, const optional<U>&&>,
-                             is_convertible<optional<U>&, T>,
-                             is_convertible<const optional<U>&, T>,
-                             is_convertible<optional<U>&&, T>,
-                             is_convertible<const optional<U>&&, T>>> { };
+      : negation<conjunction<std::is_constructible<T, optional<U>&>,
+                             std::is_constructible<T, const optional<U>&>,
+                             std::is_constructible<T, optional<U>&&>,
+                             std::is_constructible<T, const optional<U>&&>,
+                             std::is_convertible<optional<U>&, T>,
+                             std::is_convertible<const optional<U>&, T>,
+                             std::is_convertible<optional<U>&&, T>,
+                             std::is_convertible<const optional<U>&&, T>>> { };
   template <typename U>
   struct is_optional_assignable
       : negation<conjunction<
-            is_constructible<T, optional<U>&>,
-            is_constructible<T, const optional<U>&>,
-            is_constructible<T, optional<U>&&>,
-            is_constructible<T, const optional<U>&&>,
-            is_convertible<optional<U>&, T>,
-            is_convertible<const optional<U>&, T>,
-            is_convertible<optional<U>&&, T>,
-            is_convertible<const optional<U>&&, T>,
-            is_assignable<add_lvalue_reference_t<T>, optional<U>&>,
-            is_assignable<add_lvalue_reference_t<T>, const optional<U>&>,
-            is_assignable<add_lvalue_reference_t<T>, optional<U>&&>,
-            is_assignable<add_lvalue_reference_t<T>, const optional<U>&&>>> { };
+            std::is_constructible<T, optional<U>&>,
+            std::is_constructible<T, const optional<U>&>,
+            std::is_constructible<T, optional<U>&&>,
+            std::is_constructible<T, const optional<U>&&>,
+            std::is_convertible<optional<U>&, T>,
+            std::is_convertible<const optional<U>&, T>,
+            std::is_convertible<optional<U>&&, T>,
+            std::is_convertible<const optional<U>&&, T>,
+            std::is_assignable<add_lvalue_reference_t<T>, optional<U>&>,
+            std::is_assignable<add_lvalue_reference_t<T>, const optional<U>&>,
+            std::is_assignable<add_lvalue_reference_t<T>, optional<U>&&>,
+            std::is_assignable<add_lvalue_reference_t<T>,
+                               const optional<U>&&>>> { };
 
   template <typename Self, typename F>
   static GUL_CXX14_CONSTEXPR auto
@@ -648,15 +649,16 @@ class optional : private detail::optional_move_assign_base<T> {
   }
 
 public:
-  static_assert(!is_same<remove_cvref_t<T>, in_place_t>::value,
+  static_assert(!std::is_same<remove_cvref_t<T>, in_place_t>::value,
                 "[optional] T = `in_place_t` is ill-formed.");
-  static_assert(!is_same<remove_cvref_t<T>, nullopt_t>::value,
+  static_assert(!std::is_same<remove_cvref_t<T>, nullopt_t>::value,
                 "[optional] T = `nullopt_t` is ill-formed.");
   static_assert(
-      disjunction<is_void<T>, is_destructible<T>, is_lvalue_reference<T>>::
-          value,
+      disjunction<std::is_void<T>,
+                  std::is_destructible<T>,
+                  std::is_lvalue_reference<T>>::value,
       "[optional] T can be `void`, destructible or lvalue reference type.");
-  static_assert(!is_array<T>::value, "[optional] T = U[] is ill-formed.");
+  static_assert(!std::is_array<T>::value, "[optional] T = U[] is ill-formed.");
 
   using value_type = T;
 
@@ -664,11 +666,9 @@ public:
 
   GUL_CXX14_CONSTEXPR optional(nullopt_t) noexcept { }
 
-  template <
-      typename... Args,
-      enable_if_t<disjunction<is_void<T>, is_constructible<T, Args...>>::value,
-                  int>
-      = 0>
+  template <typename... Args,
+            GUL_REQUIRES(disjunction<std::is_void<T>,
+                                     std::is_constructible<T, Args...>>::value)>
   GUL_CXX14_CONSTEXPR explicit optional(in_place_t, Args&&... args)
       : base_type(in_place, std::forward<Args>(args)...)
   {
@@ -677,26 +677,22 @@ public:
   template <
       typename U,
       typename... Args,
-      enable_if_t<
-          conjunction<
-              negation<is_void<T>>,
-              is_constructible<T, std::initializer_list<U>&, Args...>>::value,
-          int>
-      = 0>
+      GUL_REQUIRES(conjunction<negation<std::is_void<T>>,
+                               std::is_constructible<T,
+                                                     std::initializer_list<U>&,
+                                                     Args...>>::value)>
   GUL_CXX14_CONSTEXPR
   optional(in_place_t, std::initializer_list<U> init, Args&&... args)
       : base_type(in_place, init, std::forward<Args>(args)...)
   {
   }
 
-  template <
-      typename U,
-      enable_if_t<conjunction<negation<is_void<T>>,
-                              negation<is_same<remove_cvref_t<U>, in_place_t>>,
-                              negation<is_same<remove_cvref_t<U>, optional>>,
-                              is_constructible<T, U>>::value,
-                  int>
-      = 0>
+  template <typename U,
+            GUL_REQUIRES(conjunction<
+                         negation<std::is_void<T>>,
+                         negation<std::is_same<remove_cvref_t<U>, in_place_t>>,
+                         negation<std::is_same<remove_cvref_t<U>, optional>>,
+                         std::is_constructible<T, U>>::value)>
   GUL_CXX14_CONSTEXPR optional(U&& val)
       : base_type(in_place, std::forward<U>(val))
   {
@@ -705,24 +701,20 @@ public:
   GUL_CXX14_CONSTEXPR optional(const optional&) = default;
 
   GUL_CXX14_CONSTEXPR
-  optional(optional&&) noexcept(is_nothrow_move_constructible<T>::value)
+  optional(optional&&) noexcept(std::is_nothrow_move_constructible<T>::value)
       = default;
 
   template <typename U,
-            enable_if_t<conjunction<is_constructible<T, const U&>,
-                                    is_optional_constructible<U>>::value,
-                        int>
-            = 0>
+            GUL_REQUIRES(conjunction<std::is_constructible<T, const U&>,
+                                     is_optional_constructible<U>>::value)>
   GUL_CXX14_CONSTEXPR optional(const optional<U>& other)
   {
     this->construct_from(other);
   }
 
   template <typename U,
-            enable_if_t<conjunction<is_constructible<T, U>,
-                                    is_optional_constructible<U>>::value,
-                        int>
-            = 0>
+            GUL_REQUIRES(conjunction<std::is_constructible<T, U>,
+                                     is_optional_constructible<U>>::value)>
   GUL_CXX14_CONSTEXPR optional(optional<U>&& other)
   {
     this->construct_from(std::move(other));
@@ -738,15 +730,13 @@ public:
 
   template <
       typename U,
-      enable_if_t<
-          conjunction<negation<is_void<T>>,
-                      negation<is_same<remove_cvref_t<U>, optional>>,
-                      is_constructible<T, U>,
-                      is_assignable<add_lvalue_reference_t<T>, U>,
-                      disjunction<negation<is_scalar<T>>,
-                                  negation<is_same<decay_t<U>, T>>>>::value,
-          int>
-      = 0>
+      GUL_REQUIRES(conjunction<
+                   negation<std::is_void<T>>,
+                   negation<std::is_same<remove_cvref_t<U>, optional>>,
+                   std::is_constructible<T, U>,
+                   std::is_assignable<add_lvalue_reference_t<T>, U>,
+                   disjunction<negation<std::is_scalar<T>>,
+                               negation<std::is_same<decay_t<U>, T>>>>::value)>
   GUL_CXX14_CONSTEXPR optional& operator=(U&& u)
   {
     if (this->has_value()) {
@@ -760,30 +750,27 @@ public:
   GUL_CXX14_CONSTEXPR optional& operator=(const optional&) = default;
 
   GUL_CXX14_CONSTEXPR optional& operator=(optional&&) noexcept(
-      conjunction<is_nothrow_move_assignable<T>,
+      conjunction<std::is_nothrow_move_assignable<T>,
                   std::is_nothrow_move_constructible<T>>::value)
       = default;
 
-  template <typename U,
-            enable_if_t<
-                conjunction<is_constructible<T, const U&>,
-                            is_assignable<add_lvalue_reference_t<T>, const U&>,
-                            is_optional_assignable<U>>::value,
-                int>
-            = 0>
+  template <
+      typename U,
+      GUL_REQUIRES(
+          conjunction<std::is_constructible<T, const U&>,
+                      std::is_assignable<add_lvalue_reference_t<T>, const U&>,
+                      is_optional_assignable<U>>::value)>
   GUL_CXX14_CONSTEXPR optional& operator=(const optional<U>& other)
   {
     this->assign_from(other);
     return *this;
   }
 
-  template <
-      typename U,
-      enable_if_t<conjunction<is_constructible<T, U&&>,
-                              is_assignable<add_lvalue_reference_t<T>, U&&>,
-                              is_optional_assignable<U>>::value,
-                  int>
-      = 0>
+  template <typename U,
+            GUL_REQUIRES(
+                conjunction<std::is_constructible<T, U&&>,
+                            std::is_assignable<add_lvalue_reference_t<T>, U&&>,
+                            is_optional_assignable<U>>::value)>
   GUL_CXX14_CONSTEXPR optional& operator=(optional<U>&& other)
   {
     this->assign_from(std::move(other));
@@ -795,13 +782,13 @@ public:
     return this->has_value();
   }
 
-  template <bool B = !is_void<T>::value, enable_if_t<B, int> = 0>
+  template <bool B = !std::is_void<T>::value, GUL_REQUIRES(B)>
   GUL_CXX14_CONSTEXPR add_pointer_t<T> operator->() noexcept
   {
     return std::addressof(value());
   }
 
-  template <bool B = !is_void<T>::value, enable_if_t<B, int> = 0>
+  template <bool B = !std::is_void<T>::value, GUL_REQUIRES(B)>
   GUL_CXX14_CONSTEXPR add_pointer_t<const T> operator->() const noexcept
   {
     return std::addressof(value());
@@ -833,11 +820,9 @@ public:
     }
   }
 
-  template <
-      typename... Args,
-      enable_if_t<disjunction<is_void<T>, is_constructible<T, Args...>>::value,
-                  int>
-      = 0>
+  template <typename... Args,
+            GUL_REQUIRES(disjunction<std::is_void<T>,
+                                     std::is_constructible<T, Args...>>::value)>
   GUL_CXX14_CONSTEXPR auto emplace(Args&&... args) -> add_lvalue_reference_t<T>
   {
     if (this->has_value()) {
@@ -847,13 +832,11 @@ public:
     return this->construct(std::forward<Args>(args)...);
   }
 
-  template <
-      typename U,
-      typename... Args,
-      enable_if_t<
-          is_constructible<T, std::initializer_list<U>&, Args&&...>::value,
-          int>
-      = 0>
+  template <typename U,
+            typename... Args,
+            GUL_REQUIRES(std::is_constructible<T,
+                                               std::initializer_list<U>&,
+                                               Args&&...>::value)>
   GUL_CXX14_CONSTEXPR auto emplace(std::initializer_list<U> init,
                                    Args&&... args) -> add_lvalue_reference_t<T>
   {
@@ -868,113 +851,117 @@ public:
 
   template <typename F>
   GUL_CXX14_CONSTEXPR auto and_then(F&& f) & -> decltype(optional_and_then_impl(
-      is_void<T> {}, *this, std::forward<F>(f)))
+      std::is_void<T> {}, *this, std::forward<F>(f)))
 
   {
-    return optional_and_then_impl(is_void<T> {}, *this, std::forward<F>(f));
+    return optional_and_then_impl(std::is_void<T> {}, *this,
+                                  std::forward<F>(f));
   }
 
   template <typename F>
   GUL_CXX14_CONSTEXPR auto
-  and_then(F&& f) const& -> decltype(optional_and_then_impl(is_void<T> {},
+  and_then(F&& f) const& -> decltype(optional_and_then_impl(std::is_void<T> {},
                                                             *this,
                                                             std::forward<F>(f)))
   {
-    return optional_and_then_impl(is_void<T> {}, *this, std::forward<F>(f));
+    return optional_and_then_impl(std::is_void<T> {}, *this,
+                                  std::forward<F>(f));
   }
 
   template <typename F>
   GUL_CXX14_CONSTEXPR auto
-  and_then(F&& f) && -> decltype(optional_and_then_impl(is_void<T> {},
+  and_then(F&& f) && -> decltype(optional_and_then_impl(std::is_void<T> {},
                                                         std::move(*this),
                                                         std::forward<F>(f)))
   {
-    return optional_and_then_impl(is_void<T> {}, std::move(*this),
+    return optional_and_then_impl(std::is_void<T> {}, std::move(*this),
                                   std::forward<F>(f));
   }
 
   template <typename F>
   GUL_CXX14_CONSTEXPR auto
   and_then(F&& f) const&& -> decltype(optional_and_then_impl(
-      is_void<T> {}, std::move(*this), std::forward<F>(f)))
+      std::is_void<T> {}, std::move(*this), std::forward<F>(f)))
   {
-    return optional_and_then_impl(is_void<T> {}, std::move(*this),
+    return optional_and_then_impl(std::is_void<T> {}, std::move(*this),
                                   std::forward<F>(f));
   }
 
   template <typename F>
   GUL_CXX14_CONSTEXPR auto
-  transform(F&& f) & -> decltype(optional_transform_impl(is_void<T> {},
+  transform(F&& f) & -> decltype(optional_transform_impl(std::is_void<T> {},
                                                          *this,
                                                          std::forward<F>(f)))
   {
-    return optional_transform_impl(is_void<T> {}, *this, std::forward<F>(f));
+    return optional_transform_impl(std::is_void<T> {}, *this,
+                                   std::forward<F>(f));
   }
 
   template <typename F>
   GUL_CXX14_CONSTEXPR auto
   transform(F&& f) const& -> decltype(optional_transform_impl(
-      is_void<T> {}, *this, std::forward<F>(f)))
+      std::is_void<T> {}, *this, std::forward<F>(f)))
   {
-    return optional_transform_impl(is_void<T> {}, *this, std::forward<F>(f));
+    return optional_transform_impl(std::is_void<T> {}, *this,
+                                   std::forward<F>(f));
   }
 
   template <typename F>
   GUL_CXX14_CONSTEXPR auto
-  transform(F&& f) && -> decltype(optional_transform_impl(is_void<T> {},
+  transform(F&& f) && -> decltype(optional_transform_impl(std::is_void<T> {},
                                                           std::move(*this),
                                                           std::forward<F>(f)))
   {
-    return optional_transform_impl(is_void<T> {}, std::move(*this),
+    return optional_transform_impl(std::is_void<T> {}, std::move(*this),
                                    std::forward<F>(f));
   }
 
   template <typename F>
   GUL_CXX14_CONSTEXPR auto
   transform(F&& f) const&& -> decltype(optional_transform_impl(
-      is_void<T> {}, std::move(*this), std::forward<F>(f)))
+      std::is_void<T> {}, std::move(*this), std::forward<F>(f)))
   {
-    return optional_transform_impl(is_void<T> {}, std::move(*this),
+    return optional_transform_impl(std::is_void<T> {}, std::move(*this),
                                    std::forward<F>(f));
   }
 
   template <typename F>
   GUL_CXX14_CONSTEXPR auto or_else(F&& f) & -> decltype(optional_or_else_impl(
-      is_void<T> {}, *this, std::forward<F>(f)))
+      std::is_void<T> {}, *this, std::forward<F>(f)))
   {
-    return optional_or_else_impl(is_void<T> {}, *this, std::forward<F>(f));
+    return optional_or_else_impl(std::is_void<T> {}, *this, std::forward<F>(f));
   }
 
   template <typename F>
   GUL_CXX14_CONSTEXPR auto
-  or_else(F&& f) const& -> decltype(optional_or_else_impl(is_void<T> {},
+  or_else(F&& f) const& -> decltype(optional_or_else_impl(std::is_void<T> {},
                                                           *this,
                                                           std::forward<F>(f)))
   {
-    return optional_or_else_impl(is_void<T> {}, *this, std::forward<F>(f));
+    return optional_or_else_impl(std::is_void<T> {}, *this, std::forward<F>(f));
   }
 
   template <typename F>
   GUL_CXX14_CONSTEXPR auto or_else(F&& f) && -> decltype(optional_or_else_impl(
-      is_void<T> {}, std::move(*this), std::forward<F>(f)))
+      std::is_void<T> {}, std::move(*this), std::forward<F>(f)))
   {
-    return optional_or_else_impl(is_void<T> {}, std::move(*this),
+    return optional_or_else_impl(std::is_void<T> {}, std::move(*this),
                                  std::forward<F>(f));
   }
 
   template <typename F>
   GUL_CXX14_CONSTEXPR auto
-  or_else(F&& f) const&& -> decltype(optional_or_else_impl(is_void<T> {},
+  or_else(F&& f) const&& -> decltype(optional_or_else_impl(std::is_void<T> {},
                                                            std::move(*this),
                                                            std::forward<F>(f)))
   {
-    return optional_or_else_impl(is_void<T> {}, std::move(*this),
+    return optional_or_else_impl(std::is_void<T> {}, std::move(*this),
                                  std::forward<F>(f));
   }
 
-  GUL_CXX14_CONSTEXPR void
-  swap(optional& other) noexcept(conjunction<is_nothrow_move_constructible<T>,
-                                             is_nothrow_swappable<T>>::value)
+  GUL_CXX14_CONSTEXPR void swap(optional& other) noexcept(
+      conjunction<std::is_nothrow_move_constructible<T>,
+                  detail::is_nothrow_swappable<T>>::value)
   {
     if (this->has_value()) {
       if (other) {
@@ -1048,7 +1035,7 @@ inline GUL_CXX14_CONSTEXPR bool operator>=(const optional<void>& lhs,
 
 template <typename T1,
           typename T2,
-          enable_if_t<detail::is_eq_comparable_with<T1, T2>::value, int> = 0>
+          GUL_REQUIRES(detail::is_eq_comparable_with<T1, T2>::value)>
 GUL_CXX14_CONSTEXPR bool operator==(const optional<T1>& lhs,
                                     const optional<T2>& rhs)
 {
@@ -1065,7 +1052,7 @@ GUL_CXX14_CONSTEXPR bool operator==(const optional<T1>& lhs,
 
 template <typename T1,
           typename T2,
-          enable_if_t<detail::is_ne_comparable_with<T1, T2>::value, int> = 0>
+          GUL_REQUIRES(detail::is_ne_comparable_with<T1, T2>::value)>
 GUL_CXX14_CONSTEXPR bool operator!=(const optional<T1>& lhs,
                                     const optional<T2>& rhs)
 {
@@ -1082,7 +1069,7 @@ GUL_CXX14_CONSTEXPR bool operator!=(const optional<T1>& lhs,
 
 template <typename T1,
           typename T2,
-          enable_if_t<detail::is_lt_comparable_with<T1, T2>::value, int> = 0>
+          GUL_REQUIRES(detail::is_lt_comparable_with<T1, T2>::value)>
 GUL_CXX14_CONSTEXPR bool operator<(const optional<T1>& lhs,
                                    const optional<T2>& rhs)
 {
@@ -1098,7 +1085,7 @@ GUL_CXX14_CONSTEXPR bool operator<(const optional<T1>& lhs,
 
 template <typename T1,
           typename T2,
-          enable_if_t<detail::is_le_comparable_with<T1, T2>::value, int> = 0>
+          GUL_REQUIRES(detail::is_le_comparable_with<T1, T2>::value)>
 GUL_CXX14_CONSTEXPR bool operator<=(const optional<T1>& lhs,
                                     const optional<T2>& rhs)
 {
@@ -1114,7 +1101,7 @@ GUL_CXX14_CONSTEXPR bool operator<=(const optional<T1>& lhs,
 
 template <typename T1,
           typename T2,
-          enable_if_t<detail::is_gt_comparable_with<T1, T2>::value, int> = 0>
+          GUL_REQUIRES(detail::is_gt_comparable_with<T1, T2>::value)>
 GUL_CXX14_CONSTEXPR bool operator>(const optional<T1>& lhs,
                                    const optional<T2>& rhs)
 {
@@ -1130,7 +1117,7 @@ GUL_CXX14_CONSTEXPR bool operator>(const optional<T1>& lhs,
 
 template <typename T1,
           typename T2,
-          enable_if_t<detail::is_ge_comparable_with<T1, T2>::value, int> = 0>
+          GUL_REQUIRES(detail::is_ge_comparable_with<T1, T2>::value)>
 GUL_CXX14_CONSTEXPR bool operator>=(const optional<T1>& lhs,
                                     const optional<T2>& rhs)
 {
@@ -1235,7 +1222,7 @@ constexpr std::strong_ordering operator<=>(const optional<T>& opt,
 
 template <typename T,
           typename U,
-          enable_if_t<detail::is_eq_comparable_with<T, U>::value, int> = 0>
+          GUL_REQUIRES(detail::is_eq_comparable_with<T, U>::value)>
 GUL_CXX14_CONSTEXPR bool operator==(const optional<T>& opt, const U& val)
 {
   return opt && opt.value() == val;
@@ -1243,7 +1230,7 @@ GUL_CXX14_CONSTEXPR bool operator==(const optional<T>& opt, const U& val)
 
 template <typename T,
           typename U,
-          enable_if_t<detail::is_eq_comparable_with<T, U>::value, int> = 0>
+          GUL_REQUIRES(detail::is_eq_comparable_with<T, U>::value)>
 GUL_CXX14_CONSTEXPR bool operator==(const T& val, const optional<U>& opt)
 {
   return opt && val == opt.value();
@@ -1251,7 +1238,7 @@ GUL_CXX14_CONSTEXPR bool operator==(const T& val, const optional<U>& opt)
 
 template <typename T,
           typename U,
-          enable_if_t<detail::is_ne_comparable_with<T, U>::value, int> = 0>
+          GUL_REQUIRES(detail::is_ne_comparable_with<T, U>::value)>
 GUL_CXX14_CONSTEXPR bool operator!=(const optional<T>& opt, const U& val)
 {
   return !opt || opt.value() != val;
@@ -1259,7 +1246,7 @@ GUL_CXX14_CONSTEXPR bool operator!=(const optional<T>& opt, const U& val)
 
 template <typename T,
           typename U,
-          enable_if_t<detail::is_ne_comparable_with<T, U>::value, int> = 0>
+          GUL_REQUIRES(detail::is_ne_comparable_with<T, U>::value)>
 GUL_CXX14_CONSTEXPR bool operator!=(const T& val, const optional<U>& opt)
 {
   return !opt || val != opt.value();
@@ -1267,7 +1254,7 @@ GUL_CXX14_CONSTEXPR bool operator!=(const T& val, const optional<U>& opt)
 
 template <typename T,
           typename U,
-          enable_if_t<detail::is_lt_comparable_with<T, U>::value, int> = 0>
+          GUL_REQUIRES(detail::is_lt_comparable_with<T, U>::value)>
 GUL_CXX14_CONSTEXPR bool operator<(const optional<T>& opt, const U& val)
 {
   return !opt || opt.value() < val;
@@ -1275,7 +1262,7 @@ GUL_CXX14_CONSTEXPR bool operator<(const optional<T>& opt, const U& val)
 
 template <typename T,
           typename U,
-          enable_if_t<detail::is_lt_comparable_with<T, U>::value, int> = 0>
+          GUL_REQUIRES(detail::is_lt_comparable_with<T, U>::value)>
 GUL_CXX14_CONSTEXPR bool operator<(const T& val, const optional<U>& opt)
 {
   return opt && val < opt.value();
@@ -1283,7 +1270,7 @@ GUL_CXX14_CONSTEXPR bool operator<(const T& val, const optional<U>& opt)
 
 template <typename T,
           typename U,
-          enable_if_t<detail::is_le_comparable_with<T, U>::value, int> = 0>
+          GUL_REQUIRES(detail::is_le_comparable_with<T, U>::value)>
 GUL_CXX14_CONSTEXPR bool operator<=(const optional<T>& opt, const U& val)
 {
   return !opt || opt.value() <= val;
@@ -1291,7 +1278,7 @@ GUL_CXX14_CONSTEXPR bool operator<=(const optional<T>& opt, const U& val)
 
 template <typename T,
           typename U,
-          enable_if_t<detail::is_le_comparable_with<T, U>::value, int> = 0>
+          GUL_REQUIRES(detail::is_le_comparable_with<T, U>::value)>
 GUL_CXX14_CONSTEXPR bool operator<=(const T& val, const optional<U>& opt)
 {
   return opt && val <= opt.value();
@@ -1299,7 +1286,7 @@ GUL_CXX14_CONSTEXPR bool operator<=(const T& val, const optional<U>& opt)
 
 template <typename T,
           typename U,
-          enable_if_t<detail::is_gt_comparable_with<T, U>::value, int> = 0>
+          GUL_REQUIRES(detail::is_gt_comparable_with<T, U>::value)>
 GUL_CXX14_CONSTEXPR bool operator>(const optional<T>& opt, const U& val)
 {
   return !(opt <= val);
@@ -1307,7 +1294,7 @@ GUL_CXX14_CONSTEXPR bool operator>(const optional<T>& opt, const U& val)
 
 template <typename T,
           typename U,
-          enable_if_t<detail::is_gt_comparable_with<T, U>::value, int> = 0>
+          GUL_REQUIRES(detail::is_gt_comparable_with<T, U>::value)>
 GUL_CXX14_CONSTEXPR bool operator>(const T& val, const optional<U>& opt)
 {
   return !(val <= opt);
@@ -1315,7 +1302,7 @@ GUL_CXX14_CONSTEXPR bool operator>(const T& val, const optional<U>& opt)
 
 template <typename T,
           typename U,
-          enable_if_t<detail::is_ge_comparable_with<T, U>::value, int> = 0>
+          GUL_REQUIRES(detail::is_ge_comparable_with<T, U>::value)>
 GUL_CXX14_CONSTEXPR bool operator>=(const optional<T>& opt, const U& val)
 {
   return !(opt < val);
@@ -1323,7 +1310,7 @@ GUL_CXX14_CONSTEXPR bool operator>=(const optional<T>& opt, const U& val)
 
 template <typename T,
           typename U,
-          enable_if_t<detail::is_ge_comparable_with<T, U>::value, int> = 0>
+          GUL_REQUIRES(detail::is_ge_comparable_with<T, U>::value)>
 GUL_CXX14_CONSTEXPR bool operator>=(const T& val, const optional<U>& opt)
 {
   return !(val < opt);

@@ -56,39 +56,39 @@ using fn_value = decltype(std::declval<Exp>().value());
 
 template <template <typename...> class Op, typename Test, typename Expected>
 struct assert_is_same {
-  static_assert(is_same<Op<Test>, Expected>::value, "");
+  static_assert(std::is_same<Op<Test>, Expected>::value, "");
 };
 }
 
 TEST_CASE("type assertion")
 {
   using type_void = optional<void>;
-  static_assert(is_trivially_copy_constructible<type_void>::value, "");
-  static_assert(is_trivially_move_constructible<type_void>::value, "");
-  static_assert(is_trivially_copy_assignable<type_void>::value, "");
-  static_assert(is_trivially_move_assignable<type_void>::value, "");
-  static_assert(is_trivially_destructible<type_void>::value, "");
+  static_assert(std::is_trivially_copy_constructible<type_void>::value, "");
+  static_assert(std::is_trivially_move_constructible<type_void>::value, "");
+  static_assert(std::is_trivially_copy_assignable<type_void>::value, "");
+  static_assert(std::is_trivially_move_assignable<type_void>::value, "");
+  static_assert(std::is_trivially_destructible<type_void>::value, "");
 
   using type_int = optional<int>;
-  static_assert(is_trivially_copy_constructible<type_int>::value, "");
-  static_assert(is_trivially_move_constructible<type_int>::value, "");
-  static_assert(is_trivially_copy_assignable<type_int>::value, "");
-  static_assert(is_trivially_move_assignable<type_int>::value, "");
-  static_assert(is_trivially_destructible<type_int>::value, "");
+  static_assert(std::is_trivially_copy_constructible<type_int>::value, "");
+  static_assert(std::is_trivially_move_constructible<type_int>::value, "");
+  static_assert(std::is_trivially_copy_assignable<type_int>::value, "");
+  static_assert(std::is_trivially_move_assignable<type_int>::value, "");
+  static_assert(std::is_trivially_destructible<type_int>::value, "");
 
   using type_nt = optional<dc<int>>;
-  static_assert(!is_trivially_copy_constructible<type_nt>::value, "");
-  static_assert(!is_trivially_move_constructible<type_nt>::value, "");
-  static_assert(!is_trivially_copy_assignable<type_nt>::value, "");
-  static_assert(!is_trivially_move_assignable<type_nt>::value, "");
-  static_assert(!is_trivially_destructible<type_nt>::value, "");
+  static_assert(!std::is_trivially_copy_constructible<type_nt>::value, "");
+  static_assert(!std::is_trivially_move_constructible<type_nt>::value, "");
+  static_assert(!std::is_trivially_copy_assignable<type_nt>::value, "");
+  static_assert(!std::is_trivially_move_assignable<type_nt>::value, "");
+  static_assert(!std::is_trivially_destructible<type_nt>::value, "");
 
   using type_int_ref = optional<int&>;
-  static_assert(is_trivially_copy_constructible<type_int_ref>::value, "");
-  static_assert(is_trivially_move_constructible<type_int_ref>::value, "");
-  static_assert(is_trivially_copy_assignable<type_int_ref>::value, "");
-  static_assert(is_trivially_move_assignable<type_int_ref>::value, "");
-  static_assert(is_trivially_destructible<type_int_ref>::value, "");
+  static_assert(std::is_trivially_copy_constructible<type_int_ref>::value, "");
+  static_assert(std::is_trivially_move_constructible<type_int_ref>::value, "");
+  static_assert(std::is_trivially_copy_assignable<type_int_ref>::value, "");
+  static_assert(std::is_trivially_move_assignable<type_int_ref>::value, "");
+  static_assert(std::is_trivially_destructible<type_int_ref>::value, "");
 }
 
 TEST_CASE("has_value")

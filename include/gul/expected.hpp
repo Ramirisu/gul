@@ -31,36 +31,33 @@ class unexpected {
 
 public:
   static_assert(
-      !is_void<E>::value,
+      !std::is_void<E>::value,
       "instantiation of unexpected with <E = in_place_t> is ill-formed");
 
   using error_type = E;
 
-  template <
-      typename E2,
-      enable_if_t<conjunction<negation<is_same<remove_cvref_t<E2>, in_place_t>>,
-                              negation<is_same<remove_cvref_t<E2>, unexpected>>,
-                              is_constructible<E, E2>>::value,
-                  int>
-      = 0>
+  template <typename E2,
+            GUL_REQUIRES(conjunction<
+                         negation<std::is_same<remove_cvref_t<E2>, in_place_t>>,
+                         negation<std::is_same<remove_cvref_t<E2>, unexpected>>,
+                         std::is_constructible<E, E2>>::value)>
   GUL_CXX14_CONSTEXPR explicit unexpected(E2&& err)
       : err_(std::forward<E2>(err))
   {
   }
 
   template <typename... Args,
-            enable_if_t<is_constructible<E, Args...>::value, int> = 0>
+            GUL_REQUIRES(std::is_constructible<E, Args...>::value)>
   GUL_CXX14_CONSTEXPR explicit unexpected(in_place_t, Args&&... args)
       : err_(std::forward<Args>(args)...)
   {
   }
 
-  template <typename U,
-            typename... Args,
-            enable_if_t<
-                is_constructible<E, std::initializer_list<U>&, Args...>::value,
-                int>
-            = 0>
+  template <
+      typename U,
+      typename... Args,
+      GUL_REQUIRES(
+          std::is_constructible<E, std::initializer_list<U>&, Args...>::value)>
   GUL_CXX14_CONSTEXPR explicit unexpected(in_place_t,
                                           std::initializer_list<U> init,
                                           Args&&... args)
@@ -93,7 +90,7 @@ public:
   }
 
   GUL_CXX14_CONSTEXPR void
-  swap(unexpected& other) noexcept(is_nothrow_swappable<E>::value)
+  swap(unexpected& other) noexcept(detail::is_nothrow_swappable<E>::value)
   {
     using std::swap;
     swap(err_, other.err_);
@@ -192,12 +189,13 @@ struct expected_throw_base {
 
 template <typename T,
           typename E,
-          bool = disjunction<is_void<T>, is_trivially_destructible<T>>::value,
-          bool = is_trivially_destructible<E>::value>
+          bool = disjunction<std::is_void<T>,
+                             std::is_trivially_destructible<T>>::value,
+          bool = std::is_trivially_destructible<E>::value>
 struct expected_destruct_base : expected_throw_base<E> {
   union {
     char nul_;
-    conditional_t<is_void<T>::value, char, T> val_;
+    conditional_t<std::is_void<T>::value, char, T> val_;
     E err_;
   };
   bool has_;
@@ -229,7 +227,7 @@ template <typename T, typename E>
 struct expected_destruct_base<T, E, true, false> : expected_throw_base<E> {
   union {
     char nul_;
-    conditional_t<is_void<T>::value, char, T> val_;
+    conditional_t<std::is_void<T>::value, char, T> val_;
     E err_;
   };
   bool has_;
@@ -483,27 +481,27 @@ struct expected_storage_base : expected_destruct_base<T, E> {
     }
   }
 
-  template <bool B
-            = conjunction<is_swappable<T>,
-                          is_swappable<E>,
-                          is_move_constructible<T>,
-                          is_move_constructible<E>,
-                          disjunction<is_nothrow_move_constructible<T>,
-                                      is_nothrow_move_constructible<E>>>::value,
-            enable_if_t<B, int> = 0>
+  template <bool B = conjunction<
+                detail::is_swappable<T>,
+                detail::is_swappable<E>,
+                std::is_move_constructible<T>,
+                std::is_move_constructible<E>,
+                disjunction<std::is_nothrow_move_constructible<T>,
+                            std::is_nothrow_move_constructible<E>>>::value,
+            GUL_REQUIRES(B)>
   GUL_CXX14_CONSTEXPR void swap(expected_storage_base& other) noexcept(
-      conjunction<is_nothrow_move_constructible<T>,
-                  is_nothrow_swappable<T>,
-                  is_nothrow_move_constructible<E>,
-                  is_nothrow_swappable<E>>::value)
+      conjunction<std::is_nothrow_move_constructible<T>,
+                  detail::is_nothrow_swappable<T>,
+                  std::is_nothrow_move_constructible<E>,
+                  detail::is_nothrow_swappable<E>>::value)
   {
     if (this->has_value()) {
       if (other.has_value()) {
         using std::swap;
         swap(this->value(), other.value());
       } else {
-        swap_impl(other, is_nothrow_move_constructible<T> {},
-                  is_nothrow_move_constructible<E> {});
+        swap_impl(other, std::is_nothrow_move_constructible<T> {},
+                  std::is_nothrow_move_constructible<E> {});
       }
     } else {
       if (other.has_value()) {
@@ -677,8 +675,8 @@ struct expected_storage_base<void, E> : expected_destruct_base<void, E> {
   }
 
   GUL_CXX14_CONSTEXPR void swap(expected_storage_base& other) noexcept(
-      conjunction<is_nothrow_move_constructible<E>,
-                  is_nothrow_swappable<E>>::value)
+      conjunction<std::is_nothrow_move_constructible<E>,
+                  detail::is_nothrow_swappable<E>>::value)
   {
     if (this->has_value()) {
       if (!other.has_value()) {
@@ -700,9 +698,9 @@ struct expected_storage_base<void, E> : expected_destruct_base<void, E> {
 
 template <typename T,
           typename E,
-          bool
-          = disjunction<is_void<T>, is_trivially_copy_constructible<T>>::value,
-          bool = is_trivially_copy_constructible<E>::value>
+          bool = disjunction<std::is_void<T>,
+                             std::is_trivially_copy_constructible<T>>::value,
+          bool = std::is_trivially_copy_constructible<E>::value>
 struct expected_copy_construct_base : expected_storage_base<T, E> {
   using expected_storage_base<T, E>::expected_storage_base;
 
@@ -750,9 +748,9 @@ struct expected_copy_construct_base<T, E, true, true>
 
 template <typename T,
           typename E,
-          bool
-          = disjunction<is_void<T>, is_trivially_move_constructible<T>>::value,
-          bool = is_trivially_move_constructible<E>::value>
+          bool = disjunction<std::is_void<T>,
+                             std::is_trivially_move_constructible<T>>::value,
+          bool = std::is_trivially_move_constructible<E>::value>
 struct expected_move_construct_base : expected_copy_construct_base<T, E> {
   using expected_copy_construct_base<T, E>::expected_copy_construct_base;
 
@@ -800,14 +798,14 @@ struct expected_move_construct_base<T, E, true, true>
 
 template <typename T,
           typename E,
-          bool
-          = disjunction<is_void<T>,
-                        conjunction<is_trivially_destructible<T>,
-                                    is_trivially_copy_constructible<T>,
-                                    is_trivially_copy_assignable<T>>>::value,
-          bool = conjunction<is_trivially_destructible<E>,
-                             is_trivially_copy_constructible<E>,
-                             is_trivially_copy_assignable<E>>::value>
+          bool = disjunction<
+              std::is_void<T>,
+              conjunction<std::is_trivially_destructible<T>,
+                          std::is_trivially_copy_constructible<T>,
+                          std::is_trivially_copy_assignable<T>>>::value,
+          bool = conjunction<std::is_trivially_destructible<E>,
+                             std::is_trivially_copy_constructible<E>,
+                             std::is_trivially_copy_assignable<E>>::value>
 struct expected_copy_assign_base : expected_move_construct_base<T, E> {
   using expected_move_construct_base<T, E>::expected_move_construct_base;
 
@@ -854,14 +852,14 @@ struct expected_copy_assign_base<T, E, true, true>
 
 template <typename T,
           typename E,
-          bool
-          = disjunction<is_void<T>,
-                        conjunction<is_trivially_destructible<T>,
-                                    is_trivially_move_constructible<T>,
-                                    is_trivially_move_assignable<T>>>::value,
-          bool = conjunction<is_trivially_destructible<E>,
-                             is_trivially_move_constructible<E>,
-                             is_trivially_move_assignable<E>>::value>
+          bool = disjunction<
+              std::is_void<T>,
+              conjunction<std::is_trivially_destructible<T>,
+                          std::is_trivially_move_constructible<T>,
+                          std::is_trivially_move_assignable<T>>>::value,
+          bool = conjunction<std::is_trivially_destructible<E>,
+                             std::is_trivially_move_constructible<E>,
+                             std::is_trivially_move_assignable<E>>::value>
 struct expected_move_assign_base : expected_copy_assign_base<T, E> {
   using expected_copy_assign_base<T, E>::expected_copy_assign_base;
 
@@ -907,7 +905,8 @@ struct expected_move_assign_base<T, E, true, true>
 };
 
 template <typename T,
-          bool = disjunction<is_void<T>, is_default_constructible<T>>::value>
+          bool = disjunction<std::is_void<T>,
+                             std::is_default_constructible<T>>::value>
 struct expected_default_constructible_base {
   GUL_CXX14_CONSTEXPR
   expected_default_constructible_base(in_place_t) noexcept { }
@@ -966,18 +965,18 @@ class expected : private detail::expected_move_assign_base<T, E>,
   template <typename T2, typename E2>
   struct is_expected_constructible
       : negation<conjunction<
-            is_constructible<T, expected<T2, E2>&>,
-            is_constructible<T, expected<T2, E2>>,
-            is_constructible<T, const expected<T2, E2>&>,
-            is_constructible<T, const expected<T2, E2>>,
-            is_convertible<expected<T2, E2>&, T>,
-            is_convertible<expected<T2, E2>, T>,
-            is_convertible<const expected<T2, E2>&, T>,
-            is_convertible<const expected<T2, E2>, T>,
-            is_constructible<unexpected<E>, expected<T2, E2>&>,
-            is_constructible<unexpected<E>, expected<T2, E2>>,
-            is_constructible<unexpected<E>, const expected<T2, E2>&>,
-            is_constructible<unexpected<E>, const expected<T2, E2>>>> { };
+            std::is_constructible<T, expected<T2, E2>&>,
+            std::is_constructible<T, expected<T2, E2>>,
+            std::is_constructible<T, const expected<T2, E2>&>,
+            std::is_constructible<T, const expected<T2, E2>>,
+            std::is_convertible<expected<T2, E2>&, T>,
+            std::is_convertible<expected<T2, E2>, T>,
+            std::is_convertible<const expected<T2, E2>&, T>,
+            std::is_convertible<const expected<T2, E2>, T>,
+            std::is_constructible<unexpected<E>, expected<T2, E2>&>,
+            std::is_constructible<unexpected<E>, expected<T2, E2>>,
+            std::is_constructible<unexpected<E>, const expected<T2, E2>&>,
+            std::is_constructible<unexpected<E>, const expected<T2, E2>>>> { };
 
   template <typename Self, typename F>
   static GUL_CXX14_CONSTEXPR auto
@@ -986,8 +985,8 @@ class expected : private detail::expected_move_assign_base<T, E>,
   {
     using Err = remove_cvref_t<decltype(std::declval<Self>().error())>;
     using Exp = remove_cvref_t<invoke_result_t<F>>;
-    static_assert(is_specialization_of<Exp, gul::expected>::value, "");
-    static_assert(is_same<typename Exp::error_type, Err>::value, "");
+    static_assert(detail::is_specialization_of<Exp, gul::expected>::value, "");
+    static_assert(std::is_same<typename Exp::error_type, Err>::value, "");
     if (self.has_value()) {
       return Exp(invoke(std::forward<F>(f)));
     } else {
@@ -1004,8 +1003,8 @@ class expected : private detail::expected_move_assign_base<T, E>,
     using Val = decltype(std::declval<Self>().value());
     using Err = remove_cvref_t<decltype(std::declval<Self>().error())>;
     using Exp = remove_cvref_t<invoke_result_t<F, Val>>;
-    static_assert(is_specialization_of<Exp, gul::expected>::value, "");
-    static_assert(is_same<typename Exp::error_type, Err>::value, "");
+    static_assert(detail::is_specialization_of<Exp, gul::expected>::value, "");
+    static_assert(std::is_same<typename Exp::error_type, Err>::value, "");
     if (self.has_value()) {
       return Exp(invoke(std::forward<F>(f), std::forward<Self>(self).value()));
     } else {
@@ -1020,8 +1019,8 @@ class expected : private detail::expected_move_assign_base<T, E>,
   {
     using Exp = remove_cvref_t<invoke_result_t<F>>;
     using Val = typename Exp::value_type;
-    static_assert(is_specialization_of<Exp, gul::expected>::value, "");
-    static_assert(is_same<typename Exp::value_type, Val>::value, "");
+    static_assert(detail::is_specialization_of<Exp, gul::expected>::value, "");
+    static_assert(std::is_same<typename Exp::value_type, Val>::value, "");
     if (self.has_value()) {
       return Exp();
     } else {
@@ -1038,8 +1037,8 @@ class expected : private detail::expected_move_assign_base<T, E>,
     using Err = decltype(std::declval<Self>().error());
     using Exp = remove_cvref_t<invoke_result_t<F, Err>>;
     using Val = typename Exp::value_type;
-    static_assert(is_specialization_of<Exp, gul::expected>::value, "");
-    static_assert(is_same<typename Exp::value_type, Val>::value, "");
+    static_assert(detail::is_specialization_of<Exp, gul::expected>::value, "");
+    static_assert(std::is_same<typename Exp::value_type, Val>::value, "");
     if (self.has_value()) {
       return Exp(in_place, std::forward<Self>(self).value());
     } else {
@@ -1057,12 +1056,11 @@ class expected : private detail::expected_move_assign_base<T, E>,
     using T2 = remove_cvref_t<invoke_result_t<F>>;
     using Exp = expected<T2, Err>;
     static_assert(
-        disjunction<
-            is_void<Exp>,
-            conjunction<negation<is_same<Exp, in_place_t>>,
-                        negation<is_same<Exp, unexpect_t>>,
-                        negation<is_specialization_of<Exp, unexpected>>>>::
-            value,
+        disjunction<std::is_void<Exp>,
+                    conjunction<negation<std::is_same<Exp, in_place_t>>,
+                                negation<std::is_same<Exp, unexpect_t>>,
+                                negation<detail::is_specialization_of<
+                                    Exp, unexpected>>>>::value,
         "");
     if (self.has_value()) {
       return Exp(invoke(std::forward<F>(f)));
@@ -1083,12 +1081,11 @@ class expected : private detail::expected_move_assign_base<T, E>,
     using Val2 = remove_cvref_t<invoke_result_t<F, Val>>;
     using Exp = expected<Val2, Err>;
     static_assert(
-        disjunction<
-            is_void<Exp>,
-            conjunction<negation<is_same<Exp, in_place_t>>,
-                        negation<is_same<Exp, unexpect_t>>,
-                        negation<is_specialization_of<Exp, unexpected>>>>::
-            value,
+        disjunction<std::is_void<Exp>,
+                    conjunction<negation<std::is_same<Exp, in_place_t>>,
+                                negation<std::is_same<Exp, unexpect_t>>,
+                                negation<detail::is_specialization_of<
+                                    Exp, unexpected>>>>::value,
         "");
     if (self.has_value()) {
       return Exp(invoke(std::forward<F>(f), std::forward<Self>(self).value()));
@@ -1109,9 +1106,10 @@ class expected : private detail::expected_move_assign_base<T, E>,
     using Err2 = remove_cvref_t<invoke_result_t<F, Err>>;
     using Exp = expected<Val, Err2>;
     static_assert(
-        conjunction<negation<is_same<Exp, in_place_t>>,
-                    negation<is_same<Exp, unexpect_t>>,
-                    negation<is_specialization_of<Exp, unexpected>>>::value,
+        conjunction<
+            negation<std::is_same<Exp, in_place_t>>,
+            negation<std::is_same<Exp, unexpect_t>>,
+            negation<detail::is_specialization_of<Exp, unexpected>>>::value,
         "");
     if (self.has_value()) {
       return Exp(in_place);
@@ -1133,9 +1131,10 @@ class expected : private detail::expected_move_assign_base<T, E>,
     using Err2 = remove_cvref_t<invoke_result_t<F, Err>>;
     using Exp = expected<Val, Err2>;
     static_assert(
-        conjunction<negation<is_same<Exp, in_place_t>>,
-                    negation<is_same<Exp, unexpect_t>>,
-                    negation<is_specialization_of<Exp, unexpected>>>::value,
+        conjunction<
+            negation<std::is_same<Exp, in_place_t>>,
+            negation<std::is_same<Exp, unexpect_t>>,
+            negation<detail::is_specialization_of<Exp, unexpected>>>::value,
         "");
     if (self.has_value()) {
       return Exp(in_place, std::forward<Self>(self).value());
@@ -1147,25 +1146,25 @@ class expected : private detail::expected_move_assign_base<T, E>,
 
 public:
   static_assert(
-      !is_same<remove_cvref_t<T>, in_place_t>::value,
+      !std::is_same<remove_cvref_t<T>, in_place_t>::value,
       "instantiation of expected with <T = in_place_t> is ill-formed");
   static_assert(
-      !is_same<remove_cvref_t<T>, unexpect_t>::value,
+      !std::is_same<remove_cvref_t<T>, unexpect_t>::value,
       "instantiation of expected with <T = unexpect_t> is ill-formed");
-  static_assert(!is_void<remove_cvref_t<E>>::value,
+  static_assert(!std::is_void<remove_cvref_t<E>>::value,
                 "instantiation of expected with <E = void> is ill-formed");
   static_assert(
-      !is_same<remove_cvref_t<E>, in_place_t>::value,
+      !std::is_same<remove_cvref_t<E>, in_place_t>::value,
       "instantiation of expected with <E = in_place_t> is ill-formed");
   static_assert(
-      !is_same<remove_cvref_t<E>, unexpect_t>::value,
+      !std::is_same<remove_cvref_t<E>, unexpect_t>::value,
       "instantiation of expected with <E = unexpect_t> is ill-formed");
-  static_assert(!is_reference<T>::value,
+  static_assert(!std::is_reference<T>::value,
                 "instantiation of expected with <T = &> is ill-formed");
-  static_assert(disjunction<is_void<T>, is_destructible<T>>::value,
+  static_assert(disjunction<std::is_void<T>, std::is_destructible<T>>::value,
                 "instantiation of expected with <T = [non-void] and "
                 "[non-destructible]> is ill-formed");
-  static_assert(!is_array<T>::value,
+  static_assert(!std::is_array<T>::value,
                 "instantiation of expected with <T = []> is ill-formed");
 
   using value_type = T;
@@ -1180,22 +1179,22 @@ public:
   GUL_CXX14_CONSTEXPR expected(const expected&) = default;
 
   GUL_CXX14_CONSTEXPR expected(expected&&) noexcept(
-      conjunction<disjunction<is_void<T>, is_nothrow_move_constructible<T>>,
-                  is_nothrow_move_constructible<E>>::value)
+      conjunction<
+          disjunction<std::is_void<T>, std::is_nothrow_move_constructible<T>>,
+          std::is_nothrow_move_constructible<E>>::value)
       = default;
 
   template <
       typename T2,
       typename E2,
-      enable_if_t<conjunction<disjunction<conjunction<is_void<T>, is_void<T2>>,
-                                          is_constructible<T, const T2&>>,
-                              is_constructible<E, const E2&>,
-                              is_expected_constructible<T2, E2>>::value,
-                  int>
-      = 0>
+      GUL_REQUIRES(conjunction<
+                   disjunction<conjunction<std::is_void<T>, std::is_void<T2>>,
+                               std::is_constructible<T, const T2&>>,
+                   std::is_constructible<E, const E2&>,
+                   is_expected_constructible<T2, E2>>::value)>
   GUL_CXX14_CONSTEXPR
-      GUL_CXX20_EXPLICIT((!is_convertible<const T2&, T>::value
-                          || !is_convertible<const E2&, E>::value))
+      GUL_CXX20_EXPLICIT((!std::is_convertible<const T2&, T>::value
+                          || !std::is_convertible<const E2&, E>::value))
           expected(const expected<T2, E2>& other)
       : dc_base_type(in_place)
   {
@@ -1205,32 +1204,31 @@ public:
   template <
       typename T2,
       typename E2,
-      enable_if_t<conjunction<disjunction<conjunction<is_void<T>, is_void<T2>>,
-                                          is_constructible<T, T2>>,
-                              is_constructible<E, E2>,
-                              is_expected_constructible<T2, E2>>::value,
-                  int>
-      = 0>
-  GUL_CXX14_CONSTEXPR GUL_CXX20_EXPLICIT((!is_convertible<T2, T>::value
-                                          || !is_convertible<E2, E>::value))
-      expected(expected<T2, E2>&& other)
+      GUL_REQUIRES(conjunction<
+                   disjunction<conjunction<std::is_void<T>, std::is_void<T2>>,
+                               std::is_constructible<T, T2>>,
+                   std::is_constructible<E, E2>,
+                   is_expected_constructible<T2, E2>>::value)>
+  GUL_CXX14_CONSTEXPR
+      GUL_CXX20_EXPLICIT((!std::is_convertible<T2, T>::value
+                          || !std::is_convertible<E2, E>::value))
+          expected(expected<T2, E2>&& other)
       : dc_base_type(in_place)
   {
     this->construct_from(std::move(other));
   }
 
-  template <typename U = T,
-            enable_if_t<
-                conjunction<
-                    negation<is_void<T>>,
-                    negation<is_same<remove_cvref<U>, in_place_t>>,
-                    negation<is_same<remove_cvref<U>, unexpect_t>>,
-                    negation<is_same<remove_cvref<U>, expected>>,
-                    negation<is_specialization_of<remove_cvref<U>, unexpected>>,
-                    is_constructible<T, U>>::value,
-                int>
-            = 0>
-  GUL_CXX14_CONSTEXPR GUL_CXX20_EXPLICIT((!is_convertible<U, T>::value))
+  template <
+      typename U = T,
+      GUL_REQUIRES(
+          conjunction<negation<std::is_void<T>>,
+                      negation<std::is_same<remove_cvref_t<U>, in_place_t>>,
+                      negation<std::is_same<remove_cvref_t<U>, unexpect_t>>,
+                      negation<std::is_same<remove_cvref_t<U>, expected>>,
+                      negation<detail::is_specialization_of<remove_cvref_t<U>,
+                                                            unexpected>>,
+                      std::is_constructible<T, U>>::value)>
+  GUL_CXX14_CONSTEXPR GUL_CXX20_EXPLICIT((!std::is_convertible<U, T>::value))
       expected(U&& u)
       : base_type(in_place, std::forward<U>(u))
       , dc_base_type(in_place)
@@ -1238,25 +1236,27 @@ public:
   }
 
   template <typename E2,
-            enable_if_t<is_constructible<E, const E2&>::value, int> = 0>
-  GUL_CXX14_CONSTEXPR GUL_CXX20_EXPLICIT((!is_convertible<const E2&, E>::value))
-      expected(const unexpected<E2>& une)
+            GUL_REQUIRES(std::is_constructible<E, const E2&>::value)>
+  GUL_CXX14_CONSTEXPR
+      GUL_CXX20_EXPLICIT((!std::is_convertible<const E2&, E>::value))
+          expected(const unexpected<E2>& une)
       : base_type(unexpect, une.error())
       , dc_base_type(in_place)
   {
   }
 
-  template <typename E2, enable_if_t<is_constructible<E, E2>::value, int> = 0>
-  GUL_CXX14_CONSTEXPR GUL_CXX20_EXPLICIT((!is_convertible<E2, E>::value))
+  template <typename E2, GUL_REQUIRES(std::is_constructible<E, E2>::value)>
+  GUL_CXX14_CONSTEXPR GUL_CXX20_EXPLICIT((!std::is_convertible<E2, E>::value))
       expected(unexpected<E2>&& une)
       : base_type(unexpect, std::move(une).error())
       , dc_base_type(in_place)
   {
   }
-  template <bool B
-            = disjunction<is_void<T>, is_default_constructible<T>>::value,
-            enable_if_t<B, int> = 0>
-  GUL_CXX14_CONSTEXPR explicit expected(in_place_t) noexcept(is_void<T>::value)
+  template <bool B = disjunction<std::is_void<T>,
+                                 std::is_default_constructible<T>>::value,
+            GUL_REQUIRES(B)>
+  GUL_CXX14_CONSTEXPR explicit expected(in_place_t) noexcept(
+      std::is_void<T>::value)
       : base_type(in_place)
       , dc_base_type(in_place)
   {
@@ -1267,11 +1267,11 @@ public:
   // workaround: MSVC /std:c++14
 #else
             ,
-            enable_if_t<is_constructible<T, Args...>::value, int> = 0
+            GUL_REQUIRES(std::is_constructible<T, Args...>::value)
 #endif
             >
   GUL_CXX14_CONSTEXPR explicit expected(in_place_t, Args&&... args) noexcept(
-      is_void<T>::value)
+      std::is_void<T>::value)
       : base_type(in_place, std::forward<Args>(args)...)
       , dc_base_type(in_place)
   {
@@ -1280,12 +1280,10 @@ public:
   template <
       typename U,
       typename... Args,
-      enable_if_t<
-          conjunction<
-              negation<is_void<T>>,
-              is_constructible<T, std::initializer_list<U>&, Args...>>::value,
-          int>
-      = 0>
+      GUL_REQUIRES(conjunction<negation<std::is_void<T>>,
+                               std::is_constructible<T,
+                                                     std::initializer_list<U>&,
+                                                     Args...>>::value)>
   GUL_CXX14_CONSTEXPR explicit expected(in_place_t,
                                         std::initializer_list<U> init,
                                         Args&&... args)
@@ -1294,8 +1292,7 @@ public:
   {
   }
 
-  template <bool B = is_default_constructible<E>::value,
-            enable_if_t<B, int> = 0>
+  template <bool B = std::is_default_constructible<E>::value, GUL_REQUIRES(B)>
   GUL_CXX14_CONSTEXPR explicit expected(unexpect_t)
       : base_type(unexpect)
       , dc_base_type(in_place)
@@ -1307,7 +1304,7 @@ public:
   // workaround: MSVC /std:c++14
 #else
             ,
-            enable_if_t<is_constructible<E, Args...>::value, int> = 0
+            GUL_REQUIRES(std::is_constructible<E, Args...>::value)
 #endif
             >
   GUL_CXX14_CONSTEXPR explicit expected(unexpect_t, Args&&... args)
@@ -1316,12 +1313,11 @@ public:
   {
   }
 
-  template <typename U,
-            typename... Args,
-            enable_if_t<
-                is_constructible<E, std::initializer_list<U>&, Args...>::value,
-                int>
-            = 0>
+  template <
+      typename U,
+      typename... Args,
+      GUL_REQUIRES(
+          std::is_constructible<E, std::initializer_list<U>&, Args...>::value)>
   GUL_CXX14_CONSTEXPR explicit expected(unexpect_t,
                                         std::initializer_list<U> init,
                                         Args&&... args)
@@ -1333,23 +1329,22 @@ public:
   GUL_CXX14_CONSTEXPR expected& operator=(const expected&) = default;
 
   GUL_CXX14_CONSTEXPR expected& operator=(expected&&) noexcept(
-      conjunction<disjunction<is_void<T>,
-                              conjunction<is_nothrow_move_constructible<T>,
-                                          is_nothrow_move_assignable<T>>>,
-                  is_nothrow_move_constructible<E>,
-                  is_nothrow_move_assignable<E>>::value)
+      conjunction<disjunction<std::is_void<T>,
+                              conjunction<std::is_nothrow_move_constructible<T>,
+                                          std::is_nothrow_move_assignable<T>>>,
+                  std::is_nothrow_move_constructible<E>,
+                  std::is_nothrow_move_assignable<E>>::value)
       = default;
 
-  template <typename U = T,
-            enable_if_t<
-                conjunction<
-                    negation<is_void<T>>,
-                    negation<is_same<remove_cvref<U>, expected>>,
-                    negation<is_specialization_of<remove_cvref<U>, unexpected>>,
-                    is_constructible<T, U>,
-                    is_assignable<add_lvalue_reference_t<T>, U>>::value,
-                int>
-            = 0>
+  template <
+      typename U = T,
+      GUL_REQUIRES(
+          conjunction<negation<std::is_void<T>>,
+                      negation<std::is_same<remove_cvref_t<U>, expected>>,
+                      negation<detail::is_specialization_of<remove_cvref_t<U>,
+                                                            unexpected>>,
+                      std::is_constructible<T, U>,
+                      std::is_assignable<add_lvalue_reference_t<T>, U>>::value)>
   GUL_CXX14_CONSTEXPR expected& operator=(U&& u)
   {
     if (this->has_value()) {
@@ -1363,12 +1358,11 @@ public:
     return *this;
   }
 
-  template <typename E2,
-            enable_if_t<conjunction<is_constructible<E, const E2&>,
-                                    is_assignable<add_lvalue_reference_t<E>,
-                                                  const E2&>>::value,
-                        int>
-            = 0>
+  template <
+      typename E2,
+      GUL_REQUIRES(conjunction<std::is_constructible<E, const E2&>,
+                               std::is_assignable<add_lvalue_reference_t<E>,
+                                                  const E2&>>::value)>
   GUL_CXX14_CONSTEXPR expected& operator=(const unexpected<E2>& une)
   {
     if (this->has_value()) {
@@ -1384,11 +1378,9 @@ public:
 
   template <
       typename E2,
-      enable_if_t<
-          conjunction<is_constructible<E, E2>,
-                      is_assignable<add_lvalue_reference_t<E>, E2>>::value,
-          int>
-      = 0>
+      GUL_REQUIRES(conjunction<
+                   std::is_constructible<E, E2>,
+                   std::is_assignable<add_lvalue_reference_t<E>, E2>>::value)>
   GUL_CXX14_CONSTEXPR expected& operator=(unexpected<E2>&& une)
   {
     if (this->has_value()) {
@@ -1402,13 +1394,13 @@ public:
     return *this;
   }
 
-  template <bool B = !is_void<T>::value, enable_if_t<B, int> = 0>
+  template <bool B = !std::is_void<T>::value, GUL_REQUIRES(B)>
   GUL_CXX14_CONSTEXPR T* operator->() noexcept
   {
     return std::addressof(this->val_);
   }
 
-  template <bool B = !is_void<T>::value, enable_if_t<B, int> = 0>
+  template <bool B = !std::is_void<T>::value, GUL_REQUIRES(B)>
   GUL_CXX14_CONSTEXPR const T* operator->() const noexcept
   {
     return std::addressof(this->val_);
@@ -1474,8 +1466,8 @@ public:
   template <typename U = E>
   GUL_CXX14_CONSTEXPR E error_or(U&& default_error) const&
   {
-    static_assert(is_copy_constructible<E>::value, "");
-    static_assert(is_convertible<U, E>::value, "");
+    static_assert(std::is_copy_constructible<E>::value, "");
+    static_assert(std::is_convertible<U, E>::value, "");
     if (this->has_value()) {
       return static_cast<E>(std::forward<U>(default_error));
     } else {
@@ -1486,8 +1478,8 @@ public:
   template <typename U = E>
   GUL_CXX14_CONSTEXPR E error_or(U&& default_error) &&
   {
-    static_assert(is_copy_constructible<E>::value, "");
-    static_assert(is_convertible<U, E>::value, "");
+    static_assert(std::is_copy_constructible<E>::value, "");
+    static_assert(std::is_convertible<U, E>::value, "");
     if (this->has_value()) {
       return static_cast<E>(std::forward<U>(default_error));
     } else {
@@ -1495,12 +1487,11 @@ public:
     }
   }
 
-  template <
-      typename... Args,
-      enable_if_t<disjunction<is_void<T>, is_constructible<T, Args...>>::value,
-                  int>
-      = 0>
-  GUL_CXX14_CONSTEXPR auto emplace(Args&&... args) noexcept(is_void<T>::value)
+  template <typename... Args,
+            GUL_REQUIRES(disjunction<std::is_void<T>,
+                                     std::is_constructible<T, Args...>>::value)>
+  GUL_CXX14_CONSTEXPR auto
+  emplace(Args&&... args) noexcept(std::is_void<T>::value)
       -> decltype(this->construct_val(std::forward<Args>(args)...))
   {
     if (this->has_value()) {
@@ -1513,12 +1504,11 @@ public:
     return this->construct_val(std::forward<Args>(args)...);
   }
 
-  template <typename U,
-            typename... Args,
-            enable_if_t<
-                is_constructible<T, std::initializer_list<U>&, Args...>::value,
-                int>
-            = 0>
+  template <
+      typename U,
+      typename... Args,
+      GUL_REQUIRES(
+          std::is_constructible<T, std::initializer_list<U>&, Args...>::value)>
   GUL_CXX14_CONSTEXPR auto emplace(std::initializer_list<U> init,
                                    Args&&... args)
       -> decltype(this->construct_val(init, std::forward<Args>(args)...))
@@ -1533,138 +1523,144 @@ public:
     return this->construct_val(init, std::forward<Args>(args)...);
   }
 
-  template <typename F, enable_if_t<is_copy_constructible<E>::value, int> = 0>
+  template <typename F, GUL_REQUIRES(std::is_copy_constructible<E>::value)>
   GUL_CXX14_CONSTEXPR auto and_then(F&& f) & -> decltype(and_then_impl(
-      is_void<T> {}, *this, std::forward<F>(f)))
+      std::is_void<T> {}, *this, std::forward<F>(f)))
   {
-    return and_then_impl(is_void<T> {}, *this, std::forward<F>(f));
+    return and_then_impl(std::is_void<T> {}, *this, std::forward<F>(f));
   }
 
-  template <typename F, enable_if_t<is_copy_constructible<E>::value, int> = 0>
+  template <typename F, GUL_REQUIRES(std::is_copy_constructible<E>::value)>
   GUL_CXX14_CONSTEXPR auto and_then(F&& f) const& -> decltype(and_then_impl(
-      is_void<T> {}, *this, std::forward<F>(f)))
+      std::is_void<T> {}, *this, std::forward<F>(f)))
   {
-    return and_then_impl(is_void<T> {}, *this, std::forward<F>(f));
+    return and_then_impl(std::is_void<T> {}, *this, std::forward<F>(f));
   }
 
-  template <typename F, enable_if_t<is_move_constructible<E>::value, int> = 0>
+  template <typename F, GUL_REQUIRES(std::is_move_constructible<E>::value)>
   GUL_CXX14_CONSTEXPR auto and_then(F&& f) && -> decltype(and_then_impl(
-      is_void<T> {}, std::move(*this), std::forward<F>(f)))
+      std::is_void<T> {}, std::move(*this), std::forward<F>(f)))
   {
-    return and_then_impl(is_void<T> {}, std::move(*this), std::forward<F>(f));
+    return and_then_impl(std::is_void<T> {}, std::move(*this),
+                         std::forward<F>(f));
   }
 
-  template <typename F, enable_if_t<is_move_constructible<E>::value, int> = 0>
+  template <typename F, GUL_REQUIRES(std::is_move_constructible<E>::value)>
   GUL_CXX14_CONSTEXPR auto and_then(F&& f) const&& -> decltype(and_then_impl(
-      is_void<T> {}, std::move(*this), std::forward<F>(f)))
+      std::is_void<T> {}, std::move(*this), std::forward<F>(f)))
   {
-    return and_then_impl(is_void<T> {}, std::move(*this), std::forward<F>(f));
+    return and_then_impl(std::is_void<T> {}, std::move(*this),
+                         std::forward<F>(f));
   }
 
   template <typename F,
-            bool B = is_copy_constructible<T>::value,
-            enable_if_t<B, int> = 0>
+            bool B = std::is_copy_constructible<T>::value,
+            GUL_REQUIRES(B)>
   GUL_CXX14_CONSTEXPR auto or_else(F&& f) & -> decltype(or_else_impl(
-      is_void<T> {}, *this, std::forward<F>(f)))
+      std::is_void<T> {}, *this, std::forward<F>(f)))
   {
-    return or_else_impl(is_void<T> {}, *this, std::forward<F>(f));
+    return or_else_impl(std::is_void<T> {}, *this, std::forward<F>(f));
   }
 
   template <typename F,
-            bool B = is_copy_constructible<T>::value,
-            enable_if_t<B, int> = 0>
-  GUL_CXX14_CONSTEXPR auto or_else(F&& f)
-      const& -> decltype(or_else_impl(is_void<T> {}, *this, std::forward<F>(f)))
+            bool B = std::is_copy_constructible<T>::value,
+            GUL_REQUIRES(B)>
+  GUL_CXX14_CONSTEXPR auto or_else(F&& f) const& -> decltype(or_else_impl(
+      std::is_void<T> {}, *this, std::forward<F>(f)))
   {
-    return or_else_impl(is_void<T> {}, *this, std::forward<F>(f));
+    return or_else_impl(std::is_void<T> {}, *this, std::forward<F>(f));
   }
 
   template <typename F,
-            bool B = is_move_constructible<T>::value,
-            enable_if_t<B, int> = 0>
+            bool B = std::is_move_constructible<T>::value,
+            GUL_REQUIRES(B)>
   GUL_CXX14_CONSTEXPR auto or_else(F&& f) && -> decltype(or_else_impl(
-      is_void<T> {}, std::move(*this), std::forward<F>(f)))
+      std::is_void<T> {}, std::move(*this), std::forward<F>(f)))
   {
-    return or_else_impl(is_void<T> {}, std::move(*this), std::forward<F>(f));
+    return or_else_impl(std::is_void<T> {}, std::move(*this),
+                        std::forward<F>(f));
   }
 
   template <typename F,
-            bool B = is_move_constructible<T>::value,
-            enable_if_t<B, int> = 0>
+            bool B = std::is_move_constructible<T>::value,
+            GUL_REQUIRES(B)>
   GUL_CXX14_CONSTEXPR auto or_else(F&& f) const&& -> decltype(or_else_impl(
-      is_void<T> {}, std::move(*this), std::forward<F>(f)))
+      std::is_void<T> {}, std::move(*this), std::forward<F>(f)))
   {
-    return or_else_impl(is_void<T> {}, std::move(*this), std::forward<F>(f));
+    return or_else_impl(std::is_void<T> {}, std::move(*this),
+                        std::forward<F>(f));
   }
 
-  template <typename F, enable_if_t<is_copy_constructible<E>::value, int> = 0>
+  template <typename F, GUL_REQUIRES(std::is_copy_constructible<E>::value)>
   GUL_CXX14_CONSTEXPR auto transform(F&& f) & -> decltype(transform_impl(
-      is_void<T> {}, *this, std::forward<F>(f)))
+      std::is_void<T> {}, *this, std::forward<F>(f)))
   {
-    return transform_impl(is_void<T> {}, *this, std::forward<F>(f));
+    return transform_impl(std::is_void<T> {}, *this, std::forward<F>(f));
   }
 
-  template <typename F, enable_if_t<is_copy_constructible<E>::value, int> = 0>
+  template <typename F, GUL_REQUIRES(std::is_copy_constructible<E>::value)>
   GUL_CXX14_CONSTEXPR auto transform(F&& f) const& -> decltype(transform_impl(
-      is_void<T> {}, *this, std::forward<F>(f)))
+      std::is_void<T> {}, *this, std::forward<F>(f)))
   {
-    return transform_impl(is_void<T> {}, *this, std::forward<F>(f));
+    return transform_impl(std::is_void<T> {}, *this, std::forward<F>(f));
   }
 
-  template <typename F, enable_if_t<is_move_constructible<E>::value, int> = 0>
+  template <typename F, GUL_REQUIRES(std::is_move_constructible<E>::value)>
   GUL_CXX14_CONSTEXPR auto transform(F&& f) && -> decltype(transform_impl(
-      is_void<T> {}, std::move(*this), std::forward<F>(f)))
+      std::is_void<T> {}, std::move(*this), std::forward<F>(f)))
   {
-    return transform_impl(is_void<T> {}, std::move(*this), std::forward<F>(f));
+    return transform_impl(std::is_void<T> {}, std::move(*this),
+                          std::forward<F>(f));
   }
 
-  template <typename F, enable_if_t<is_move_constructible<E>::value, int> = 0>
+  template <typename F, GUL_REQUIRES(std::is_move_constructible<E>::value)>
   GUL_CXX14_CONSTEXPR auto transform(F&& f) const&& -> decltype(transform_impl(
-      is_void<T> {}, std::move(*this), std::forward<F>(f)))
+      std::is_void<T> {}, std::move(*this), std::forward<F>(f)))
   {
-    return transform_impl(is_void<T> {}, std::move(*this), std::forward<F>(f));
+    return transform_impl(std::is_void<T> {}, std::move(*this),
+                          std::forward<F>(f));
   }
 
   template <typename F,
-            bool B = is_copy_constructible<T>::value,
-            enable_if_t<B, int> = 0>
+            bool B = std::is_copy_constructible<T>::value,
+            GUL_REQUIRES(B)>
   GUL_CXX14_CONSTEXPR auto
-  transform_error(F&& f) & -> decltype(transform_error_impl(is_void<T> {},
+  transform_error(F&& f) & -> decltype(transform_error_impl(std::is_void<T> {},
                                                             *this,
                                                             std::forward<F>(f)))
   {
-    return transform_error_impl(is_void<T> {}, *this, std::forward<F>(f));
+    return transform_error_impl(std::is_void<T> {}, *this, std::forward<F>(f));
   }
 
   template <typename F,
-            bool B = is_copy_constructible<T>::value,
-            enable_if_t<B, int> = 0>
+            bool B = std::is_copy_constructible<T>::value,
+            GUL_REQUIRES(B)>
   GUL_CXX14_CONSTEXPR auto
   transform_error(F&& f) const& -> decltype(transform_error_impl(
-      is_void<T> {}, *this, std::forward<F>(f)))
+      std::is_void<T> {}, *this, std::forward<F>(f)))
   {
-    return transform_error_impl(is_void<T> {}, *this, std::forward<F>(f));
+    return transform_error_impl(std::is_void<T> {}, *this, std::forward<F>(f));
   }
 
   template <typename F,
-            bool B = is_move_constructible<T>::value,
-            enable_if_t<B, int> = 0>
+            bool B = std::is_move_constructible<T>::value,
+            GUL_REQUIRES(B)>
   GUL_CXX14_CONSTEXPR auto
   transform_error(F&& f) && -> decltype(transform_error_impl(
-      is_void<T> {}, std::move(*this), std::forward<F>(f)))
+      std::is_void<T> {}, std::move(*this), std::forward<F>(f)))
   {
-    return transform_error_impl(is_void<T> {}, std::move(*this),
+    return transform_error_impl(std::is_void<T> {}, std::move(*this),
                                 std::forward<F>(f));
   }
 
   template <typename F,
-            bool B = is_move_constructible<T>::value,
-            enable_if_t<B, int> = 0>
+            bool B = std::is_move_constructible<T>::value,
+            GUL_REQUIRES(B)>
   GUL_CXX14_CONSTEXPR auto
   transform_error(F&& f) const&& -> decltype(transform_error_impl(
-      is_void<T> {}, std::move(*this), std::forward<F>(f)))
+      std::is_void<T> {}, std::move(*this), std::forward<F>(f)))
   {
-    return transform_error_impl(is_void<T> {}, std::move(*this),
+    return transform_error_impl(std::is_void<T> {}, std::move(*this),
                                 std::forward<F>(f));
   }
 
@@ -1679,11 +1675,9 @@ public:
   template <
       typename T2,
       typename E2,
-      enable_if_t<conjunction<is_void<T>,
-                              is_void<T2>,
-                              detail::is_eq_comparable_with<E, E2>>::value,
-                  int>
-      = 0>
+      GUL_REQUIRES(conjunction<std::is_void<T>,
+                               std::is_void<T2>,
+                               detail::is_eq_comparable_with<E, E2>>::value)>
   friend GUL_CXX14_CONSTEXPR bool operator==(const expected& lhs,
                                              const expected<T2, E2>& rhs)
   {
@@ -1700,11 +1694,9 @@ public:
   template <
       typename T2,
       typename E2,
-      enable_if_t<conjunction<is_void<T>,
-                              is_void<T2>,
-                              detail::is_eq_comparable_with<E, E2>>::value,
-                  int>
-      = 0>
+      GUL_REQUIRES(conjunction<std::is_void<T>,
+                               std::is_void<T2>,
+                               detail::is_eq_comparable_with<E, E2>>::value)>
   friend GUL_CXX14_CONSTEXPR bool operator!=(const expected& lhs,
                                              const expected<T2, E2>& rhs)
   {
@@ -1714,10 +1706,8 @@ public:
   template <
       typename T2,
       typename E2,
-      enable_if_t<conjunction<detail::is_eq_comparable_with<T, T2>,
-                              detail::is_eq_comparable_with<E, E2>>::value,
-                  int>
-      = 0>
+      GUL_REQUIRES(conjunction<detail::is_eq_comparable_with<T, T2>,
+                               detail::is_eq_comparable_with<E, E2>>::value)>
   friend GUL_CXX14_CONSTEXPR bool operator==(const expected& lhs,
                                              const expected<T2, E2>& rhs)
   {
@@ -1734,10 +1724,8 @@ public:
   template <
       typename T2,
       typename E2,
-      enable_if_t<conjunction<detail::is_eq_comparable_with<T, T2>,
-                              detail::is_eq_comparable_with<E, E2>>::value,
-                  int>
-      = 0>
+      GUL_REQUIRES(conjunction<detail::is_eq_comparable_with<T, T2>,
+                               detail::is_eq_comparable_with<E, E2>>::value)>
   friend GUL_CXX14_CONSTEXPR bool operator!=(const expected& lhs,
                                              const expected<T2, E2>& rhs)
   {
@@ -1746,10 +1734,8 @@ public:
 
   template <
       typename T2,
-      enable_if_t<conjunction<negation<is_void<T>>,
-                              detail::is_eq_comparable_with<T, T2>>::value,
-                  int>
-      = 0>
+      GUL_REQUIRES(conjunction<negation<std::is_void<T>>,
+                               detail::is_eq_comparable_with<T, T2>>::value)>
   friend GUL_CXX14_CONSTEXPR bool operator==(const expected& lhs, const T2& rhs)
   {
     return lhs.has_value() && static_cast<bool>(lhs.value() == rhs);
@@ -1757,17 +1743,15 @@ public:
 
   template <
       typename T2,
-      enable_if_t<conjunction<negation<is_void<T>>,
-                              detail::is_eq_comparable_with<T, T2>>::value,
-                  int>
-      = 0>
+      GUL_REQUIRES(conjunction<negation<std::is_void<T>>,
+                               detail::is_eq_comparable_with<T, T2>>::value)>
   friend GUL_CXX14_CONSTEXPR bool operator!=(const expected& lhs, const T2& rhs)
   {
     return !(lhs == rhs);
   }
 
   template <typename E2,
-            enable_if_t<detail::is_eq_comparable_with<E, E2>::value, int> = 0>
+            GUL_REQUIRES(detail::is_eq_comparable_with<E, E2>::value)>
   friend GUL_CXX14_CONSTEXPR bool operator==(const expected& lhs,
                                              const unexpected<E2>& rhs)
   {
@@ -1775,7 +1759,7 @@ public:
   }
 
   template <typename E2,
-            enable_if_t<detail::is_eq_comparable_with<E, E2>::value, int> = 0>
+            GUL_REQUIRES(detail::is_eq_comparable_with<E, E2>::value)>
   friend GUL_CXX14_CONSTEXPR bool operator!=(const expected& lhs,
                                              const unexpected<E2>& rhs)
   {

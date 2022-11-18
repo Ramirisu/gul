@@ -18,7 +18,7 @@ template <typename C,
           typename Pointed,
           class T1,
           typename... Args,
-          enable_if_t<is_base_of<C, decay_t<T1>>::value, int> = 0>
+          GUL_REQUIRES(std::is_base_of<C, decay_t<T1>>::value)>
 constexpr auto
 invoke_memfun_impl(Pointed C::*f, T1&& t1, Args&&... args) noexcept(
     noexcept((std::forward<T1>(t1).*f)(std::forward<Args>(args)...)))
@@ -31,7 +31,7 @@ template <typename C,
           typename Pointed,
           class T1,
           typename... Args,
-          enable_if_t<!is_base_of<C, decay_t<T1>>::value, int> = 0>
+          GUL_REQUIRES(!std::is_base_of<C, decay_t<T1>>::value)>
 constexpr auto
 invoke_memfun_impl(Pointed C::*f, T1&& t1, Args&&... args) noexcept(
     noexcept(((*std::forward<T1>(t1)).*f)(std::forward<Args>(args)...)))
@@ -43,7 +43,7 @@ invoke_memfun_impl(Pointed C::*f, T1&& t1, Args&&... args) noexcept(
 template <typename C,
           typename Pointed,
           class T1,
-          enable_if_t<is_base_of<C, decay_t<T1>>::value, int> = 0>
+          GUL_REQUIRES(std::is_base_of<C, decay_t<T1>>::value)>
 constexpr auto invoke_memobj_impl(Pointed C::*f, T1&& t1) noexcept(
     noexcept(std::forward<T1>(t1).*f)) -> decltype(std::forward<T1>(t1).*f)
 {
@@ -53,7 +53,7 @@ constexpr auto invoke_memobj_impl(Pointed C::*f, T1&& t1) noexcept(
 template <typename C,
           typename Pointed,
           class T1,
-          enable_if_t<!is_base_of<C, decay_t<T1>>::value, int> = 0>
+          GUL_REQUIRES(!std::is_base_of<C, decay_t<T1>>::value)>
 constexpr auto
 invoke_memobj_impl(Pointed C::*f,
                    T1&& t1) noexcept(noexcept((*std::forward<T1>(t1)).*f))
@@ -66,7 +66,7 @@ template <typename C,
           typename Pointed,
           class T1,
           typename... Args,
-          enable_if_t<is_function<Pointed>::value, int> = 0>
+          GUL_REQUIRES(std::is_function<Pointed>::value)>
 constexpr auto
 invoke_memptr_impl(Pointed C::*f, T1&& t1, Args&&... args) noexcept(noexcept(
     invoke_memfun_impl(f, std::forward<T1>(t1), std::forward<Args>(args)...)))
@@ -82,7 +82,7 @@ template <typename C,
           typename Pointed,
           class T1,
           typename... Args,
-          enable_if_t<is_object<Pointed>::value, int> = 0>
+          GUL_REQUIRES(std::is_object<Pointed>::value)>
 constexpr auto invoke_memptr_impl(Pointed C::*f, T1&& t1, Args&&...) noexcept(
     noexcept(invoke_memobj_impl(f, std::forward<T1>(t1))))
     -> decltype(invoke_memobj_impl(f, std::forward<T1>(t1)))
@@ -106,7 +106,7 @@ invoke_memptr(Pointed C::*f, T1&& t1, Args&&... args) noexcept(noexcept(
 
 template <typename F,
           typename... Args,
-          enable_if_t<is_member_pointer<decay_t<F>>::value, int> = 0>
+          GUL_REQUIRES(std::is_member_pointer<decay_t<F>>::value)>
 constexpr auto invoke_impl(F&& f, Args&&... args) noexcept(
     noexcept(invoke_memptr(f, std::forward<Args>(args)...)))
     -> decltype(invoke_memptr(f, std::forward<Args>(args)...))
@@ -116,7 +116,7 @@ constexpr auto invoke_impl(F&& f, Args&&... args) noexcept(
 
 template <typename F,
           typename... Args,
-          enable_if_t<!is_member_pointer<decay_t<F>>::value, int> = 0>
+          GUL_REQUIRES(!std::is_member_pointer<decay_t<F>>::value)>
 constexpr auto invoke_impl(F&& f, Args&&... args) noexcept(
     noexcept(std::forward<F>(f)(std::forward<Args>(args)...)))
     -> decltype(std::forward<F>(f)(std::forward<Args>(args)...))
@@ -127,7 +127,7 @@ constexpr auto invoke_impl(F&& f, Args&&... args) noexcept(
 
 template <typename F,
           typename... Args,
-          enable_if_t<is_invocable<F, Args...>::value, int> = 0>
+          GUL_REQUIRES(detail::is_invocable<F, Args...>::value)>
 constexpr auto invoke(F&& f, Args&&... args) noexcept(noexcept(
     detail::invoke_impl(std::forward<F>(f), std::forward<Args>(args)...)))
     -> decltype(detail::invoke_impl(std::forward<F>(f),
@@ -139,7 +139,7 @@ constexpr auto invoke(F&& f, Args&&... args) noexcept(noexcept(
 template <typename R,
           typename F,
           typename... Args,
-          enable_if_t<is_invocable_r<R, F, Args...>::value, int> = 0>
+          GUL_REQUIRES(detail::is_invocable_r<R, F, Args...>::value)>
 constexpr auto invoke_r(F&& f, Args&&... args) noexcept(noexcept(
     detail::invoke_impl(std::forward<F>(f), std::forward<Args>(args)...))) -> R
 {

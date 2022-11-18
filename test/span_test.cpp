@@ -19,9 +19,10 @@ TEST_CASE("basic")
 {
   static_assert(sizeof(span<int>) == 2 * sizeof(std::size_t), "");
   static_assert(sizeof(span<int, 10>) == sizeof(std::size_t), "");
-  static_assert(is_default_constructible<span<int, dynamic_extent>>::value, "");
-  static_assert(is_default_constructible<span<int, 0>>::value, "");
-  static_assert(!is_default_constructible<span<int, 1>>::value, "");
+  static_assert(std::is_default_constructible<span<int, dynamic_extent>>::value,
+                "");
+  static_assert(std::is_default_constructible<span<int, 0>>::value, "");
+  static_assert(!std::is_default_constructible<span<int, 1>>::value, "");
   {
     auto s = span<int>();
     CHECK(s.empty());

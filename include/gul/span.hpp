@@ -245,12 +245,10 @@ public:
   {
   }
 
-  template <
-      typename It,
-      enable_if_t<is_convertible<typename std::iterator_traits<It>::reference,
-                                 element_type&>::value,
-                  int>
-      = 0>
+  template <typename It,
+            GUL_REQUIRES(std::is_convertible<
+                         typename std::iterator_traits<It>::reference,
+                         element_type&>::value)>
   constexpr GUL_CXX20_EXPLICIT(Extent != dynamic_extent)
       span(It first, size_type size)
       : base_type(first.operator->(), size)
@@ -258,12 +256,10 @@ public:
   {
   }
 
-  template <
-      typename It,
-      enable_if_t<is_convertible<typename std::iterator_traits<It>::reference,
-                                 element_type&>::value,
-                  int>
-      = 0>
+  template <typename It,
+            GUL_REQUIRES(std::is_convertible<
+                         typename std::iterator_traits<It>::reference,
+                         element_type&>::value)>
   constexpr GUL_CXX20_EXPLICIT(Extent != dynamic_extent) span(It first, It last)
       : base_type(first.operator->(), size_type(last - first))
       , dc_base_type(in_place)
@@ -271,7 +267,7 @@ public:
   }
 
   template <std::size_t N,
-            enable_if_t<extent == dynamic_extent || N == extent, int> = 0>
+            GUL_REQUIRES(extent == dynamic_extent || N == extent)>
   constexpr span(type_identity_t<element_type> (&arr)[N]) noexcept
       : base_type(arr, N)
       , dc_base_type(in_place)
@@ -280,7 +276,7 @@ public:
 
   template <class U,
             std::size_t N,
-            enable_if_t<extent == dynamic_extent || N == extent, int> = 0>
+            GUL_REQUIRES(extent == dynamic_extent || N == extent)>
   constexpr span(std::array<U, N>& arr) noexcept
       : base_type(arr.data(), N)
       , dc_base_type(in_place)
@@ -289,7 +285,7 @@ public:
 
   template <class U,
             std::size_t N,
-            enable_if_t<extent == dynamic_extent || N == extent, int> = 0>
+            GUL_REQUIRES(extent == dynamic_extent || N == extent)>
   constexpr span(const std::array<U, N>& arr) noexcept
       : base_type(arr.data(), N)
       , dc_base_type(in_place)
