@@ -9,6 +9,8 @@
 
 #include <gul/config.hpp>
 
+#include <gul/utility.hpp>
+
 #include <gul/byte.hpp>
 #include <gul/expected.hpp>
 #include <gul/optional.hpp>

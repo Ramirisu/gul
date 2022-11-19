@@ -65,4 +65,20 @@ TEST_CASE("exchange")
   }
 }
 
+TEST_CASE("as_const")
+{
+  int x = 1;
+  static_assert_same<decltype(as_const(x)), const int&>();
+  CHECK_EQ(x, 1);
+}
+
+TEST_CASE("to_underlying")
+{
+  enum class e : unsigned char {
+    v = 1,
+  };
+  static_assert_same<decltype(to_underlying(e::v)), unsigned char>();
+  CHECK_EQ(to_underlying(e::v), 1);
+}
+
 TEST_SUITE_END();
