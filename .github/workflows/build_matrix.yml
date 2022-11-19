@@ -57,6 +57,11 @@ jobs:
             build_type: Debug
             generators: Visual Studio 16 2019
             extra_args: -A x64 -T v142
+          - os: macos-11
+            cxx: clang++
+            std: 11
+            built_type: Debug
+            generators: Ninja
 
     steps:
       - uses: actions/checkout@v3
@@ -110,12 +115,12 @@ jobs:
             -DCMAKE_BUILD_TYPE=${{matrix.build_type}} \
             -DCMAKE_CXX_COMPILER=${{matrix.cxx}} \
             -DCMAKE_CXX_STANDARD:STRING=${{matrix.std}} \
-            -DDS_BUILD_TESTS=ON \
+            -DGUL_BUILD_TESTS=ON \
             ${{matrix.extra_args}}
 
       - name: Build
         shell: bash
-        run: cmake --build . --config ${{matrix.build_type}}
+        run: cmake --build .
 
       - name: Test
         shell: bash
