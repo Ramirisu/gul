@@ -8,6 +8,9 @@ gul is an open-source library providing general utilities for c++11. Many of the
 
 ## Features
 
+* Header-only, no external dependencies.
+* Support exceptions disabled with `-fno-exceptions`.
+
 |                                  Feature                                   | Description                                                                                                                                                                     |                              From std?                              |
 | :------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :-----------------------------------------------------------------: |
 |                                   `byte`                                   | A type represents the byte concept.                                                                                                                                             |        [c++17](https://en.cppreference.com/w/cpp/types/byte)        |
