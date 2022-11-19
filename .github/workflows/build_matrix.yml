@@ -6,6 +6,7 @@ jobs:
   build:
     runs-on: ${{matrix.os}}
     strategy:
+      fail-fast: false
       matrix:
         os: [windows-2022, ubuntu-22.04]
         cxx: [clang++-14, g++-11, cl]
