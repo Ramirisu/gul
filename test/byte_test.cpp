@@ -16,30 +16,30 @@ TEST_SUITE_BEGIN("byte");
 TEST_CASE("basic")
 {
   {
-    auto b = to_byte(0b01010101);
+    auto b = to_byte(0x55);
     CHECK_EQ(to_integer<int>(b), 85);
-    CHECK_EQ((b >> 1), to_byte(0b00101010));
-    CHECK_EQ((b << 1), to_byte(0b10101010));
-    CHECK_EQ((b >>= 1), to_byte(0b00101010));
-    CHECK_EQ((b), to_byte(0b00101010));
-    CHECK_EQ((b <<= 1), to_byte(0b01010100));
-    CHECK_EQ((b), to_byte(0b01010100));
-    CHECK_EQ(~b, to_byte(0b10101011));
+    CHECK_EQ((b >> 1), to_byte(0x2a));
+    CHECK_EQ((b << 1), to_byte(0xaa));
+    CHECK_EQ((b >>= 1), to_byte(0x2a));
+    CHECK_EQ((b), to_byte(0x2a));
+    CHECK_EQ((b <<= 1), to_byte(0x54));
+    CHECK_EQ((b), to_byte(0x54));
+    CHECK_EQ(~b, to_byte(0xab));
   }
   {
-    auto lhs = to_byte(0b11000011);
-    const auto rhs = to_byte(0b10101010);
-    CHECK_EQ((lhs & rhs), to_byte(0b10000010));
-    CHECK_EQ((lhs | rhs), to_byte(0b11101011));
-    CHECK_EQ((lhs ^ rhs), to_byte(0b01101001));
-    CHECK_EQ((lhs &= rhs), to_byte(0b10000010));
-    CHECK_EQ(lhs, to_byte(0b10000010));
-    lhs = to_byte(0b11000011);
-    CHECK_EQ((lhs |= rhs), to_byte(0b11101011));
-    CHECK_EQ(lhs, to_byte(0b11101011));
-    lhs = to_byte(0b11000011);
-    CHECK_EQ((lhs ^= rhs), to_byte(0b01101001));
-    CHECK_EQ(lhs, to_byte(0b01101001));
+    auto lhs = to_byte(0xc3);
+    const auto rhs = to_byte(0xaa);
+    CHECK_EQ((lhs & rhs), to_byte(0x82));
+    CHECK_EQ((lhs | rhs), to_byte(0xeb));
+    CHECK_EQ((lhs ^ rhs), to_byte(0x69));
+    CHECK_EQ((lhs &= rhs), to_byte(0x82));
+    CHECK_EQ(lhs, to_byte(0x82));
+    lhs = to_byte(0xc3);
+    CHECK_EQ((lhs |= rhs), to_byte(0xeb));
+    CHECK_EQ(lhs, to_byte(0xeb));
+    lhs = to_byte(0xc3);
+    CHECK_EQ((lhs ^= rhs), to_byte(0x69));
+    CHECK_EQ(lhs, to_byte(0x69));
   }
 }
 
