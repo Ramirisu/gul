@@ -45,4 +45,94 @@ to_underlying(Enum e) noexcept
   return static_cast<typename std::underlying_type<Enum>::type>(e);
 }
 
+namespace detail {
+template <typename T, typename U>
+struct cmp_impl {
+  using UT = typename std::make_unsigned<T>::type;
+  using UU = typename std::make_unsigned<U>::type;
+  using ST = typename std::make_signed<T>::type;
+  using SU = typename std::make_signed<U>::type;
+  static GUL_CXX14_CONSTEXPR bool eq(UT t, UU u) noexcept
+  {
+    return t == u;
+  }
+  static GUL_CXX14_CONSTEXPR bool eq(ST t, SU u) noexcept
+  {
+    return t == u;
+  }
+  static GUL_CXX14_CONSTEXPR bool eq(ST t, UU u) noexcept
+  {
+    return t < 0 ? false : UT(t) == u;
+  }
+  static GUL_CXX14_CONSTEXPR bool eq(UT t, SU u) noexcept
+  {
+    return u < 0 ? false : t == UU(u);
+  }
+  static GUL_CXX14_CONSTEXPR bool lt(UT t, UU u) noexcept
+  {
+    return t < u;
+  }
+  static GUL_CXX14_CONSTEXPR bool lt(ST t, SU u) noexcept
+  {
+    return t < u;
+  }
+  static GUL_CXX14_CONSTEXPR bool lt(ST t, UU u) noexcept
+  {
+    return t < 0 ? true : UT(t) < u;
+  }
+  static GUL_CXX14_CONSTEXPR bool lt(UT t, SU u) noexcept
+  {
+    return u < 0 ? false : t < UU(u);
+  }
+};
+}
+
+template <typename T, typename U>
+GUL_CXX14_CONSTEXPR bool cmp_equal(T t, U u) noexcept
+{
+  static_assert(std::is_integral<T>::value, "T must be integral type");
+  static_assert(std::is_integral<U>::value, "U must be integral type");
+  return detail::cmp_impl<T, U>::eq(t, u);
+}
+
+template <typename T, typename U>
+GUL_CXX14_CONSTEXPR bool cmp_not_equal(T t, U u) noexcept
+{
+  static_assert(std::is_integral<T>::value, "T must be integral type");
+  static_assert(std::is_integral<U>::value, "U must be integral type");
+  return !cmp_equal(t, u);
+}
+
+template <typename T, typename U>
+GUL_CXX14_CONSTEXPR bool cmp_less(T t, U u) noexcept
+{
+  static_assert(std::is_integral<T>::value, "T must be integral type");
+  static_assert(std::is_integral<U>::value, "U must be integral type");
+  return detail::cmp_impl<T, U>::lt(t, u);
+}
+
+template <typename T, typename U>
+GUL_CXX14_CONSTEXPR bool cmp_greater(T t, U u) noexcept
+{
+  static_assert(std::is_integral<T>::value, "T must be integral type");
+  static_assert(std::is_integral<U>::value, "U must be integral type");
+  return detail::cmp_impl<T, U>::lt(u, t);
+}
+
+template <typename T, typename U>
+GUL_CXX14_CONSTEXPR bool cmp_less_equal(T t, U u) noexcept
+{
+  static_assert(std::is_integral<T>::value, "T must be integral type");
+  static_assert(std::is_integral<U>::value, "U must be integral type");
+  return !cmp_greater(t, u);
+}
+
+template <typename T, typename U>
+GUL_CXX14_CONSTEXPR bool cmp_greater_equal(T t, U u) noexcept
+{
+  static_assert(std::is_integral<T>::value, "T must be integral type");
+  static_assert(std::is_integral<U>::value, "U must be integral type");
+  return !cmp_less(t, u);
+}
+
 GUL_NAMESPACE_END

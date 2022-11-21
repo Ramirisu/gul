@@ -81,4 +81,262 @@ TEST_CASE("to_underlying")
   CHECK_EQ(to_underlying(e::v), 1);
 }
 
+TEST_CASE("cmp_equal")
+{
+  CHECK(cmp_equal(std::int32_t(1), std::int32_t(1)));
+  CHECK(cmp_equal(std::int32_t(0), std::int32_t(0)));
+  CHECK(cmp_equal(std::int32_t(-1), std::int32_t(-1)));
+  CHECK(!cmp_equal(std::int32_t(1), std::int32_t(0)));
+  CHECK(!cmp_equal(std::int32_t(0), std::int32_t(1)));
+  CHECK(!cmp_equal(std::int32_t(0), std::int32_t(-1)));
+  CHECK(!cmp_equal(std::int32_t(-1), std::int32_t(0)));
+  CHECK(!cmp_equal(std::int32_t(-1), std::int32_t(1)));
+  CHECK(!cmp_equal(std::int32_t(1), std::int32_t(-1)));
+
+  CHECK(cmp_equal(std::uint32_t(1), std::uint32_t(1)));
+  CHECK(cmp_equal(std::uint32_t(0), std::uint32_t(0)));
+  CHECK(cmp_equal(std::uint32_t(-1), std::uint32_t(-1)));
+  CHECK(!cmp_equal(std::uint32_t(1), std::uint32_t(0)));
+  CHECK(!cmp_equal(std::uint32_t(0), std::uint32_t(1)));
+  CHECK(!cmp_equal(std::uint32_t(0), std::uint32_t(-1)));
+  CHECK(!cmp_equal(std::uint32_t(-1), std::uint32_t(0)));
+  CHECK(!cmp_equal(std::uint32_t(-1), std::uint32_t(1)));
+  CHECK(!cmp_equal(std::uint32_t(1), std::uint32_t(-1)));
+
+  CHECK(cmp_equal(std::int32_t(1), std::uint32_t(1)));
+  CHECK(cmp_equal(std::int32_t(0), std::uint32_t(0)));
+  CHECK(!cmp_equal(std::int32_t(-1), std::uint32_t(-1)));
+  CHECK(!cmp_equal(std::int32_t(1), std::uint32_t(0)));
+  CHECK(!cmp_equal(std::int32_t(0), std::uint32_t(1)));
+  CHECK(!cmp_equal(std::int32_t(0), std::uint32_t(-1)));
+  CHECK(!cmp_equal(std::int32_t(-1), std::uint32_t(0)));
+  CHECK(!cmp_equal(std::int32_t(-1), std::uint32_t(1)));
+  CHECK(!cmp_equal(std::int32_t(1), std::uint32_t(-1)));
+
+  CHECK(cmp_equal(std::uint32_t(1), std::int32_t(1)));
+  CHECK(cmp_equal(std::uint32_t(0), std::int32_t(0)));
+  CHECK(!cmp_equal(std::uint32_t(-1), std::int32_t(-1)));
+  CHECK(!cmp_equal(std::uint32_t(1), std::int32_t(0)));
+  CHECK(!cmp_equal(std::uint32_t(0), std::int32_t(1)));
+  CHECK(!cmp_equal(std::uint32_t(0), std::int32_t(-1)));
+  CHECK(!cmp_equal(std::uint32_t(-1), std::int32_t(0)));
+  CHECK(!cmp_equal(std::uint32_t(-1), std::int32_t(1)));
+  CHECK(!cmp_equal(std::uint32_t(1), std::int32_t(-1)));
+}
+
+TEST_CASE("cmp_not_equal")
+{
+  CHECK(!cmp_not_equal(std::int32_t(1), std::int32_t(1)));
+  CHECK(!cmp_not_equal(std::int32_t(0), std::int32_t(0)));
+  CHECK(!cmp_not_equal(std::int32_t(-1), std::int32_t(-1)));
+  CHECK(cmp_not_equal(std::int32_t(1), std::int32_t(0)));
+  CHECK(cmp_not_equal(std::int32_t(0), std::int32_t(1)));
+  CHECK(cmp_not_equal(std::int32_t(0), std::int32_t(-1)));
+  CHECK(cmp_not_equal(std::int32_t(-1), std::int32_t(0)));
+  CHECK(cmp_not_equal(std::int32_t(-1), std::int32_t(1)));
+  CHECK(cmp_not_equal(std::int32_t(1), std::int32_t(-1)));
+
+  CHECK(!cmp_not_equal(std::uint32_t(1), std::uint32_t(1)));
+  CHECK(!cmp_not_equal(std::uint32_t(0), std::uint32_t(0)));
+  CHECK(!cmp_not_equal(std::uint32_t(-1), std::uint32_t(-1)));
+  CHECK(cmp_not_equal(std::uint32_t(1), std::uint32_t(0)));
+  CHECK(cmp_not_equal(std::uint32_t(0), std::uint32_t(1)));
+  CHECK(cmp_not_equal(std::uint32_t(0), std::uint32_t(-1)));
+  CHECK(cmp_not_equal(std::uint32_t(-1), std::uint32_t(0)));
+  CHECK(cmp_not_equal(std::uint32_t(-1), std::uint32_t(1)));
+  CHECK(cmp_not_equal(std::uint32_t(1), std::uint32_t(-1)));
+
+  CHECK(!cmp_not_equal(std::int32_t(1), std::uint32_t(1)));
+  CHECK(!cmp_not_equal(std::int32_t(0), std::uint32_t(0)));
+  CHECK(cmp_not_equal(std::int32_t(-1), std::uint32_t(-1)));
+  CHECK(cmp_not_equal(std::int32_t(1), std::uint32_t(0)));
+  CHECK(cmp_not_equal(std::int32_t(0), std::uint32_t(1)));
+  CHECK(cmp_not_equal(std::int32_t(0), std::uint32_t(-1)));
+  CHECK(cmp_not_equal(std::int32_t(-1), std::uint32_t(0)));
+  CHECK(cmp_not_equal(std::int32_t(-1), std::uint32_t(1)));
+  CHECK(cmp_not_equal(std::int32_t(1), std::uint32_t(-1)));
+
+  CHECK(!cmp_not_equal(std::uint32_t(1), std::int32_t(1)));
+  CHECK(!cmp_not_equal(std::uint32_t(0), std::int32_t(0)));
+  CHECK(cmp_not_equal(std::uint32_t(-1), std::int32_t(-1)));
+  CHECK(cmp_not_equal(std::uint32_t(1), std::int32_t(0)));
+  CHECK(cmp_not_equal(std::uint32_t(0), std::int32_t(1)));
+  CHECK(cmp_not_equal(std::uint32_t(0), std::int32_t(-1)));
+  CHECK(cmp_not_equal(std::uint32_t(-1), std::int32_t(0)));
+  CHECK(cmp_not_equal(std::uint32_t(-1), std::int32_t(1)));
+  CHECK(cmp_not_equal(std::uint32_t(1), std::int32_t(-1)));
+}
+
+TEST_CASE("cmp_less")
+{
+  CHECK(!cmp_less(std::int32_t(1), std::int32_t(1)));
+  CHECK(!cmp_less(std::int32_t(0), std::int32_t(0)));
+  CHECK(!cmp_less(std::int32_t(-1), std::int32_t(-1)));
+  CHECK(!cmp_less(std::int32_t(1), std::int32_t(0)));
+  CHECK(cmp_less(std::int32_t(0), std::int32_t(1)));
+  CHECK(!cmp_less(std::int32_t(0), std::int32_t(-1)));
+  CHECK(cmp_less(std::int32_t(-1), std::int32_t(0)));
+  CHECK(cmp_less(std::int32_t(-1), std::int32_t(1)));
+  CHECK(!cmp_less(std::int32_t(1), std::int32_t(-1)));
+
+  CHECK(!cmp_less(std::uint32_t(1), std::uint32_t(1)));
+  CHECK(!cmp_less(std::uint32_t(0), std::uint32_t(0)));
+  CHECK(!cmp_less(std::uint32_t(-1), std::uint32_t(-1)));
+  CHECK(!cmp_less(std::uint32_t(1), std::uint32_t(0)));
+  CHECK(cmp_less(std::uint32_t(0), std::uint32_t(1)));
+  CHECK(cmp_less(std::uint32_t(0), std::uint32_t(-1)));
+  CHECK(!cmp_less(std::uint32_t(-1), std::uint32_t(0)));
+  CHECK(!cmp_less(std::uint32_t(-1), std::uint32_t(1)));
+  CHECK(cmp_less(std::uint32_t(1), std::uint32_t(-1)));
+
+  CHECK(!cmp_less(std::int32_t(1), std::uint32_t(1)));
+  CHECK(!cmp_less(std::int32_t(0), std::uint32_t(0)));
+  CHECK(cmp_less(std::int32_t(-1), std::uint32_t(-1)));
+  CHECK(!cmp_less(std::int32_t(1), std::uint32_t(0)));
+  CHECK(cmp_less(std::int32_t(0), std::uint32_t(1)));
+  CHECK(cmp_less(std::int32_t(0), std::uint32_t(-1)));
+  CHECK(cmp_less(std::int32_t(-1), std::uint32_t(0)));
+  CHECK(cmp_less(std::int32_t(-1), std::uint32_t(1)));
+  CHECK(cmp_less(std::int32_t(1), std::uint32_t(-1)));
+
+  CHECK(!cmp_less(std::uint32_t(1), std::int32_t(1)));
+  CHECK(!cmp_less(std::uint32_t(0), std::int32_t(0)));
+  CHECK(!cmp_less(std::uint32_t(-1), std::int32_t(-1)));
+  CHECK(!cmp_less(std::uint32_t(1), std::int32_t(0)));
+  CHECK(cmp_less(std::uint32_t(0), std::int32_t(1)));
+  CHECK(!cmp_less(std::uint32_t(0), std::int32_t(-1)));
+  CHECK(!cmp_less(std::uint32_t(-1), std::int32_t(0)));
+  CHECK(!cmp_less(std::uint32_t(-1), std::int32_t(1)));
+  CHECK(!cmp_less(std::uint32_t(1), std::int32_t(-1)));
+}
+
+TEST_CASE("cmp_greater")
+{
+  CHECK(!cmp_greater(std::int32_t(1), std::int32_t(1)));
+  CHECK(!cmp_greater(std::int32_t(0), std::int32_t(0)));
+  CHECK(!cmp_greater(std::int32_t(-1), std::int32_t(-1)));
+  CHECK(cmp_greater(std::int32_t(1), std::int32_t(0)));
+  CHECK(!cmp_greater(std::int32_t(0), std::int32_t(1)));
+  CHECK(cmp_greater(std::int32_t(0), std::int32_t(-1)));
+  CHECK(!cmp_greater(std::int32_t(-1), std::int32_t(0)));
+  CHECK(!cmp_greater(std::int32_t(-1), std::int32_t(1)));
+  CHECK(cmp_greater(std::int32_t(1), std::int32_t(-1)));
+
+  CHECK(!cmp_greater(std::uint32_t(1), std::uint32_t(1)));
+  CHECK(!cmp_greater(std::uint32_t(0), std::uint32_t(0)));
+  CHECK(!cmp_greater(std::uint32_t(-1), std::uint32_t(-1)));
+  CHECK(cmp_greater(std::uint32_t(1), std::uint32_t(0)));
+  CHECK(!cmp_greater(std::uint32_t(0), std::uint32_t(1)));
+  CHECK(!cmp_greater(std::uint32_t(0), std::uint32_t(-1)));
+  CHECK(cmp_greater(std::uint32_t(-1), std::uint32_t(0)));
+  CHECK(cmp_greater(std::uint32_t(-1), std::uint32_t(1)));
+  CHECK(!cmp_greater(std::uint32_t(1), std::uint32_t(-1)));
+
+  CHECK(!cmp_greater(std::int32_t(1), std::uint32_t(1)));
+  CHECK(!cmp_greater(std::int32_t(0), std::uint32_t(0)));
+  CHECK(!cmp_greater(std::int32_t(-1), std::uint32_t(-1)));
+  CHECK(cmp_greater(std::int32_t(1), std::uint32_t(0)));
+  CHECK(!cmp_greater(std::int32_t(0), std::uint32_t(1)));
+  CHECK(!cmp_greater(std::int32_t(0), std::uint32_t(-1)));
+  CHECK(!cmp_greater(std::int32_t(-1), std::uint32_t(0)));
+  CHECK(!cmp_greater(std::int32_t(-1), std::uint32_t(1)));
+  CHECK(!cmp_greater(std::int32_t(1), std::uint32_t(-1)));
+
+  CHECK(!cmp_greater(std::uint32_t(1), std::int32_t(1)));
+  CHECK(!cmp_greater(std::uint32_t(0), std::int32_t(0)));
+  CHECK(cmp_greater(std::uint32_t(-1), std::int32_t(-1)));
+  CHECK(cmp_greater(std::uint32_t(1), std::int32_t(0)));
+  CHECK(!cmp_greater(std::uint32_t(0), std::int32_t(1)));
+  CHECK(cmp_greater(std::uint32_t(0), std::int32_t(-1)));
+  CHECK(cmp_greater(std::uint32_t(-1), std::int32_t(0)));
+  CHECK(cmp_greater(std::uint32_t(-1), std::int32_t(1)));
+  CHECK(cmp_greater(std::uint32_t(1), std::int32_t(-1)));
+}
+
+TEST_CASE("cmp_less_equal")
+{
+  CHECK(cmp_less_equal(std::int32_t(1), std::int32_t(1)));
+  CHECK(cmp_less_equal(std::int32_t(0), std::int32_t(0)));
+  CHECK(cmp_less_equal(std::int32_t(-1), std::int32_t(-1)));
+  CHECK(!cmp_less_equal(std::int32_t(1), std::int32_t(0)));
+  CHECK(cmp_less_equal(std::int32_t(0), std::int32_t(1)));
+  CHECK(!cmp_less_equal(std::int32_t(0), std::int32_t(-1)));
+  CHECK(cmp_less_equal(std::int32_t(-1), std::int32_t(0)));
+  CHECK(cmp_less_equal(std::int32_t(-1), std::int32_t(1)));
+  CHECK(!cmp_less_equal(std::int32_t(1), std::int32_t(-1)));
+
+  CHECK(cmp_less_equal(std::uint32_t(1), std::uint32_t(1)));
+  CHECK(cmp_less_equal(std::uint32_t(0), std::uint32_t(0)));
+  CHECK(cmp_less_equal(std::uint32_t(-1), std::uint32_t(-1)));
+  CHECK(!cmp_less_equal(std::uint32_t(1), std::uint32_t(0)));
+  CHECK(cmp_less_equal(std::uint32_t(0), std::uint32_t(1)));
+  CHECK(cmp_less_equal(std::uint32_t(0), std::uint32_t(-1)));
+  CHECK(!cmp_less_equal(std::uint32_t(-1), std::uint32_t(0)));
+  CHECK(!cmp_less_equal(std::uint32_t(-1), std::uint32_t(1)));
+  CHECK(cmp_less_equal(std::uint32_t(1), std::uint32_t(-1)));
+
+  CHECK(cmp_less_equal(std::int32_t(1), std::uint32_t(1)));
+  CHECK(cmp_less_equal(std::int32_t(0), std::uint32_t(0)));
+  CHECK(cmp_less_equal(std::int32_t(-1), std::uint32_t(-1)));
+  CHECK(!cmp_less_equal(std::int32_t(1), std::uint32_t(0)));
+  CHECK(cmp_less_equal(std::int32_t(0), std::uint32_t(1)));
+  CHECK(cmp_less_equal(std::int32_t(0), std::uint32_t(-1)));
+  CHECK(cmp_less_equal(std::int32_t(-1), std::uint32_t(0)));
+  CHECK(cmp_less_equal(std::int32_t(-1), std::uint32_t(1)));
+  CHECK(cmp_less_equal(std::int32_t(1), std::uint32_t(-1)));
+
+  CHECK(cmp_less_equal(std::uint32_t(1), std::int32_t(1)));
+  CHECK(cmp_less_equal(std::uint32_t(0), std::int32_t(0)));
+  CHECK(!cmp_less_equal(std::uint32_t(-1), std::int32_t(-1)));
+  CHECK(!cmp_less_equal(std::uint32_t(1), std::int32_t(0)));
+  CHECK(cmp_less_equal(std::uint32_t(0), std::int32_t(1)));
+  CHECK(!cmp_less_equal(std::uint32_t(0), std::int32_t(-1)));
+  CHECK(!cmp_less_equal(std::uint32_t(-1), std::int32_t(0)));
+  CHECK(!cmp_less_equal(std::uint32_t(-1), std::int32_t(1)));
+  CHECK(!cmp_less_equal(std::uint32_t(1), std::int32_t(-1)));
+}
+
+TEST_CASE("cmp_greater_equal")
+{
+  CHECK(cmp_greater_equal(std::int32_t(1), std::int32_t(1)));
+  CHECK(cmp_greater_equal(std::int32_t(0), std::int32_t(0)));
+  CHECK(cmp_greater_equal(std::int32_t(-1), std::int32_t(-1)));
+  CHECK(cmp_greater_equal(std::int32_t(1), std::int32_t(0)));
+  CHECK(!cmp_greater_equal(std::int32_t(0), std::int32_t(1)));
+  CHECK(cmp_greater_equal(std::int32_t(0), std::int32_t(-1)));
+  CHECK(!cmp_greater_equal(std::int32_t(-1), std::int32_t(0)));
+  CHECK(!cmp_greater_equal(std::int32_t(-1), std::int32_t(1)));
+  CHECK(cmp_greater_equal(std::int32_t(1), std::int32_t(-1)));
+
+  CHECK(cmp_greater_equal(std::uint32_t(1), std::uint32_t(1)));
+  CHECK(cmp_greater_equal(std::uint32_t(0), std::uint32_t(0)));
+  CHECK(cmp_greater_equal(std::uint32_t(-1), std::uint32_t(-1)));
+  CHECK(cmp_greater_equal(std::uint32_t(1), std::uint32_t(0)));
+  CHECK(!cmp_greater_equal(std::uint32_t(0), std::uint32_t(1)));
+  CHECK(!cmp_greater_equal(std::uint32_t(0), std::uint32_t(-1)));
+  CHECK(cmp_greater_equal(std::uint32_t(-1), std::uint32_t(0)));
+  CHECK(cmp_greater_equal(std::uint32_t(-1), std::uint32_t(1)));
+  CHECK(!cmp_greater_equal(std::uint32_t(1), std::uint32_t(-1)));
+
+  CHECK(cmp_greater_equal(std::int32_t(1), std::uint32_t(1)));
+  CHECK(cmp_greater_equal(std::int32_t(0), std::uint32_t(0)));
+  CHECK(!cmp_greater_equal(std::int32_t(-1), std::uint32_t(-1)));
+  CHECK(cmp_greater_equal(std::int32_t(1), std::uint32_t(0)));
+  CHECK(!cmp_greater_equal(std::int32_t(0), std::uint32_t(1)));
+  CHECK(!cmp_greater_equal(std::int32_t(0), std::uint32_t(-1)));
+  CHECK(!cmp_greater_equal(std::int32_t(-1), std::uint32_t(0)));
+  CHECK(!cmp_greater_equal(std::int32_t(-1), std::uint32_t(1)));
+  CHECK(!cmp_greater_equal(std::int32_t(1), std::uint32_t(-1)));
+
+  CHECK(cmp_greater_equal(std::uint32_t(1), std::int32_t(1)));
+  CHECK(cmp_greater_equal(std::uint32_t(0), std::int32_t(0)));
+  CHECK(cmp_greater_equal(std::uint32_t(-1), std::int32_t(-1)));
+  CHECK(cmp_greater_equal(std::uint32_t(1), std::int32_t(0)));
+  CHECK(!cmp_greater_equal(std::uint32_t(0), std::int32_t(1)));
+  CHECK(cmp_greater_equal(std::uint32_t(0), std::int32_t(-1)));
+  CHECK(cmp_greater_equal(std::uint32_t(-1), std::int32_t(0)));
+  CHECK(cmp_greater_equal(std::uint32_t(-1), std::int32_t(1)));
+  CHECK(cmp_greater_equal(std::uint32_t(1), std::int32_t(-1)));
+}
+
 TEST_SUITE_END();
