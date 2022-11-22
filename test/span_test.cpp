@@ -203,4 +203,35 @@ TEST_CASE("basic")
   }
 }
 
+#ifdef GUL_HAS_CXX17
+
+TEST_CASE("deduction guides")
+{
+  {
+    auto arr = std::array<int, 4>();
+    static_assert_same<decltype(span(arr.begin(), arr.end())), span<int>>();
+    static_assert_same<decltype(span(arr.begin(), 3)), span<int>>();
+  }
+  {
+    const auto arr = std::array<int, 4>();
+    static_assert_same<decltype(span(arr.begin(), arr.end())),
+                       span<const int>>();
+    static_assert_same<decltype(span(arr.begin(), 3)), span<const int>>();
+  }
+  {
+    int arr[] = { 0, 1, 2, 3 };
+    static_assert_same<decltype(span(arr)), span<int, 4>>();
+  }
+  {
+    auto arr = std::array<int, 4>();
+    static_assert_same<decltype(span(arr)), span<int, 4>>();
+  }
+  {
+    const auto arr = std::array<int, 4>();
+    static_assert_same<decltype(span(arr)), span<const int, 4>>();
+  }
+}
+
+#endif
+
 TEST_SUITE_END();

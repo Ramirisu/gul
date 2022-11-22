@@ -414,16 +414,20 @@ template <typename T, std::size_t Extent>
 constexpr std::size_t span<T, Extent>::extent;
 
 #ifdef GUL_HAS_CXX17
-template <typename T>
-span(T) -> span<T>;
 
-template <typename It>
-span(It, std::size_t)
+template <typename It, typename EndOrSize>
+span(It, EndOrSize)
     -> span<remove_reference_t<typename std::iterator_traits<It>::reference>>;
 
-template <typename It>
-span(It, It)
-    -> span<remove_reference_t<typename std::iterator_traits<It>::reference>>;
+template <typename T, std::size_t N>
+span(T (&)[N]) -> span<T, N>;
+
+template <typename T, std::size_t N>
+span(std::array<T, N>&) -> span<T, N>;
+
+template <typename T, std::size_t N>
+span(const std::array<T, N>&) -> span<const T, N>;
+
 #endif
 
 template <class T, std::size_t N>
