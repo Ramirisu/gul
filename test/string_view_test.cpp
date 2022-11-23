@@ -74,6 +74,18 @@ TEST_CASE("basic")
   }
   {
     string_view sv(s);
+    CHECK_EQ(sv.first(0), string_view());
+    CHECK_EQ(sv.first(6), string_view(s, 6));
+    CHECK_EQ(sv.first(12), string_view(s, 12));
+  }
+  {
+    string_view sv(s);
+    CHECK_EQ(sv.last(0), string_view());
+    CHECK_EQ(sv.last(6), string_view(s + 6, 6));
+    CHECK_EQ(sv.last(12), string_view(s, 12));
+  }
+  {
+    string_view sv(s);
     CHECK(sv.starts_with('h'));
     CHECK(sv.starts_with("hello"));
     CHECK(!sv.starts_with('e'));

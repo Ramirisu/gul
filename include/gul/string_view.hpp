@@ -297,6 +297,18 @@ public:
     return basic_string_view(start_ + index, std::min(count, size_ - index));
   }
 
+  GUL_CXX14_CONSTEXPR basic_string_view first(size_type count) const
+  {
+    GUL_ASSERT(count <= size());
+    return substr(0, count);
+  }
+
+  GUL_CXX14_CONSTEXPR basic_string_view last(size_type count) const
+  {
+    GUL_ASSERT(count <= size());
+    return substr(size() - count);
+  }
+
   GUL_CXX14_CONSTEXPR int compare(basic_string_view sv) const noexcept
   {
     const auto len = std::min(size(), sv.size());
