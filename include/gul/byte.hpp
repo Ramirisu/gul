@@ -70,6 +70,8 @@ constexpr byte& operator>>=(byte& b, Integral shift) noexcept
 
 #if !defined(__GNUC__) || defined(GUL_HAS_CXX14)
 constexpr
+#else
+inline
 #endif
     byte&
     operator&=(byte& lhs, byte rhs) noexcept
@@ -79,6 +81,8 @@ constexpr
 
 #if !defined(__GNUC__) || defined(GUL_HAS_CXX14)
 constexpr
+#else
+inline
 #endif
     byte&
     operator|=(byte& lhs, byte rhs) noexcept
@@ -88,6 +92,8 @@ constexpr
 
 #if !defined(__GNUC__) || defined(GUL_HAS_CXX14)
 constexpr
+#else
+inline
 #endif
     byte&
     operator^=(byte& lhs, byte rhs) noexcept
