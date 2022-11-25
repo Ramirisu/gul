@@ -10,6 +10,7 @@
 #include <gul/type_traits.hpp>
 
 using namespace gul::detail;
+using namespace gul;
 
 TEST_SUITE_BEGIN("type_traits");
 
@@ -389,6 +390,37 @@ TEST_CASE("is_invocable")
     static_assert(!is_nothrow_invocable<decltype(&s::oc), s*, int>::value);
 #endif
   }
+}
+
+TEST_CASE("is_null_pointer")
+{
+  static_assert(!is_null_pointer<int>::value, "");
+  static_assert(is_null_pointer<std::nullptr_t>::value, "");
+}
+
+TEST_CASE("is_bounded_array")
+{
+  static_assert(!is_bounded_array<int>::value, "");
+  static_assert(is_bounded_array<int[10]>::value, "");
+  static_assert(!is_bounded_array<int[]>::value, "");
+}
+
+TEST_CASE("is_unbounded_array")
+{
+  static_assert(!is_unbounded_array<int>::value, "");
+  static_assert(!is_unbounded_array<int[10]>::value, "");
+  static_assert(is_unbounded_array<int[]>::value, "");
+}
+
+TEST_CASE("is_scoped_enum")
+{
+  class c { };
+  enum e {};
+  enum class ec {};
+  static_assert(!is_scoped_enum<int>::value, "");
+  static_assert(!is_scoped_enum<c>::value, "");
+  static_assert(!is_scoped_enum<e>::value, "");
+  static_assert(is_scoped_enum<ec>::value, "");
 }
 
 TEST_SUITE_END();

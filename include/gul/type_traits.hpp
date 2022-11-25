@@ -79,6 +79,9 @@ using remove_cvref_t = typename remove_cvref<T>::type;
 template <typename T>
 struct negation : integral_constant<bool, !static_cast<bool>(T::value)> { };
 
+template <typename T>
+using negation_t = typename negation<T>::type;
+
 template <typename... Ts>
 struct conjunction : std::true_type { };
 
@@ -90,6 +93,9 @@ struct conjunction<T, Ts...>
     : conditional<static_cast<bool>(T::value), conjunction<Ts...>, T>::type { };
 
 template <typename... Ts>
+using conjunction_t = typename conjunction<Ts...>::type;
+
+template <typename... Ts>
 struct disjunction : std::false_type { };
 
 template <typename T>
@@ -98,6 +104,9 @@ struct disjunction<T> : T { };
 template <typename T, typename... Ts>
 struct disjunction<T, Ts...>
     : conditional<static_cast<bool>(T::value), T, disjunction<Ts...>>::type { };
+
+template <typename... Ts>
+using disjunction_t = typename disjunction<Ts...>::type;
 
 #ifdef GUL_HAS_CXX17
 
@@ -110,6 +119,9 @@ template <typename F, typename... Args>
 using invoke_result_t = typename std::result_of<F(Args...)>::type;
 
 #endif
+
+template <typename T>
+struct is_null_pointer : std::is_same<std::nullptr_t, remove_cv_t<T>> { };
 
 template <typename T, template <typename...> class U>
 struct is_specialization_of : std::false_type { };
@@ -383,20 +395,55 @@ struct is_nothrow_invocable_r
     : is_invocable_detail::is_invocable_impl<void, F, Args...>::
           template is_nothrow_invocable_r<R> { };
 #endif
+
+template <typename T>
+struct is_bounded_array : std::false_type { };
+
+template <typename T, std::size_t N>
+struct is_bounded_array<T[N]> : std::true_type { };
+
+template <typename T>
+struct is_unbounded_array : std::false_type { };
+
+template <typename T>
+struct is_unbounded_array<T[]> : std::true_type { };
+
+template <typename E, bool = std::is_enum<E>::value>
+struct is_scoped_enum : std::false_type { };
+
+template <typename E>
+struct is_scoped_enum<E, true>
+    : negation<std::is_convertible<E, typename std::underlying_type<E>::type>> {
+};
 }
+
+using detail::is_bounded_array;
+using detail::is_invocable;
+using detail::is_invocable_r;
+using detail::is_nothrow_swappable;
+using detail::is_nothrow_swappable_with;
+using detail::is_null_pointer;
+using detail::is_scoped_enum;
+using detail::is_swappable;
+using detail::is_swappable_with;
+using detail::is_unbounded_array;
 
 using detail::add_lvalue_reference_t;
 using detail::add_pointer_t;
 using detail::conditional_t;
 using detail::conjunction;
+using detail::conjunction_t;
 using detail::decay_t;
 using detail::disjunction;
+using detail::disjunction_t;
 using detail::invoke_result_t;
 using detail::negation;
+using detail::negation_t;
 using detail::remove_cv_t;
 using detail::remove_cvref_t;
 using detail::remove_reference_t;
 using detail::type_identity_t;
+using detail::void_t;
 
 #define GUL_REQUIRES(...) detail::enable_if_t<__VA_ARGS__, int> = 0
 
