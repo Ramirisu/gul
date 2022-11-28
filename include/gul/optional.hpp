@@ -556,8 +556,7 @@ class optional : private detail::optional_move_assign_base<T> {
                              std::is_convertible<optional<U>&, T>,
                              std::is_convertible<const optional<U>&, T>,
                              std::is_convertible<optional<U>&&, T>,
-                             std::is_convertible<const optional<U>&&, T>>> {
-  };
+                             std::is_convertible<const optional<U>&&, T>>> { };
   template <typename U>
   struct is_optional_assignable
       : negation<conjunction<
@@ -573,8 +572,7 @@ class optional : private detail::optional_move_assign_base<T> {
             std::is_assignable<add_lvalue_reference_t<T>, const optional<U>&>,
             std::is_assignable<add_lvalue_reference_t<T>, optional<U>&&>,
             std::is_assignable<add_lvalue_reference_t<T>,
-                               const optional<U>&&>>> {
-  };
+                               const optional<U>&&>>> { };
 
   template <typename Self, typename F>
   static GUL_CXX14_CONSTEXPR auto
@@ -710,12 +708,7 @@ public:
 
   GUL_CXX14_CONSTEXPR optional(const optional&) = default;
 
-  GUL_CXX14_CONSTEXPR optional(optional&&)
-#ifndef GUL_CXX_COMPILER_GCC48
-      noexcept(disjunction<std::is_void<T>,
-                           std::is_nothrow_move_constructible<T>>::value)
-#endif
-      = default;
+  GUL_CXX14_CONSTEXPR optional(optional&&) = default;
 
   template <typename U,
             GUL_REQUIRES(conjunction<std::is_constructible<T, const U&>,
@@ -762,14 +755,7 @@ public:
 
   GUL_CXX14_CONSTEXPR optional& operator=(const optional&) = default;
 
-  GUL_CXX14_CONSTEXPR optional& operator=(optional&&)
-#ifndef GUL_CXX_COMPILER_GCC48
-      noexcept(disjunction<
-               std::is_void<T>,
-               conjunction<std::is_nothrow_move_assignable<T>,
-                           std::is_nothrow_move_constructible<T>>>::value)
-#endif
-      = default;
+  GUL_CXX14_CONSTEXPR optional& operator=(optional&&) = default;
 
   template <
       typename U,

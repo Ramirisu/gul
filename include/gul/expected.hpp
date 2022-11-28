@@ -922,16 +922,20 @@ struct expected_default_constructible_base {
   GUL_CXX14_CONSTEXPR expected_default_constructible_base() noexcept = default;
 
   GUL_CXX14_CONSTEXPR expected_default_constructible_base(
-      const expected_default_constructible_base&) noexcept = default;
+      const expected_default_constructible_base&) noexcept
+      = default;
 
   GUL_CXX14_CONSTEXPR expected_default_constructible_base(
-      expected_default_constructible_base&&) noexcept = default;
+      expected_default_constructible_base&&) noexcept
+      = default;
 
   GUL_CXX14_CONSTEXPR expected_default_constructible_base&
-  operator=(const expected_default_constructible_base&) noexcept = default;
+  operator=(const expected_default_constructible_base&) noexcept
+      = default;
 
   GUL_CXX14_CONSTEXPR expected_default_constructible_base&
-  operator=(expected_default_constructible_base&&) noexcept = default;
+  operator=(expected_default_constructible_base&&) noexcept
+      = default;
 };
 
 template <typename T>
@@ -942,16 +946,20 @@ struct expected_default_constructible_base<T, false> {
   GUL_CXX14_CONSTEXPR expected_default_constructible_base() noexcept = delete;
 
   GUL_CXX14_CONSTEXPR expected_default_constructible_base(
-      const expected_default_constructible_base&) noexcept = default;
+      const expected_default_constructible_base&) noexcept
+      = default;
 
   GUL_CXX14_CONSTEXPR expected_default_constructible_base(
-      expected_default_constructible_base&&) noexcept = default;
+      expected_default_constructible_base&&) noexcept
+      = default;
 
   GUL_CXX14_CONSTEXPR expected_default_constructible_base&
-  operator=(const expected_default_constructible_base&) noexcept = default;
+  operator=(const expected_default_constructible_base&) noexcept
+      = default;
 
   GUL_CXX14_CONSTEXPR expected_default_constructible_base&
-  operator=(expected_default_constructible_base&&) noexcept = default;
+  operator=(expected_default_constructible_base&&) noexcept
+      = default;
 };
 }
 
@@ -976,8 +984,7 @@ class expected : private detail::expected_move_assign_base<T, E>,
             std::is_constructible<unexpected<E>, expected<T2, E2>&>,
             std::is_constructible<unexpected<E>, expected<T2, E2>>,
             std::is_constructible<unexpected<E>, const expected<T2, E2>&>,
-            std::is_constructible<unexpected<E>, const expected<T2, E2>>>> {
-  };
+            std::is_constructible<unexpected<E>, const expected<T2, E2>>>> { };
 
   template <typename Self, typename F>
   static GUL_CXX14_CONSTEXPR auto
@@ -1179,13 +1186,7 @@ public:
 
   GUL_CXX14_CONSTEXPR expected(const expected&) = default;
 
-  GUL_CXX14_CONSTEXPR expected(expected&&)
-#ifndef GUL_CXX_COMPILER_GCC48
-      noexcept(conjunction<disjunction<std::is_void<T>,
-                                       std::is_nothrow_move_constructible<T>>,
-                           std::is_nothrow_move_constructible<E>>::value)
-#endif
-      = default;
+  GUL_CXX14_CONSTEXPR expected(expected&&) = default;
 
   template <
       typename T2,
@@ -1331,16 +1332,7 @@ public:
 
   GUL_CXX14_CONSTEXPR expected& operator=(const expected&) = default;
 
-  GUL_CXX14_CONSTEXPR expected& operator=(expected&&)
-#ifndef GUL_CXX_COMPILER_GCC48
-      noexcept(conjunction<
-               disjunction<std::is_void<T>,
-                           conjunction<std::is_nothrow_move_constructible<T>,
-                                       std::is_nothrow_move_assignable<T>>>,
-               std::is_nothrow_move_constructible<E>,
-               std::is_nothrow_move_assignable<E>>::value)
-#endif
-      = default;
+  GUL_CXX14_CONSTEXPR expected& operator=(expected&&) = default;
 
   template <
       typename U = T,

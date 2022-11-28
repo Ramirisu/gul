@@ -33,7 +33,7 @@ TEST_CASE("basic")
     CHECK(s.first(0).empty());
   }
   {
-    std::array<int, 4> arr { 0, 1, 2, 3 };
+    std::array<int, 4> arr { { 0, 1, 2, 3 } };
     auto s = span<int>(arr.begin(), arr.size());
     CHECK(!s.empty());
     CHECK_EQ(s.data(), arr.data());
@@ -45,7 +45,7 @@ TEST_CASE("basic")
     CHECK_EQ(s[2], 2);
   }
   {
-    std::array<int, 4> arr { 0, 1, 2, 3 };
+    std::array<int, 4> arr { { 0, 1, 2, 3 } };
     auto s = span<int>(arr.begin(), arr.end());
     CHECK(!s.empty());
     CHECK_EQ(s.data(), arr.data());
@@ -123,7 +123,7 @@ TEST_CASE("basic")
     }
   }
   {
-    std::array<int, 4> arr { 0, 1, 2, 3 };
+    std::array<int, 4> arr { { 0, 1, 2, 3 } };
     auto s = span<int>(arr);
     CHECK(!s.empty());
     CHECK_EQ(s.data(), arr.data());
@@ -135,7 +135,7 @@ TEST_CASE("basic")
     CHECK_EQ(s[2], 2);
   }
   {
-    const std::array<int, 4> arr { 0, 1, 2, 3 };
+    const std::array<int, 4> arr { { 0, 1, 2, 3 } };
     auto s = span<const int>(arr);
     CHECK(!s.empty());
     CHECK_EQ(s.data(), arr.data());
