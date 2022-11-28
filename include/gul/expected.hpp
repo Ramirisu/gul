@@ -968,7 +968,6 @@ class expected : private detail::expected_move_assign_base<T, E>,
                  private detail::expected_default_constructible_base<T> {
   using base_type = detail::expected_move_assign_base<T, E>;
   using dc_base_type = detail::expected_default_constructible_base<T>;
-  using detail::expected_move_assign_base<T, E>::expected_move_assign_base;
 
   template <typename T2, typename E2>
   struct is_expected_constructible

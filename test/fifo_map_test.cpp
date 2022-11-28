@@ -125,7 +125,7 @@ TEST_CASE("insertion order")
 
 TEST_CASE("iterator dereferece type")
 {
-  fifo_map<char, int> m;
+  auto m = fifo_map<char, int>();
   static_assert_same<decltype(*m.begin()), std::pair<const char, int>&>();
   static_assert_same<decltype(*m.cbegin()),
                      const std::pair<const char, int>&>();
@@ -137,7 +137,7 @@ TEST_CASE("iterator dereferece type")
   static_assert_same<decltype(*m.rend()), std::pair<const char, int>&>();
   static_assert_same<decltype(*m.crend()), const std::pair<const char, int>&>();
 
-  const fifo_map<char, int> cm;
+  const auto cm = fifo_map<char, int>();
   static_assert_same<decltype(*cm.begin()),
                      const std::pair<const char, int>&>();
   static_assert_same<decltype(*cm.cbegin()),

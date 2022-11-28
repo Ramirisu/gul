@@ -23,12 +23,10 @@ template <typename T>
 using type_identity_t = typename type_identity<T>::type;
 
 template <bool B, typename T>
-struct enable_if {
-};
+struct enable_if { };
 
 template <typename T>
-struct enable_if<true, T> : type_identity<T> {
-};
+struct enable_if<true, T> : type_identity<T> { };
 
 template <bool B, typename T>
 using enable_if_t = typename enable_if<B, T>::type;
@@ -55,12 +53,10 @@ template <typename T>
 using add_pointer_t = typename add_pointer<T>::type;
 
 template <bool B, typename T, typename F>
-struct conditional : type_identity<T> {
-};
+struct conditional : type_identity<T> { };
 
 template <typename T, typename F>
-struct conditional<false, T, F> : type_identity<F> {
-};
+struct conditional<false, T, F> : type_identity<F> { };
 
 template <bool B, typename T, typename F>
 using conditional_t = typename conditional<B, T, F>::type;
@@ -75,47 +71,39 @@ template <typename T>
 using remove_reference_t = typename remove_reference<T>::type;
 
 template <typename T>
-struct remove_cvref : remove_cv<remove_reference_t<T>> {
-};
+struct remove_cvref : remove_cv<remove_reference_t<T>> { };
 
 template <typename T>
 using remove_cvref_t = typename remove_cvref<T>::type;
 
 template <typename T>
-struct negation : integral_constant<bool, !static_cast<bool>(T::value)> {
-};
+struct negation : integral_constant<bool, !static_cast<bool>(T::value)> { };
 
 template <typename T>
 using negation_t = typename negation<T>::type;
 
 template <typename... Ts>
-struct conjunction : std::true_type {
-};
+struct conjunction : std::true_type { };
 
 template <typename T>
-struct conjunction<T> : T {
-};
+struct conjunction<T> : T { };
 
 template <typename T, typename... Ts>
 struct conjunction<T, Ts...>
-    : conditional<static_cast<bool>(T::value), conjunction<Ts...>, T>::type {
-};
+    : conditional<static_cast<bool>(T::value), conjunction<Ts...>, T>::type { };
 
 template <typename... Ts>
 using conjunction_t = typename conjunction<Ts...>::type;
 
 template <typename... Ts>
-struct disjunction : std::false_type {
-};
+struct disjunction : std::false_type { };
 
 template <typename T>
-struct disjunction<T> : T {
-};
+struct disjunction<T> : T { };
 
 template <typename T, typename... Ts>
 struct disjunction<T, Ts...>
-    : conditional<static_cast<bool>(T::value), T, disjunction<Ts...>>::type {
-};
+    : conditional<static_cast<bool>(T::value), T, disjunction<Ts...>>::type { };
 
 template <typename... Ts>
 using disjunction_t = typename disjunction<Ts...>::type;
@@ -133,8 +121,7 @@ using invoke_result_t = typename std::result_of<F(Args...)>::type;
 #endif
 
 template <typename T>
-struct is_null_pointer : std::is_same<std::nullptr_t, remove_cv_t<T>> {
-};
+struct is_null_pointer : std::is_same<std::nullptr_t, remove_cv_t<T>> { };
 
 #ifdef GUL_CXX_COMPILER_GCC48
 
@@ -143,16 +130,13 @@ struct is_trivially_copy_constructible : std::has_trivial_copy_constructor<T> {
 };
 
 template <typename T>
-struct is_trivially_copy_assignable : std::has_trivial_copy_assign<T> {
-};
+struct is_trivially_copy_assignable : std::has_trivial_copy_assign<T> { };
 
 template <typename T>
-struct is_trivially_move_constructible : std::false_type {
-};
+struct is_trivially_move_constructible : std::false_type { };
 
 template <typename T>
-struct is_trivially_move_assignable : std::false_type {
-};
+struct is_trivially_move_assignable : std::false_type { };
 
 #else
 
@@ -167,73 +151,62 @@ using std::is_trivially_move_assignable;
 #endif
 
 template <typename T, template <typename...> class U>
-struct is_specialization_of : std::false_type {
-};
+struct is_specialization_of : std::false_type { };
 
 template <template <typename...> class U, typename... Args>
-struct is_specialization_of<U<Args...>, U> : std::true_type {
-};
+struct is_specialization_of<U<Args...>, U> : std::true_type { };
 
 namespace swap_detail {
   using std::swap;
 
   template <typename T, typename U, typename = void>
-  struct is_swappable_with_impl : std::false_type {
-  };
+  struct is_swappable_with_impl : std::false_type { };
 
   template <typename T, typename U>
   struct is_swappable_with_impl<
       T,
       U,
       void_t<decltype(swap(std::declval<T>(), std::declval<U>()))>>
-      : std::true_type {
-  };
+      : std::true_type { };
 }
 
 template <typename T, typename U>
 struct is_swappable_with
     : conjunction<swap_detail::is_swappable_with_impl<T, U>,
-                  swap_detail::is_swappable_with_impl<U, T>> {
-};
+                  swap_detail::is_swappable_with_impl<U, T>> { };
 
 template <typename T>
 struct is_swappable
     : conjunction<
           swap_detail::is_swappable_with_impl<add_lvalue_reference_t<T>,
-                                              add_lvalue_reference_t<T>>> {
-};
+                                              add_lvalue_reference_t<T>>> { };
 
 namespace swap_detail {
   using std::swap;
 
   template <typename T, typename U, bool = is_swappable_with<T, U>::value>
-  struct is_nothrow_swappable_with_impl : std::false_type {
-  };
+  struct is_nothrow_swappable_with_impl : std::false_type { };
 
   template <typename T, typename U>
   struct is_nothrow_swappable_with_impl<T, U, true>
       : integral_constant<bool,
                           noexcept(
-                              swap(std::declval<T>(), std::declval<U>()))> {
-  };
+                              swap(std::declval<T>(), std::declval<U>()))> { };
 }
 
 template <typename T, typename U>
 struct is_nothrow_swappable_with
     : conjunction<swap_detail::is_nothrow_swappable_with_impl<T, U>,
-                  swap_detail::is_nothrow_swappable_with_impl<U, T>> {
-};
+                  swap_detail::is_nothrow_swappable_with_impl<U, T>> { };
 
 template <typename T>
 struct is_nothrow_swappable
     : conjunction<swap_detail::is_nothrow_swappable_with_impl<
           add_lvalue_reference_t<T>,
-          add_lvalue_reference_t<T>>> {
-};
+          add_lvalue_reference_t<T>>> { };
 
 template <typename T, typename U, typename = void>
-struct is_eq_comparable_with : std::false_type {
-};
+struct is_eq_comparable_with : std::false_type { };
 
 template <typename T, typename U>
 struct is_eq_comparable_with<
@@ -242,12 +215,10 @@ struct is_eq_comparable_with<
     void_t<decltype(std::declval<const T&>() == std::declval<const U&>())>>
     : std::is_convertible<decltype(std::declval<const T&>()
                                    == std::declval<const U&>()),
-                          bool> {
-};
+                          bool> { };
 
 template <typename T, typename U, typename = void>
-struct is_ne_comparable_with : std::false_type {
-};
+struct is_ne_comparable_with : std::false_type { };
 
 template <typename T, typename U>
 struct is_ne_comparable_with<
@@ -256,12 +227,10 @@ struct is_ne_comparable_with<
     void_t<decltype(std::declval<const T&>() != std::declval<const U&>())>>
     : std::is_convertible<decltype(std::declval<const T&>()
                                    != std::declval<const U&>()),
-                          bool> {
-};
+                          bool> { };
 
 template <typename T, typename U, typename = void>
-struct is_lt_comparable_with : std::false_type {
-};
+struct is_lt_comparable_with : std::false_type { };
 
 template <typename T, typename U>
 struct is_lt_comparable_with<
@@ -270,12 +239,10 @@ struct is_lt_comparable_with<
     void_t<decltype(std::declval<const T&>() < std::declval<const U&>())>>
     : std::is_convertible<decltype(std::declval<const T&>()
                                    < std::declval<const U&>()),
-                          bool> {
-};
+                          bool> { };
 
 template <typename T, typename U, typename = void>
-struct is_le_comparable_with : std::false_type {
-};
+struct is_le_comparable_with : std::false_type { };
 
 template <typename T, typename U>
 struct is_le_comparable_with<
@@ -284,12 +251,10 @@ struct is_le_comparable_with<
     void_t<decltype(std::declval<const T&>() <= std::declval<const U&>())>>
     : std::is_convertible<decltype(std::declval<const T&>()
                                    <= std::declval<const U&>()),
-                          bool> {
-};
+                          bool> { };
 
 template <typename T, typename U, typename = void>
-struct is_gt_comparable_with : std::false_type {
-};
+struct is_gt_comparable_with : std::false_type { };
 
 template <typename T, typename U>
 struct is_gt_comparable_with<
@@ -298,12 +263,10 @@ struct is_gt_comparable_with<
     void_t<decltype(std::declval<const T&>() > std::declval<const U&>())>>
     : std::is_convertible<decltype(std::declval<const T&>()
                                    > std::declval<const U&>()),
-                          bool> {
-};
+                          bool> { };
 
 template <typename T, typename U, typename = void>
-struct is_ge_comparable_with : std::false_type {
-};
+struct is_ge_comparable_with : std::false_type { };
 
 template <typename T, typename U>
 struct is_ge_comparable_with<
@@ -312,13 +275,12 @@ struct is_ge_comparable_with<
     void_t<decltype(std::declval<const T&>() >= std::declval<const U&>())>>
     : std::is_convertible<decltype(std::declval<const T&>()
                                    >= std::declval<const U&>()),
-                          bool> {
-};
+                          bool> { };
 
 namespace is_nothrow_convertible_detail {
   struct is_nothrow_convertible_helper {
     template <typename To>
-    static constexpr void test(To) noexcept;
+    static void test(To) noexcept;
   };
 }
 
@@ -329,16 +291,13 @@ struct is_nothrow_convertible
     : integral_constant<bool,
                         noexcept(is_nothrow_convertible_detail::
                                      is_nothrow_convertible_helper::test<To>(
-                                         std::declval<From>()))> {
-};
+                                         std::declval<From>()))> { };
 
 template <typename From, typename To>
-struct is_nothrow_convertible<From, To, false> : std::false_type {
-};
+struct is_nothrow_convertible<From, To, false> : std::false_type { };
 
 template <typename From>
-struct is_nothrow_convertible<From, void, true> : std::true_type {
-};
+struct is_nothrow_convertible<From, void, true> : std::true_type { };
 
 namespace is_invocable_detail {
   template <typename T,
@@ -349,7 +308,7 @@ namespace is_invocable_detail {
   template <typename T>
   struct is_invocable_get_ret_type_impl<T, false, false> {
     template <typename F, typename... Args>
-    static constexpr auto test(F&& f, Args&&... args) //
+    static auto test(F&& f, Args&&... args) //
         noexcept(noexcept(std::forward<F>(f)(std::forward<Args>(args)...)))
             -> decltype(std::forward<F>(f)(std::forward<Args>(args)...));
   };
@@ -357,7 +316,7 @@ namespace is_invocable_detail {
   template <typename T>
   struct is_invocable_get_ret_type_impl<T, true, false> {
     template <typename C, typename Pointed, typename Arg1, typename... Args>
-    static constexpr auto test(Pointed C::*f, Arg1&& arg1, Args&&... args) //
+    static auto test(Pointed C::*f, Arg1&& arg1, Args&&... args) //
         noexcept(noexcept((std::forward<Arg1>(arg1)
                            .*f)(std::forward<Args>(args)...)))
             -> enable_if_t<std::is_base_of<C, remove_reference_t<Arg1>>::value,
@@ -365,7 +324,7 @@ namespace is_invocable_detail {
                                      .*f)(std::forward<Args>(args)...))>;
 
     template <typename C, typename Pointed, typename Arg1, typename... Args>
-    static constexpr auto test(Pointed C::*f, Arg1&& arg1, Args&&... args) //
+    static auto test(Pointed C::*f, Arg1&& arg1, Args&&... args) //
         noexcept(noexcept(((*std::forward<Arg1>(arg1))
                            .*f)(std::forward<Args>(args)...)))
             -> enable_if_t<!std::is_base_of<C, remove_reference_t<Arg1>>::value,
@@ -376,13 +335,13 @@ namespace is_invocable_detail {
   template <typename T>
   struct is_invocable_get_ret_type_impl<T, false, true> {
     template <typename C, typename Pointed, typename Arg1>
-    static constexpr auto test(Pointed C::*o, Arg1&& arg1) noexcept
+    static auto test(Pointed C::*o, Arg1&& arg1) noexcept
         -> enable_if_t<std::is_base_of<C, remove_reference_t<Arg1>>::value,
                        decltype(std::forward<Arg1>(arg1).*o)>;
 
     template <typename C, typename Pointed, typename Arg1>
-    static constexpr auto test(Pointed C::*o,
-                               Arg1&& arg1) //
+    static auto test(Pointed C::*o,
+                     Arg1&& arg1) //
         noexcept(noexcept((*std::forward<Arg1>(arg1)).*o))
             -> enable_if_t<!std::is_base_of<C, remove_reference_t<Arg1>>::value,
                            decltype((*std::forward<Arg1>(arg1)).*o)>;
@@ -397,16 +356,14 @@ namespace is_invocable_detail {
   struct is_invocable_noexcept
       : integral_constant<bool,
                           noexcept(is_invocable_get_ret_type_impl<F>::test(
-                              std::declval<F>(), std::declval<Args>()...))> {
-  };
+                              std::declval<F>(), std::declval<Args>()...))> { };
 
 #if !defined(_MSC_VER) || _MSC_VER < 1920
   template <typename F>
   struct is_invocable_noexcept<F, void>
       : integral_constant<bool,
                           noexcept(is_invocable_get_ret_type_impl<F>::test(
-                              std::declval<F>()))> {
-  };
+                              std::declval<F>()))> { };
 #endif
 
   template <typename R, typename NoExcept>
@@ -437,8 +394,7 @@ namespace is_invocable_detail {
                            F,
                            Args...>
       : is_invocable_traits<is_invocable_get_ret_type<F, Args...>,
-                            is_invocable_noexcept<F, Args...>> {
-  };
+                            is_invocable_noexcept<F, Args...>> { };
 }
 
 template <typename F, typename... Args>
@@ -451,44 +407,36 @@ struct is_invocable
 template <typename F, typename... Args>
 struct is_nothrow_invocable
     : is_invocable_detail::is_invocable_impl<void, F, Args...>::
-          is_nothrow_invocable {
-};
+          is_nothrow_invocable { };
 #endif
 
 template <typename R, typename F, typename... Args>
 struct is_invocable_r
     : is_invocable_detail::is_invocable_impl<void, F, Args...>::
-          template is_invocable_r<R> {
-};
+          template is_invocable_r<R> { };
 
 #ifdef GUL_HAS_CXX17
 // requires noexcept-specification as a part of function type
 template <typename R, typename F, typename... Args>
 struct is_nothrow_invocable_r
     : is_invocable_detail::is_invocable_impl<void, F, Args...>::
-          template is_nothrow_invocable_r<R> {
-};
+          template is_nothrow_invocable_r<R> { };
 #endif
 
 template <typename T>
-struct is_bounded_array : std::false_type {
-};
+struct is_bounded_array : std::false_type { };
 
 template <typename T, std::size_t N>
-struct is_bounded_array<T[N]> : std::true_type {
-};
+struct is_bounded_array<T[N]> : std::true_type { };
 
 template <typename T>
-struct is_unbounded_array : std::false_type {
-};
+struct is_unbounded_array : std::false_type { };
 
 template <typename T>
-struct is_unbounded_array<T[]> : std::true_type {
-};
+struct is_unbounded_array<T[]> : std::true_type { };
 
 template <typename E, bool = std::is_enum<E>::value>
-struct is_scoped_enum : std::false_type {
-};
+struct is_scoped_enum : std::false_type { };
 
 template <typename E>
 struct is_scoped_enum<E, true>
