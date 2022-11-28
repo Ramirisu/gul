@@ -45,6 +45,30 @@ jobs:
             generators: Ninja
             install: sudo apt install g++-5
           - os: ubuntu-20.04
+            cxx: g++-7
+            std: 11
+            build_type: Debug
+            generators: Ninja
+            install: sudo apt install g++-7
+          - os: ubuntu-20.04
+            cxx: g++-9
+            std: 11
+            build_type: Debug
+            generators: Ninja
+            install: sudo apt install g++-9
+          - os: ubuntu-20.04
+            cxx: g++-10
+            std: 11
+            build_type: Debug
+            generators: Ninja
+            install: sudo apt install g++-10
+          - os: ubuntu-22.04
+            cxx: g++-12
+            std: 11
+            build_type: Debug
+            generators: Ninja
+            install: sudo apt install g++-12
+          - os: ubuntu-20.04
             cxx: clang++-3.5
             std: 11
             build_type: Debug
@@ -117,6 +141,30 @@ jobs:
             build_type: Debug
             generators: Ninja
             install: sudo apt install clang-9
+          - os: ubuntu-20.04
+            cxx: clang++-10
+            std: 11
+            build_type: Debug
+            generators: Ninja
+            install: sudo apt install clang-10
+          - os: ubuntu-22.04
+            cxx: clang++-11
+            std: 11
+            build_type: Debug
+            generators: Ninja
+            install: sudo apt install clang-11
+          - os: ubuntu-22.04
+            cxx: clang++-12
+            std: 11
+            build_type: Debug
+            generators: Ninja
+            install: sudo apt install clang-12
+          - os: ubuntu-22.04
+            cxx: clang++-13
+            std: 11
+            build_type: Debug
+            generators: Ninja
+            install: sudo apt install clang-13
           - os: windows-2019
             cxx: cl
             std: 14
