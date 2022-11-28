@@ -38,7 +38,7 @@ Requirements
 
 * CMake 3.15 (or later)
 * GCC 4.8 (or later)
-* Clang 9 (or later)
+* Clang 3.9 (or later)
 * MSVC 2017 v141 (or later)
 
 CMake
