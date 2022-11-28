@@ -36,12 +36,16 @@ struct non_std_nothrow_swappable {
 };
 
 struct non_swappable {
+#ifndef GUL_CXX_COMPILER_GCC48
   friend void swap(non_swappable&, non_swappable&) = delete;
+#endif
 };
 
 struct nothrow_non_swappable {
-  friend void swap(nothrow_non_swappable&, nothrow_non_swappable&) noexcept
-      = delete;
+#ifndef GUL_CXX_COMPILER_GCC48
+  friend void swap(nothrow_non_swappable&,
+                   nothrow_non_swappable&) noexcept = delete;
+#endif
 };
 
 TEST_CASE("is_swappable_with")
@@ -52,7 +56,9 @@ TEST_CASE("is_swappable_with")
       is_swappable_with<std::std_swappable&, std::std_swappable&>::value, "");
   static_assert(
       is_swappable_with<non_std_swappable&, non_std_swappable&>::value, "");
+#ifndef GUL_CXX_COMPILER_GCC48
   static_assert(!is_swappable_with<non_swappable&, non_swappable&>::value, "");
+#endif
 
   static_assert(!is_swappable_with<int&, double&>::value, "");
 }
@@ -62,7 +68,9 @@ TEST_CASE("is_swappable")
   static_assert(is_swappable<int>::value, "");
   static_assert(is_swappable<std::std_swappable>::value, "");
   static_assert(is_swappable<non_std_swappable>::value, "");
+#ifndef GUL_CXX_COMPILER_GCC48
   static_assert(!is_swappable<non_swappable>::value, "");
+#endif
 }
 
 TEST_CASE("is_nothrow_swappable_with")
@@ -75,17 +83,21 @@ TEST_CASE("is_nothrow_swappable_with")
   static_assert(
       !is_nothrow_swappable_with<non_std_swappable&, non_std_swappable&>::value,
       "");
+#ifndef GUL_CXX_COMPILER_GCC48
   static_assert(
       !is_nothrow_swappable_with<non_swappable&, non_swappable&>::value, "");
+#endif
   static_assert(is_nothrow_swappable_with<std::std_nothrow_swappable&,
                                           std::std_nothrow_swappable&>::value,
                 "");
   static_assert(is_nothrow_swappable_with<non_std_nothrow_swappable&,
                                           non_std_nothrow_swappable&>::value,
                 "");
+#ifndef GUL_CXX_COMPILER_GCC48
   static_assert(!is_nothrow_swappable_with<nothrow_non_swappable&,
                                            nothrow_non_swappable&>::value,
                 "");
+#endif
   static_assert(!is_nothrow_swappable_with<non_std_swappable&, int&>::value,
                 "");
 }
@@ -95,10 +107,12 @@ TEST_CASE("is_nothrow_swappable")
   static_assert(is_nothrow_swappable<int>::value, "");
   static_assert(!is_nothrow_swappable<std::std_swappable>::value, "");
   static_assert(!is_nothrow_swappable<non_std_swappable>::value, "");
-  static_assert(!is_nothrow_swappable<non_swappable>::value, "");
   static_assert(is_nothrow_swappable<std::std_nothrow_swappable>::value, "");
   static_assert(is_nothrow_swappable<non_std_nothrow_swappable>::value, "");
+#ifndef GUL_CXX_COMPILER_GCC48
+  static_assert(!is_nothrow_swappable<non_swappable>::value, "");
   static_assert(!is_nothrow_swappable<nothrow_non_swappable>::value, "");
+#endif
 }
 
 TEST_CASE("is_nothrow_convertible")

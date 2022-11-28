@@ -153,11 +153,13 @@ struct optional_storage_base : optional_destruct_base<T> {
     return std::move(this->val_);
   }
 
+#ifndef GUL_CXX_COMPILER_GCC48
   GUL_CXX14_CONSTEXPR const T&& operator*() const&& noexcept
   {
     GUL_ASSERT(this->has_);
     return std::move(this->val_);
   }
+#endif
 
   GUL_CXX14_CONSTEXPR T& value() &
   {
@@ -183,6 +185,7 @@ struct optional_storage_base : optional_destruct_base<T> {
     return std::move(this->val_);
   }
 
+#ifndef GUL_CXX_COMPILER_GCC48
   GUL_CXX14_CONSTEXPR const T&& value() const&&
   {
     if (!this->has_) {
@@ -190,6 +193,7 @@ struct optional_storage_base : optional_destruct_base<T> {
     }
     return std::move(this->val_);
   }
+#endif
 
   template <typename... Args>
   GUL_CXX14_CONSTEXPR T& construct(Args&&... args)
@@ -265,13 +269,13 @@ struct optional_storage_base<T, true> : optional_throw_base {
     return *valptr_;
   }
 
-  GUL_CXX14_CONSTEXPR T&& operator*() const&& noexcept
+  GUL_CXX14_CONSTEXPR T&& operator*() && noexcept
   {
     GUL_ASSERT(has_value());
     return std::forward<T>(*valptr_);
   }
 
-  GUL_CXX14_CONSTEXPR T& value() const&
+  GUL_CXX14_CONSTEXPR const T& value() const&
   {
     if (!has_value()) {
       this->throw_bad_optional_access();
@@ -279,7 +283,7 @@ struct optional_storage_base<T, true> : optional_throw_base {
     return *valptr_;
   }
 
-  GUL_CXX14_CONSTEXPR T&& value() const&&
+  GUL_CXX14_CONSTEXPR T&& value() &&
   {
     if (!has_value()) {
       this->throw_bad_optional_access();
@@ -359,10 +363,12 @@ struct optional_storage_base<void, B> : optional_throw_base {
     GUL_ASSERT(has_);
   }
 
+#ifndef GUL_CXX_COMPILER_GCC48
   GUL_CXX14_CONSTEXPR void operator*() const&& noexcept
   {
     GUL_ASSERT(has_);
   }
+#endif
 
   GUL_CXX14_CONSTEXPR void value() &
   {
@@ -385,12 +391,14 @@ struct optional_storage_base<void, B> : optional_throw_base {
     }
   }
 
+#ifndef GUL_CXX_COMPILER_GCC48
   GUL_CXX14_CONSTEXPR void value() const&&
   {
     if (!has_value()) {
       this->throw_bad_optional_access();
     }
   }
+#endif
 
   GUL_CXX14_CONSTEXPR void construct() noexcept
   {
@@ -405,7 +413,7 @@ struct optional_storage_base<void, B> : optional_throw_base {
 
 template <typename T,
           bool = disjunction<std::is_void<T>,
-                             std::is_trivially_copy_constructible<T>>::value>
+                             detail::is_trivially_copy_constructible<T>>::value>
 struct optional_copy_construct_base : optional_storage_base<T> {
   using optional_storage_base<T>::optional_storage_base;
 };
@@ -436,7 +444,7 @@ struct optional_copy_construct_base<T, false> : optional_storage_base<T> {
 
 template <typename T,
           bool = disjunction<std::is_void<T>,
-                             std::is_trivially_move_constructible<T>>::value>
+                             detail::is_trivially_move_constructible<T>>::value>
 struct optional_move_construct_base : optional_copy_construct_base<T> {
   using optional_copy_construct_base<T>::optional_copy_construct_base;
 };
@@ -470,8 +478,8 @@ template <typename T,
           bool = disjunction<
               std::is_void<T>,
               conjunction<std::is_trivially_destructible<T>,
-                          std::is_trivially_copy_constructible<T>,
-                          std::is_trivially_copy_assignable<T>>>::value>
+                          detail::is_trivially_copy_constructible<T>,
+                          detail::is_trivially_copy_assignable<T>>>::value>
 struct optional_copy_assign_base : optional_move_construct_base<T> {
   using optional_move_construct_base<T>::optional_move_construct_base;
 };
@@ -504,8 +512,8 @@ template <typename T,
           bool = disjunction<
               std::is_void<T>,
               conjunction<std::is_trivially_destructible<T>,
-                          std::is_trivially_move_constructible<T>,
-                          std::is_trivially_move_assignable<T>>>::value>
+                          detail::is_trivially_move_constructible<T>,
+                          detail::is_trivially_move_assignable<T>>>::value>
 struct optional_move_assign_base : optional_copy_assign_base<T> {
   using optional_copy_assign_base<T>::optional_copy_assign_base;
 };
@@ -548,7 +556,8 @@ class optional : private detail::optional_move_assign_base<T> {
                              std::is_convertible<optional<U>&, T>,
                              std::is_convertible<const optional<U>&, T>,
                              std::is_convertible<optional<U>&&, T>,
-                             std::is_convertible<const optional<U>&&, T>>> { };
+                             std::is_convertible<const optional<U>&&, T>>> {
+  };
   template <typename U>
   struct is_optional_assignable
       : negation<conjunction<
@@ -564,7 +573,8 @@ class optional : private detail::optional_move_assign_base<T> {
             std::is_assignable<add_lvalue_reference_t<T>, const optional<U>&>,
             std::is_assignable<add_lvalue_reference_t<T>, optional<U>&&>,
             std::is_assignable<add_lvalue_reference_t<T>,
-                               const optional<U>&&>>> { };
+                               const optional<U>&&>>> {
+  };
 
   template <typename Self, typename F>
   static GUL_CXX14_CONSTEXPR auto
@@ -700,8 +710,11 @@ public:
 
   GUL_CXX14_CONSTEXPR optional(const optional&) = default;
 
-  GUL_CXX14_CONSTEXPR
-  optional(optional&&) noexcept(std::is_nothrow_move_constructible<T>::value)
+  GUL_CXX14_CONSTEXPR optional(optional&&)
+#ifndef GUL_CXX_COMPILER_GCC48
+      noexcept(disjunction<std::is_void<T>,
+                           std::is_nothrow_move_constructible<T>>::value)
+#endif
       = default;
 
   template <typename U,
@@ -749,9 +762,13 @@ public:
 
   GUL_CXX14_CONSTEXPR optional& operator=(const optional&) = default;
 
-  GUL_CXX14_CONSTEXPR optional& operator=(optional&&) noexcept(
-      conjunction<std::is_nothrow_move_assignable<T>,
-                  std::is_nothrow_move_constructible<T>>::value)
+  GUL_CXX14_CONSTEXPR optional& operator=(optional&&)
+#ifndef GUL_CXX_COMPILER_GCC48
+      noexcept(disjunction<
+               std::is_void<T>,
+               conjunction<std::is_nothrow_move_assignable<T>,
+                           std::is_nothrow_move_constructible<T>>>::value)
+#endif
       = default;
 
   template <
@@ -878,6 +895,7 @@ public:
                                   std::forward<F>(f));
   }
 
+#ifndef GUL_CXX_COMPILER_GCC48
   template <typename F>
   GUL_CXX14_CONSTEXPR auto
   and_then(F&& f) const&& -> decltype(optional_and_then_impl(
@@ -886,6 +904,7 @@ public:
     return optional_and_then_impl(std::is_void<T> {}, std::move(*this),
                                   std::forward<F>(f));
   }
+#endif
 
   template <typename F>
   GUL_CXX14_CONSTEXPR auto
@@ -916,6 +935,7 @@ public:
                                    std::forward<F>(f));
   }
 
+#ifndef GUL_CXX_COMPILER_GCC48
   template <typename F>
   GUL_CXX14_CONSTEXPR auto
   transform(F&& f) const&& -> decltype(optional_transform_impl(
@@ -924,6 +944,7 @@ public:
     return optional_transform_impl(std::is_void<T> {}, std::move(*this),
                                    std::forward<F>(f));
   }
+#endif
 
   template <typename F>
   GUL_CXX14_CONSTEXPR auto or_else(F&& f) & -> decltype(optional_or_else_impl(
@@ -949,6 +970,7 @@ public:
                                  std::forward<F>(f));
   }
 
+#ifndef GUL_CXX_COMPILER_GCC48
   template <typename F>
   GUL_CXX14_CONSTEXPR auto
   or_else(F&& f) const&& -> decltype(optional_or_else_impl(std::is_void<T> {},
@@ -958,6 +980,7 @@ public:
     return optional_or_else_impl(std::is_void<T> {}, std::move(*this),
                                  std::forward<F>(f));
   }
+#endif
 
   GUL_CXX14_CONSTEXPR void swap(optional& other) noexcept(
       conjunction<std::is_nothrow_move_constructible<T>,

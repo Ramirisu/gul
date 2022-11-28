@@ -47,6 +47,14 @@
 #endif
 // clang-format on
 
+#if defined(__GNUC__) && !defined(__clang__)
+#define GUL_CXX_COMPILER_GCC
+#endif
+
+#if defined(GUL_CXX_COMPILER_GCC) && __GNUC__ < 5
+#define GUL_CXX_COMPILER_GCC48
+#endif
+
 #ifdef GUL_HAS_CXX14
 #define GUL_CXX14_CONSTEXPR constexpr
 #else

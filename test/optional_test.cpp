@@ -19,7 +19,7 @@ class default_constructible : public std::vector<T> {
   using base_type = std::vector<T>;
 
 public:
-  default_constructible() noexcept = default;
+  default_constructible() = default;
 
   default_constructible(int value)
       : base_type({ value })
@@ -63,31 +63,41 @@ struct assert_is_same {
 TEST_CASE("type assertion")
 {
   using type_void = optional<void>;
-  static_assert(std::is_trivially_copy_constructible<type_void>::value, "");
-  static_assert(std::is_trivially_move_constructible<type_void>::value, "");
-  static_assert(std::is_trivially_copy_assignable<type_void>::value, "");
-  static_assert(std::is_trivially_move_assignable<type_void>::value, "");
+  static_assert(detail::is_trivially_copy_constructible<type_void>::value, "");
+  static_assert(detail::is_trivially_copy_assignable<type_void>::value, "");
+#ifndef GUL_CXX_COMPILER_GCC48
+  static_assert(detail::is_trivially_move_constructible<type_void>::value, "");
+  static_assert(detail::is_trivially_move_assignable<type_void>::value, "");
+#endif
   static_assert(std::is_trivially_destructible<type_void>::value, "");
 
   using type_int = optional<int>;
-  static_assert(std::is_trivially_copy_constructible<type_int>::value, "");
-  static_assert(std::is_trivially_move_constructible<type_int>::value, "");
-  static_assert(std::is_trivially_copy_assignable<type_int>::value, "");
-  static_assert(std::is_trivially_move_assignable<type_int>::value, "");
+  static_assert(detail::is_trivially_copy_constructible<type_int>::value, "");
+  static_assert(detail::is_trivially_copy_assignable<type_int>::value, "");
+#ifndef GUL_CXX_COMPILER_GCC48
+  static_assert(detail::is_trivially_move_constructible<type_int>::value, "");
+  static_assert(detail::is_trivially_move_assignable<type_int>::value, "");
+#endif
   static_assert(std::is_trivially_destructible<type_int>::value, "");
 
   using type_nt = optional<dc<int>>;
-  static_assert(!std::is_trivially_copy_constructible<type_nt>::value, "");
-  static_assert(!std::is_trivially_move_constructible<type_nt>::value, "");
-  static_assert(!std::is_trivially_copy_assignable<type_nt>::value, "");
-  static_assert(!std::is_trivially_move_assignable<type_nt>::value, "");
+  static_assert(!detail::is_trivially_copy_constructible<type_nt>::value, "");
+  static_assert(!detail::is_trivially_copy_assignable<type_nt>::value, "");
+#ifndef GUL_CXX_COMPILER_GCC48
+  static_assert(!detail::is_trivially_move_constructible<type_nt>::value, "");
+  static_assert(!detail::is_trivially_move_assignable<type_nt>::value, "");
+#endif
   static_assert(!std::is_trivially_destructible<type_nt>::value, "");
 
   using type_int_ref = optional<int&>;
-  static_assert(std::is_trivially_copy_constructible<type_int_ref>::value, "");
-  static_assert(std::is_trivially_move_constructible<type_int_ref>::value, "");
-  static_assert(std::is_trivially_copy_assignable<type_int_ref>::value, "");
-  static_assert(std::is_trivially_move_assignable<type_int_ref>::value, "");
+  static_assert(detail::is_trivially_copy_constructible<type_int_ref>::value,
+                "");
+#ifndef GUL_CXX_COMPILER_GCC48
+  static_assert(detail::is_trivially_copy_assignable<type_int_ref>::value, "");
+  static_assert(detail::is_trivially_move_constructible<type_int_ref>::value,
+                "");
+  static_assert(detail::is_trivially_move_assignable<type_int_ref>::value, "");
+#endif
   static_assert(std::is_trivially_destructible<type_int_ref>::value, "");
 }
 
@@ -587,7 +597,9 @@ TEST_CASE("operator*")
   assert_is_same<deref_op, optional<int>&, int&>();
   assert_is_same<deref_op, const optional<int>&, const int&>();
   assert_is_same<deref_op, optional<int>, int&&>();
+#ifndef GUL_CXX_COMPILER_GCC48
   assert_is_same<deref_op, const optional<int>, const int&&>();
+#endif
   assert_is_same<deref_op, optional<int&>&, int&>();
   assert_is_same<deref_op, const optional<int&>&, int&>();
   assert_is_same<deref_op, optional<int&>, int&>();
@@ -639,7 +651,9 @@ TEST_CASE("value")
   assert_is_same<fn_value, optional<int>&, int&>();
   assert_is_same<fn_value, const optional<int>&, const int&>();
   assert_is_same<fn_value, optional<int>, int&&>();
+#ifndef GUL_CXX_COMPILER_GCC48
   assert_is_same<fn_value, const optional<int>, const int&&>();
+#endif
   assert_is_same<fn_value, optional<int&>&, int&>();
   assert_is_same<fn_value, const optional<int&>&, int&>();
   assert_is_same<fn_value, optional<int&>, int&>();

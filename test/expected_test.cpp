@@ -201,38 +201,52 @@ TEST_CASE("unexpected")
 TEST_CASE("trivially")
 {
   using type_void = expected<void, int>;
-  static_assert(std::is_trivially_copy_constructible<type_void>::value, "");
-  static_assert(std::is_trivially_move_constructible<type_void>::value, "");
-  static_assert(std::is_trivially_copy_assignable<type_void>::value, "");
-  static_assert(std::is_trivially_move_assignable<type_void>::value, "");
+  static_assert(detail::is_trivially_copy_constructible<type_void>::value, "");
+  static_assert(detail::is_trivially_copy_assignable<type_void>::value, "");
+#ifndef GUL_CXX_COMPILER_GCC48
+  static_assert(detail::is_trivially_move_constructible<type_void>::value, "");
+  static_assert(detail::is_trivially_move_assignable<type_void>::value, "");
+#endif
   static_assert(std::is_trivially_destructible<type_void>::value, "");
 
   using type_int = expected<int, int>;
-  static_assert(std::is_trivially_copy_constructible<type_int>::value, "");
-  static_assert(std::is_trivially_move_constructible<type_int>::value, "");
-  static_assert(std::is_trivially_copy_assignable<type_int>::value, "");
-  static_assert(std::is_trivially_move_assignable<type_int>::value, "");
+  static_assert(detail::is_trivially_copy_constructible<type_int>::value, "");
+  static_assert(detail::is_trivially_copy_assignable<type_int>::value, "");
+#ifndef GUL_CXX_COMPILER_GCC48
+  static_assert(detail::is_trivially_move_constructible<type_int>::value, "");
+  static_assert(detail::is_trivially_move_assignable<type_int>::value, "");
+#endif
   static_assert(std::is_trivially_destructible<type_int>::value, "");
 
   using type_int_dc = expected<int, dc<int>>;
-  static_assert(!std::is_trivially_copy_constructible<type_int_dc>::value, "");
-  static_assert(!std::is_trivially_move_constructible<type_int_dc>::value, "");
-  static_assert(!std::is_trivially_copy_assignable<type_int_dc>::value, "");
-  static_assert(!std::is_trivially_move_assignable<type_int_dc>::value, "");
+  static_assert(!detail::is_trivially_copy_constructible<type_int_dc>::value,
+                "");
+  static_assert(!detail::is_trivially_copy_assignable<type_int_dc>::value, "");
+#ifndef GUL_CXX_COMPILER_GCC48
+  static_assert(!detail::is_trivially_move_constructible<type_int_dc>::value,
+                "");
+  static_assert(!detail::is_trivially_move_assignable<type_int_dc>::value, "");
+#endif
   static_assert(!std::is_trivially_destructible<type_int_dc>::value, "");
 
   using type_dc_int = expected<dc<int>, int>;
-  static_assert(!std::is_trivially_copy_constructible<type_dc_int>::value, "");
-  static_assert(!std::is_trivially_move_constructible<type_dc_int>::value, "");
-  static_assert(!std::is_trivially_copy_assignable<type_dc_int>::value, "");
-  static_assert(!std::is_trivially_move_assignable<type_dc_int>::value, "");
+  static_assert(!detail::is_trivially_copy_constructible<type_dc_int>::value,
+                "");
+  static_assert(!detail::is_trivially_copy_assignable<type_dc_int>::value, "");
+#ifndef GUL_CXX_COMPILER_GCC48
+  static_assert(!detail::is_trivially_move_constructible<type_dc_int>::value,
+                "");
+  static_assert(!detail::is_trivially_move_assignable<type_dc_int>::value, "");
+#endif
   static_assert(!std::is_trivially_destructible<type_dc_int>::value, "");
 
   using type_dc = expected<dc<int>, dc<int>>;
-  static_assert(!std::is_trivially_copy_constructible<type_dc>::value, "");
-  static_assert(!std::is_trivially_move_constructible<type_dc>::value, "");
-  static_assert(!std::is_trivially_copy_assignable<type_dc>::value, "");
-  static_assert(!std::is_trivially_move_assignable<type_dc>::value, "");
+  static_assert(!detail::is_trivially_copy_constructible<type_dc>::value, "");
+  static_assert(!detail::is_trivially_copy_assignable<type_dc>::value, "");
+#ifndef GUL_CXX_COMPILER_GCC48
+  static_assert(!detail::is_trivially_move_constructible<type_dc>::value, "");
+  static_assert(!detail::is_trivially_move_assignable<type_dc>::value, "");
+#endif
   static_assert(!std::is_trivially_destructible<type_dc>::value, "");
 }
 
@@ -454,7 +468,9 @@ TEST_CASE("operator*")
   assert_is_same<deref_op, expected<int, int>&, int&>();
   assert_is_same<deref_op, const expected<int, int>&, const int&>();
   assert_is_same<deref_op, expected<int, int>, int&&>();
+#ifndef GUL_CXX_COMPILER_GCC48
   assert_is_same<deref_op, const expected<int, int>, const int&&>();
+#endif
   {
     auto exp = expected<int, int>(1);
     CHECK_EQ(*exp, 1);
@@ -520,7 +536,10 @@ TEST_CASE("value")
   assert_is_same<fn_value, expected<int, int>&, int&>();
   assert_is_same<fn_value, const expected<int, int>&, const int&>();
   assert_is_same<fn_value, expected<int, int>, int&&>();
+#ifndef GUL_CXX_COMPILER_GCC48
   assert_is_same<fn_value, const expected<int, int>, const int&&>();
+#endif
+
 #if !GUL_NO_EXCEPTIONS
   {
     auto exp = expected<void, int>(unexpect);
@@ -977,13 +996,10 @@ TEST_CASE("swap")
     }
 
     throw_move_constructible(const throw_move_constructible&) = default;
-    throw_move_constructible(throw_move_constructible&&) noexcept(false)
-        = default;
+    throw_move_constructible(throw_move_constructible&&) = default;
     throw_move_constructible& operator=(const throw_move_constructible&)
         = default;
-    throw_move_constructible&
-    operator=(throw_move_constructible&&) noexcept(false)
-        = default;
+    throw_move_constructible& operator=(throw_move_constructible&&) = default;
 
     int v() const noexcept
     {
