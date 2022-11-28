@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 jobs:
   build:
-    runs-on: ${{matrix.os}}
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
@@ -14,6 +14,7 @@ jobs:
         build_type: [Debug]
         generators: [Ninja]
         extra_args: [""]
+        install: [""]
         exclude:
           - os: windows-2022
             cxx: clang++-14
@@ -25,27 +26,37 @@ jobs:
             cxx: cl
         include:
           - os: ubuntu-20.04
-            cxx: g++-5
+            cxx: g++-4.8
             std: 11
             build_type: Debug
             generators: Ninja
+            install: sudo apt install g++-4.8
+          - os: ubuntu-20.04
+            cxx: g++-4.8
+            std: 11
+            build_type: Debug
+            generators: Ninja
+            extra_args: -DCMAKE_CXX_FLAGS=-fno-exceptions
+            install: sudo apt install g++-4.8
           - os: ubuntu-20.04
             cxx: g++-5
             std: 11
             build_type: Debug
             generators: Ninja
-            extra_args: -DCMAKE_CXX_FLAGS=-fno-exceptions
+            install: sudo apt install g++-5
           - os: ubuntu-20.04
             cxx: clang++-9
             std: 11
             build_type: Debug
             generators: Ninja
+            install: sudo apt install clang-9
           - os: ubuntu-20.04
             cxx: clang++-9
             std: 11
             build_type: Debug
             generators: Ninja
             extra_args: -DCMAKE_CXX_FLAGS=-fno-exceptions
+            install: sudo apt install clang-9
           - os: windows-2019
             cxx: cl
             std: 14
@@ -71,17 +82,12 @@ jobs:
         if: matrix.cxx == 'cl'
         uses: ilammy/msvc-dev-cmd@v1
 
-      - name: Install g++-5
-        if: matrix.cxx == 'g++-5'
+      - name: Add GCC 4.8 5.5 6.4
+        if: matrix.os == 'ubuntu-20.04'
         run: |
-          # Bellow two repos provide GCC 4.8, and 6.4
+          # Bellow two repos provide GCC 4.8 5.5 6.4
           sudo apt-add-repository 'deb http://azure.archive.ubuntu.com/ubuntu/ bionic main'
           sudo apt-add-repository 'deb http://azure.archive.ubuntu.com/ubuntu/ bionic universe'
-          sudo apt install g++-5
-
-      - name: Install clang-9
-        if: matrix.cxx == 'clang++-9'
-        run: sudo apt install clang-9
 
       - name: Install dependencies on windows
         if: startsWith(matrix.os, 'windows')
@@ -95,9 +101,9 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install ninja-build cmake
+          ${{ matrix.install }}
           ninja --version
           cmake --version
-          gcc --version
 
       - name: Install dependencies on macos
         if: startsWith(matrix.os, 'macos')
@@ -112,12 +118,12 @@ jobs:
           mkdir build
           cmake \
             -B . \
-            -G "${{matrix.generators}}" \
-            -DCMAKE_BUILD_TYPE=${{matrix.build_type}} \
-            -DCMAKE_CXX_COMPILER=${{matrix.cxx}} \
-            -DCMAKE_CXX_STANDARD:STRING=${{matrix.std}} \
+            -G "${{ matrix.generators }}" \
+            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+            -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} \
+            -DCMAKE_CXX_STANDARD:STRING=${{ matrix.std }} \
             -DGUL_BUILD_TESTS=ON \
-            ${{matrix.extra_args}}
+            ${{ matrix.extra_args }}
 
       - name: Build
         shell: bash
