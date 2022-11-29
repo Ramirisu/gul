@@ -56,49 +56,52 @@ using fn_value = decltype(std::declval<Exp>().value());
 
 template <template <typename...> class Op, typename Test, typename Expected>
 struct assert_is_same {
-  static_assert(std::is_same<Op<Test>, Expected>::value, "");
+  STATIC_ASSERT(std::is_same<Op<Test>, Expected>::value);
 };
 }
 
 TEST_CASE("type assertion")
 {
-  using type_void = optional<void>;
-  static_assert(detail::is_trivially_copy_constructible<type_void>::value, "");
-  static_assert(detail::is_trivially_copy_assignable<type_void>::value, "");
+  {
+    using type = optional<void>;
+    STATIC_ASSERT(detail::is_trivially_copy_constructible<type>::value);
+    STATIC_ASSERT(detail::is_trivially_copy_assignable<type>::value);
 #ifndef GUL_CXX_COMPILER_GCC48
-  static_assert(detail::is_trivially_move_constructible<type_void>::value, "");
-  static_assert(detail::is_trivially_move_assignable<type_void>::value, "");
+    STATIC_ASSERT(detail::is_trivially_move_constructible<type>::value);
+    STATIC_ASSERT(detail::is_trivially_move_assignable<type>::value);
 #endif
-  static_assert(std::is_trivially_destructible<type_void>::value, "");
-
-  using type_int = optional<int>;
-  static_assert(detail::is_trivially_copy_constructible<type_int>::value, "");
-  static_assert(detail::is_trivially_copy_assignable<type_int>::value, "");
+    STATIC_ASSERT(std::is_trivially_destructible<type>::value);
+  }
+  {
+    using type = optional<int>;
+    STATIC_ASSERT(detail::is_trivially_copy_constructible<type>::value);
+    STATIC_ASSERT(detail::is_trivially_copy_assignable<type>::value);
 #ifndef GUL_CXX_COMPILER_GCC48
-  static_assert(detail::is_trivially_move_constructible<type_int>::value, "");
-  static_assert(detail::is_trivially_move_assignable<type_int>::value, "");
+    STATIC_ASSERT(detail::is_trivially_move_constructible<type>::value);
+    STATIC_ASSERT(detail::is_trivially_move_assignable<type>::value);
 #endif
-  static_assert(std::is_trivially_destructible<type_int>::value, "");
-
-  using type_nt = optional<dc<int>>;
-  static_assert(!detail::is_trivially_copy_constructible<type_nt>::value, "");
-  static_assert(!detail::is_trivially_copy_assignable<type_nt>::value, "");
+    STATIC_ASSERT(std::is_trivially_destructible<type>::value);
+  }
+  {
+    using type = optional<dc<int>>;
+    STATIC_ASSERT(!detail::is_trivially_copy_constructible<type>::value);
+    STATIC_ASSERT(!detail::is_trivially_copy_assignable<type>::value);
 #ifndef GUL_CXX_COMPILER_GCC48
-  static_assert(!detail::is_trivially_move_constructible<type_nt>::value, "");
-  static_assert(!detail::is_trivially_move_assignable<type_nt>::value, "");
+    STATIC_ASSERT(!detail::is_trivially_move_constructible<type>::value);
+    STATIC_ASSERT(!detail::is_trivially_move_assignable<type>::value);
 #endif
-  static_assert(!std::is_trivially_destructible<type_nt>::value, "");
-
-  using type_int_ref = optional<int&>;
-  static_assert(detail::is_trivially_copy_constructible<type_int_ref>::value,
-                "");
+    STATIC_ASSERT(!std::is_trivially_destructible<type>::value);
+  }
+  {
+    using type = optional<int&>;
+    STATIC_ASSERT(detail::is_trivially_copy_constructible<type>::value);
 #ifndef GUL_CXX_COMPILER_GCC48
-  static_assert(detail::is_trivially_copy_assignable<type_int_ref>::value, "");
-  static_assert(detail::is_trivially_move_constructible<type_int_ref>::value,
-                "");
-  static_assert(detail::is_trivially_move_assignable<type_int_ref>::value, "");
+    STATIC_ASSERT(detail::is_trivially_copy_assignable<type>::value);
+    STATIC_ASSERT(detail::is_trivially_move_constructible<type>::value);
+    STATIC_ASSERT(detail::is_trivially_move_assignable<type>::value);
 #endif
-  static_assert(std::is_trivially_destructible<type_int_ref>::value, "");
+    STATIC_ASSERT(std::is_trivially_destructible<type>::value);
+  }
 }
 
 TEST_CASE("has_value")
@@ -1136,8 +1139,8 @@ TEST_CASE("compare")
 
 TEST_CASE("deduction guide")
 {
-  static_assert(is_same<decltype(optional(1)), optional<int>>::value);
-  static_assert(
+  STATIC_ASSERT(is_same<decltype(optional(1)), optional<int>>::value);
+  STATIC_ASSERT(
       is_same<decltype(optional(dc<int>(1))), optional<dc<int>>>::value);
 }
 

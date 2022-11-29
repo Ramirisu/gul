@@ -41,25 +41,25 @@ TEST_CASE("exchange")
 {
   {
     auto x = movable<true, true>(0);
-    static_assert(noexcept(exchange(x, movable<true, true>(1))), "");
+    STATIC_ASSERT(noexcept(exchange(x, movable<true, true>(1))));
     CHECK_EQ(exchange(x, movable<true, true>(1)), movable<true, true>(0));
     CHECK_EQ(x, movable<true, true>(1));
   }
   {
     auto x = movable<false, true>(0);
-    static_assert(!noexcept(exchange(x, movable<false, true>(1))), "");
+    STATIC_ASSERT(!noexcept(exchange(x, movable<false, true>(1))));
     CHECK_EQ(exchange(x, movable<false, true>(1)), movable<false, true>(0));
     CHECK_EQ(x, movable<false, true>(1));
   }
   {
     auto x = movable<true, false>(0);
-    static_assert(!noexcept(exchange(x, movable<true, false>(1))), "");
+    STATIC_ASSERT(!noexcept(exchange(x, movable<true, false>(1))));
     CHECK_EQ(exchange(x, movable<true, false>(1)), movable<true, false>(0));
     CHECK_EQ(x, movable<true, false>(1));
   }
   {
     auto x = movable<false, false>(0);
-    static_assert(!noexcept(exchange(x, movable<false, false>(1))), "");
+    STATIC_ASSERT(!noexcept(exchange(x, movable<false, false>(1))));
     CHECK_EQ(exchange(x, movable<false, false>(1)), movable<false, false>(0));
     CHECK_EQ(x, movable<false, false>(1));
   }

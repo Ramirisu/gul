@@ -12,8 +12,10 @@
 
 #include <type_traits>
 
+#define STATIC_ASSERT(...) static_assert(__VA_ARGS__, "")
+
 template <typename L, typename R>
 void static_assert_same()
 {
-  static_assert(std::is_same<L, R>::value, "");
+  STATIC_ASSERT(std::is_same<L, R>::value);
 };
