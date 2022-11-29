@@ -87,8 +87,9 @@ constexpr auto invoke_memptr_impl(Pointed C::*f, T1&& t1, Args&&...) noexcept(
     noexcept(invoke_memobj_impl(f, std::forward<T1>(t1))))
     -> decltype(invoke_memobj_impl(f, std::forward<T1>(t1)))
 {
-  static_assert(sizeof...(Args) == 0,
-                "member object should be called with no argument");
+  static_assert(
+      sizeof...(Args) == 0,
+      "[invoke_memptr_impl] member object should be called with no argument");
   return invoke_memobj_impl(f, std::forward<T1>(t1));
 }
 

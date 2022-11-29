@@ -658,15 +658,17 @@ class optional : private detail::optional_move_assign_base<T> {
 
 public:
   static_assert(!std::is_same<remove_cvref_t<T>, in_place_t>::value,
-                "[optional] T = `in_place_t` is ill-formed.");
+                "[optional] T must not be in_place_t");
   static_assert(!std::is_same<remove_cvref_t<T>, nullopt_t>::value,
-                "[optional] T = `nullopt_t` is ill-formed.");
+                "[optional] T must not be nullopt_t");
   static_assert(
       disjunction<std::is_void<T>,
                   std::is_destructible<T>,
                   std::is_lvalue_reference<T>>::value,
-      "[optional] T can be `void`, destructible or lvalue reference type.");
-  static_assert(!std::is_array<T>::value, "[optional] T = U[] is ill-formed.");
+      "[optional] T can be a void type, a destructible type or a lvalue "
+      "reference type");
+  static_assert(!std::is_array<T>::value,
+                "[optional] T must not be an array type");
 
   using value_type = T;
 

@@ -90,48 +90,48 @@ struct cmp_impl {
 template <typename T, typename U>
 GUL_CXX14_CONSTEXPR bool cmp_equal(T t, U u) noexcept
 {
-  static_assert(std::is_integral<T>::value, "T must be integral type");
-  static_assert(std::is_integral<U>::value, "U must be integral type");
+  static_assert(std::is_integral<T>::value, "T must be an integral type");
+  static_assert(std::is_integral<U>::value, "U must be an integral type");
   return detail::cmp_impl<T, U>::eq(t, u);
 }
 
 template <typename T, typename U>
 GUL_CXX14_CONSTEXPR bool cmp_not_equal(T t, U u) noexcept
 {
-  static_assert(std::is_integral<T>::value, "T must be integral type");
-  static_assert(std::is_integral<U>::value, "U must be integral type");
+  static_assert(std::is_integral<T>::value, "T must be an integral type");
+  static_assert(std::is_integral<U>::value, "U must be an integral type");
   return !cmp_equal(t, u);
 }
 
 template <typename T, typename U>
 GUL_CXX14_CONSTEXPR bool cmp_less(T t, U u) noexcept
 {
-  static_assert(std::is_integral<T>::value, "T must be integral type");
-  static_assert(std::is_integral<U>::value, "U must be integral type");
+  static_assert(std::is_integral<T>::value, "T must be an integral type");
+  static_assert(std::is_integral<U>::value, "U must be an integral type");
   return detail::cmp_impl<T, U>::lt(t, u);
 }
 
 template <typename T, typename U>
 GUL_CXX14_CONSTEXPR bool cmp_greater(T t, U u) noexcept
 {
-  static_assert(std::is_integral<T>::value, "T must be integral type");
-  static_assert(std::is_integral<U>::value, "U must be integral type");
+  static_assert(std::is_integral<T>::value, "T must be an integral type");
+  static_assert(std::is_integral<U>::value, "U must be an integral type");
   return detail::cmp_impl<T, U>::lt(u, t);
 }
 
 template <typename T, typename U>
 GUL_CXX14_CONSTEXPR bool cmp_less_equal(T t, U u) noexcept
 {
-  static_assert(std::is_integral<T>::value, "T must be integral type");
-  static_assert(std::is_integral<U>::value, "U must be integral type");
+  static_assert(std::is_integral<T>::value, "T must be an integral type");
+  static_assert(std::is_integral<U>::value, "U must be an integral type");
   return !cmp_greater(t, u);
 }
 
 template <typename T, typename U>
 GUL_CXX14_CONSTEXPR bool cmp_greater_equal(T t, U u) noexcept
 {
-  static_assert(std::is_integral<T>::value, "T must be integral type");
-  static_assert(std::is_integral<U>::value, "U must be integral type");
+  static_assert(std::is_integral<T>::value, "T must be an integral type");
+  static_assert(std::is_integral<U>::value, "U must be an integral type");
   return !cmp_less(t, u);
 }
 

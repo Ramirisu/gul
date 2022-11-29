@@ -44,8 +44,8 @@ Requirements
 CMake
 
 ```cmake
-  add_executable(your_exe)
-  target_link_libraries(your_exe PRIVATE gul)
+  add_executable(name)
+  target_link_libraries(name PRIVATE gul)
 ```
 
 gul is header-only. Just `#include` the header file `all.hpp` to utilize all features.

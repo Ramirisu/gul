@@ -30,9 +30,14 @@ class unexpected {
   E err_;
 
 public:
-  static_assert(
-      !std::is_void<E>::value,
-      "instantiation of unexpected with <E = in_place_t> is ill-formed");
+  static_assert(std::is_same<remove_cv_t<E>, E>::value,
+                "[unexpected] E must not be cv-qualified");
+  static_assert(std::is_object<E>::value,
+                "[unexpected] E must be an object type");
+  static_assert(!std::is_array<E>::value,
+                "[unexpected] E must not be an array type");
+  static_assert(!detail::is_specialization_of<E, gul::unexpected>::value,
+                "[unexpected] E must not be a specialization of unexpected");
 
   using error_type = E;
 
@@ -992,8 +997,13 @@ class expected : private detail::expected_move_assign_base<T, E>,
   {
     using Err = remove_cvref_t<decltype(std::declval<Self>().error())>;
     using Exp = remove_cvref_t<invoke_result_t<F>>;
-    static_assert(detail::is_specialization_of<Exp, gul::expected>::value, "");
-    static_assert(std::is_same<typename Exp::error_type, Err>::value, "");
+    static_assert(detail::is_specialization_of<Exp, gul::expected>::value,
+                  "[expected::and_then] result of `F` must be a specialization "
+                  "of `expected`");
+    static_assert(
+        std::is_same<typename Exp::error_type, Err>::value,
+        "[expected::and_then] result of `F` must be a specialization of "
+        "`expected` whose error type is identical to E");
     if (self.has_value()) {
       return Exp(invoke(std::forward<F>(f)));
     } else {
@@ -1010,8 +1020,13 @@ class expected : private detail::expected_move_assign_base<T, E>,
     using Val = decltype(std::declval<Self>().value());
     using Err = remove_cvref_t<decltype(std::declval<Self>().error())>;
     using Exp = remove_cvref_t<invoke_result_t<F, Val>>;
-    static_assert(detail::is_specialization_of<Exp, gul::expected>::value, "");
-    static_assert(std::is_same<typename Exp::error_type, Err>::value, "");
+    static_assert(detail::is_specialization_of<Exp, gul::expected>::value,
+                  "[expected::and_then]result of `F` must be a specialization "
+                  "of `expected`");
+    static_assert(
+        std::is_same<typename Exp::error_type, Err>::value,
+        "[expected::and_then]result of `F` must be a specialization of "
+        "`expected` whose error type is identical to E");
     if (self.has_value()) {
       return Exp(invoke(std::forward<F>(f), std::forward<Self>(self).value()));
     } else {
@@ -1026,8 +1041,13 @@ class expected : private detail::expected_move_assign_base<T, E>,
   {
     using Exp = remove_cvref_t<invoke_result_t<F>>;
     using Val = typename Exp::value_type;
-    static_assert(detail::is_specialization_of<Exp, gul::expected>::value, "");
-    static_assert(std::is_same<typename Exp::value_type, Val>::value, "");
+    static_assert(detail::is_specialization_of<Exp, gul::expected>::value,
+                  "[expected::or_else] result of `F` must be a specialization "
+                  "of `expected`");
+    static_assert(
+        std::is_same<typename Exp::value_type, Val>::value,
+        "[expected::or_else] result of `F` must be a specialization of "
+        "`expected` whose value type is identical to T");
     if (self.has_value()) {
       return Exp();
     } else {
@@ -1044,8 +1064,13 @@ class expected : private detail::expected_move_assign_base<T, E>,
     using Err = decltype(std::declval<Self>().error());
     using Exp = remove_cvref_t<invoke_result_t<F, Err>>;
     using Val = typename Exp::value_type;
-    static_assert(detail::is_specialization_of<Exp, gul::expected>::value, "");
-    static_assert(std::is_same<typename Exp::value_type, Val>::value, "");
+    static_assert(detail::is_specialization_of<Exp, gul::expected>::value,
+                  "[expected::or_else] result of `F` must be a specialization "
+                  "of `expected`");
+    static_assert(
+        std::is_same<typename Exp::value_type, Val>::value,
+        "[expected::or_else] result of `F` must be a specialization of "
+        "`expected` whose value type is identical to T");
     if (self.has_value()) {
       return Exp(in_place, std::forward<Self>(self).value());
     } else {
@@ -1062,13 +1087,6 @@ class expected : private detail::expected_move_assign_base<T, E>,
     using Err = remove_cvref_t<decltype(std::declval<Self>().error())>;
     using T2 = remove_cvref_t<invoke_result_t<F>>;
     using Exp = expected<T2, Err>;
-    static_assert(
-        disjunction<std::is_void<Exp>,
-                    conjunction<negation<std::is_same<Exp, in_place_t>>,
-                                negation<std::is_same<Exp, unexpect_t>>,
-                                negation<detail::is_specialization_of<
-                                    Exp, unexpected>>>>::value,
-        "");
     if (self.has_value()) {
       return Exp(invoke(std::forward<F>(f)));
     } else {
@@ -1087,13 +1105,6 @@ class expected : private detail::expected_move_assign_base<T, E>,
     using Err = remove_cvref_t<decltype(std::declval<Self>().error())>;
     using Val2 = remove_cvref_t<invoke_result_t<F, Val>>;
     using Exp = expected<Val2, Err>;
-    static_assert(
-        disjunction<std::is_void<Exp>,
-                    conjunction<negation<std::is_same<Exp, in_place_t>>,
-                                negation<std::is_same<Exp, unexpect_t>>,
-                                negation<detail::is_specialization_of<
-                                    Exp, unexpected>>>>::value,
-        "");
     if (self.has_value()) {
       return Exp(invoke(std::forward<F>(f), std::forward<Self>(self).value()));
     } else {
@@ -1112,12 +1123,6 @@ class expected : private detail::expected_move_assign_base<T, E>,
     using Err = remove_cvref_t<decltype(std::declval<Self>().error())>;
     using Err2 = remove_cvref_t<invoke_result_t<F, Err>>;
     using Exp = expected<Val, Err2>;
-    static_assert(
-        conjunction<
-            negation<std::is_same<Exp, in_place_t>>,
-            negation<std::is_same<Exp, unexpect_t>>,
-            negation<detail::is_specialization_of<Exp, unexpected>>>::value,
-        "");
     if (self.has_value()) {
       return Exp(in_place);
     } else {
@@ -1137,12 +1142,6 @@ class expected : private detail::expected_move_assign_base<T, E>,
     using Err = remove_cvref_t<decltype(std::declval<Self>().error())>;
     using Err2 = remove_cvref_t<invoke_result_t<F, Err>>;
     using Exp = expected<Val, Err2>;
-    static_assert(
-        conjunction<
-            negation<std::is_same<Exp, in_place_t>>,
-            negation<std::is_same<Exp, unexpect_t>>,
-            negation<detail::is_specialization_of<Exp, unexpected>>>::value,
-        "");
     if (self.has_value()) {
       return Exp(in_place, std::forward<Self>(self).value());
     } else {
@@ -1152,27 +1151,25 @@ class expected : private detail::expected_move_assign_base<T, E>,
   }
 
 public:
-  static_assert(
-      !std::is_same<remove_cvref_t<T>, in_place_t>::value,
-      "instantiation of expected with <T = in_place_t> is ill-formed");
-  static_assert(
-      !std::is_same<remove_cvref_t<T>, unexpect_t>::value,
-      "instantiation of expected with <T = unexpect_t> is ill-formed");
-  static_assert(!std::is_void<remove_cvref_t<E>>::value,
-                "instantiation of expected with <E = void> is ill-formed");
-  static_assert(
-      !std::is_same<remove_cvref_t<E>, in_place_t>::value,
-      "instantiation of expected with <E = in_place_t> is ill-formed");
-  static_assert(
-      !std::is_same<remove_cvref_t<E>, unexpect_t>::value,
-      "instantiation of expected with <E = unexpect_t> is ill-formed");
   static_assert(!std::is_reference<T>::value,
-                "instantiation of expected with <T = &> is ill-formed");
-  static_assert(disjunction<std::is_void<T>, std::is_destructible<T>>::value,
-                "instantiation of expected with <T = [non-void] and "
-                "[non-destructible]> is ill-formed");
-  static_assert(!std::is_array<T>::value,
-                "instantiation of expected with <T = []> is ill-formed");
+                "[expected] T must not be a reference type");
+  static_assert(!std::is_function<T>::value,
+                "[expected] T must not be an function type");
+  static_assert(!std::is_same<remove_cvref_t<T>, in_place_t>::value,
+                "[expected] T must not be in_place_t");
+  static_assert(!std::is_same<remove_cvref_t<T>, unexpect_t>::value,
+                "[expected] T must not be unexpect_t");
+  static_assert(!detail::is_specialization_of<T, unexpected>::value,
+                "[expected] T must not be a specialization of unexpected");
+
+  static_assert(std::is_same<remove_cv_t<E>, E>::value,
+                "[expected] E must not be cv-qualified");
+  static_assert(std::is_object<E>::value,
+                "[expected] E must be an object type");
+  static_assert(!std::is_array<E>::value,
+                "[expected] E must not be an array type");
+  static_assert(!detail::is_specialization_of<E, gul::unexpected>::value,
+                "[expected] E must not be a specialization of unexpected");
 
   using value_type = T;
   using error_type = E;
@@ -1445,6 +1442,10 @@ public:
   template <typename U = T>
   GUL_CXX14_CONSTEXPR T value_or(U&& default_value) const&
   {
+    static_assert(std::is_copy_constructible<T>::value,
+                  "[expected::value_or] T must be copy constructible");
+    static_assert(std::is_convertible<U, T>::value,
+                  "[expected::value_or] U must be convertible to T");
     if (this->has_value()) {
       return value();
     } else {
@@ -1455,6 +1456,10 @@ public:
   template <typename U = T>
   GUL_CXX14_CONSTEXPR T value_or(U&& default_value) &&
   {
+    static_assert(std::is_move_constructible<T>::value,
+                  "[expected::value_or] T must be move constructible");
+    static_assert(std::is_convertible<U, T>::value,
+                  "[expected::value_or] U must be convertible to T");
     if (this->has_value()) {
       return std::move(value());
     } else {
@@ -1465,8 +1470,10 @@ public:
   template <typename U = E>
   GUL_CXX14_CONSTEXPR E error_or(U&& default_error) const&
   {
-    static_assert(std::is_copy_constructible<E>::value, "");
-    static_assert(std::is_convertible<U, E>::value, "");
+    static_assert(std::is_copy_constructible<E>::value,
+                  "[expected::error_or] E must be copy constructible");
+    static_assert(std::is_convertible<U, E>::value,
+                  "[expected::error_or] U must be convertible to E");
     if (this->has_value()) {
       return static_cast<E>(std::forward<U>(default_error));
     } else {
@@ -1477,8 +1484,10 @@ public:
   template <typename U = E>
   GUL_CXX14_CONSTEXPR E error_or(U&& default_error) &&
   {
-    static_assert(std::is_copy_constructible<E>::value, "");
-    static_assert(std::is_convertible<U, E>::value, "");
+    static_assert(std::is_move_constructible<E>::value,
+                  "[expected::error_or] E must be move constructible");
+    static_assert(std::is_convertible<U, E>::value,
+                  "[expected::error_or] U must be convertible to E");
     if (this->has_value()) {
       return static_cast<E>(std::forward<U>(default_error));
     } else {
