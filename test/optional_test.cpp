@@ -608,6 +608,22 @@ TEST_CASE("operator*")
   assert_is_same<deref_op, optional<int&>, int&>();
   assert_is_same<deref_op, const optional<int&>, int&>();
   {
+    auto o = optional<void>(in_place);
+    *o;
+  }
+  {
+    const auto o = optional<void>(in_place);
+    *o;
+  }
+  {
+    auto o = optional<void>(in_place);
+    *std::move(o);
+  }
+  {
+    const auto o = optional<void>(in_place);
+    *std::move(o);
+  }
+  {
     auto o = optional<int>(1);
     CHECK_EQ(*o, 1);
   }
@@ -661,6 +677,22 @@ TEST_CASE("value")
   assert_is_same<fn_value, const optional<int&>&, int&>();
   assert_is_same<fn_value, optional<int&>, int&>();
   assert_is_same<fn_value, const optional<int&>, int&>();
+  {
+    auto o = optional<void>(in_place);
+    o.value();
+  }
+  {
+    const auto o = optional<void>(in_place);
+    o.value();
+  }
+  {
+    auto o = optional<void>(in_place);
+    std::move(o).value();
+  }
+  {
+    const auto o = optional<void>(in_place);
+    std::move(o).value();
+  }
 #if !GUL_NO_EXCEPTIONS
   {
     auto o = optional<void>();
@@ -800,16 +832,34 @@ TEST_CASE("emplace")
     CHECK(o);
   }
   {
+    optional<void> o(in_place);
+    CHECK(o);
+    o.emplace();
+    CHECK(o);
+  }
+  {
     optional<int> o;
     CHECK(!o);
     o.emplace(1);
     CHECK_EQ(o.value(), 1);
   }
   {
+    optional<int> o(1);
+    CHECK(o);
+    o.emplace(1);
+    CHECK_EQ(o.value(), 1);
+  }
+  {
     optional<dc<int>> o;
     CHECK(!o);
-    o.emplace({ 0, 1, 2 });
-    CHECK_EQ(o.value(), dc<int> { 0, 1, 2 });
+    o.emplace({ 3, 4, 5 });
+    CHECK_EQ(o.value(), dc<int> { 3, 4, 5 });
+  }
+  {
+    optional<dc<int>> o(in_place, { 0, 1, 2 });
+    CHECK(o);
+    o.emplace({ 3, 4, 5 });
+    CHECK_EQ(o.value(), dc<int> { 3, 4, 5 });
   }
   {
     optional<int&> o;
@@ -817,6 +867,14 @@ TEST_CASE("emplace")
     int val = 1;
     o.emplace(val);
     CHECK_EQ(o.value(), 1);
+  }
+  {
+    int val = 1;
+    optional<int&> o(val);
+    CHECK(o);
+    int val2 = 2;
+    o.emplace(val2);
+    CHECK_EQ(o.value(), 2);
   }
 }
 
@@ -955,40 +1013,88 @@ TEST_CASE("transform")
 
 TEST_CASE("or_else")
 {
-  auto f = []() -> optional<int> { return 2; };
+  auto fv = []() -> optional<void> { return optional<void>(in_place); };
+  {
+    auto n = optional<void>();
+    CHECK(n.or_else(fv));
+    auto v = optional<void>(in_place);
+    CHECK(v.or_else(fv));
+  }
+  {
+    const auto n = optional<void>();
+    CHECK(n.or_else(fv));
+    const auto v = optional<void>(in_place);
+    CHECK(v.or_else(fv));
+  }
+  {
+    auto n = optional<void>();
+    CHECK(std::move(n).or_else(fv));
+    auto v = optional<void>(in_place);
+    CHECK(std::move(v).or_else(fv));
+  }
+  {
+    const auto n = optional<void>();
+    CHECK(std::move(n).or_else(fv));
+    const auto v = optional<void>(in_place);
+    CHECK(std::move(v).or_else(fv));
+  }
+  auto fi = []() -> optional<int> { return 2; };
   {
     auto n = optional<int>();
-    CHECK_EQ(n.or_else(f).value(), 2);
+    CHECK_EQ(n.or_else(fi).value(), 2);
     auto v = optional<int>(1);
-    CHECK_EQ(v.or_else(f).value(), 1);
+    CHECK_EQ(v.or_else(fi).value(), 1);
   }
   {
     const auto n = optional<int>();
-    CHECK_EQ(n.or_else(f).value(), 2);
+    CHECK_EQ(n.or_else(fi).value(), 2);
     const auto v = optional<int>(1);
-    CHECK_EQ(v.or_else(f).value(), 1);
+    CHECK_EQ(v.or_else(fi).value(), 1);
   }
   {
     auto n = optional<int>();
-    CHECK_EQ(std::move(n).or_else(f).value(), 2);
+    CHECK_EQ(std::move(n).or_else(fi).value(), 2);
     auto v = optional<int>(1);
-    CHECK_EQ(std::move(v).or_else(f).value(), 1);
+    CHECK_EQ(std::move(v).or_else(fi).value(), 1);
   }
   {
     const auto n = optional<int>();
-    CHECK_EQ(std::move(n).or_else(f).value(), 2);
+    CHECK_EQ(std::move(n).or_else(fi).value(), 2);
     const auto v = optional<int>(1);
-    CHECK_EQ(std::move(v).or_else(f).value(), 1);
+    CHECK_EQ(std::move(v).or_else(fi).value(), 1);
   }
 }
 
 TEST_CASE("swap")
 {
-  auto a = optional<int>();
-  auto b = optional<int>(1);
-  swap(a, b);
-  CHECK_EQ(a.value(), 1);
-  CHECK(!b);
+  {
+    auto a = optional<int>();
+    auto b = optional<int>();
+    swap(a, b);
+    CHECK(!a);
+    CHECK(!b);
+  }
+  {
+    auto a = optional<int>();
+    auto b = optional<int>(1);
+    swap(a, b);
+    CHECK_EQ(a.value(), 1);
+    CHECK(!b);
+  }
+  {
+    auto a = optional<int>(1);
+    auto b = optional<int>();
+    swap(a, b);
+    CHECK(!a);
+    CHECK_EQ(b.value(), 1);
+  }
+  {
+    auto a = optional<int>(1);
+    auto b = optional<int>(2);
+    swap(a, b);
+    CHECK_EQ(a.value(), 2);
+    CHECK_EQ(b.value(), 1);
+  }
 }
 
 TEST_CASE("compare")

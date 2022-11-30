@@ -404,11 +404,6 @@ struct optional_storage_base<void, B> : optional_throw_base {
   {
     has_ = true;
   }
-
-  GUL_CXX14_CONSTEXPR void destroy() noexcept
-  {
-    has_ = false;
-  }
 };
 
 template <typename T,
@@ -557,7 +552,8 @@ class optional : private detail::optional_move_assign_base<T> {
                              std::is_convertible<optional<U>&, T>,
                              std::is_convertible<const optional<U>&, T>,
                              std::is_convertible<optional<U>&&, T>,
-                             std::is_convertible<const optional<U>&&, T>>> { };
+                             std::is_convertible<const optional<U>&&, T>>> {
+  };
   template <typename U>
   struct is_optional_assignable
       : negation<conjunction<
@@ -573,11 +569,12 @@ class optional : private detail::optional_move_assign_base<T> {
             std::is_assignable<add_lvalue_reference_t<T>, const optional<U>&>,
             std::is_assignable<add_lvalue_reference_t<T>, optional<U>&&>,
             std::is_assignable<add_lvalue_reference_t<T>,
-                               const optional<U>&&>>> { };
+                               const optional<U>&&>>> {
+  };
 
   template <typename Self, typename F>
   static GUL_CXX14_CONSTEXPR auto
-  optional_and_then_impl(std::true_type, Self&& self, F&& f)
+  and_then_impl(std::true_type, Self&& self, F&& f)
       -> remove_cvref_t<decltype(invoke(std::forward<F>(f)))>
   {
     using Opt = remove_cvref_t<invoke_result_t<F>>;
@@ -590,7 +587,7 @@ class optional : private detail::optional_move_assign_base<T> {
 
   template <typename Self, typename F>
   static GUL_CXX14_CONSTEXPR auto
-  optional_and_then_impl(std::false_type, Self&& self, F&& f)
+  and_then_impl(std::false_type, Self&& self, F&& f)
       -> remove_cvref_t<decltype(invoke(std::forward<F>(f),
                                         std::forward<Self>(self).value()))>
   {
@@ -605,7 +602,7 @@ class optional : private detail::optional_move_assign_base<T> {
 
   template <typename Self, typename F>
   static GUL_CXX14_CONSTEXPR auto
-  optional_transform_impl(std::true_type, Self&& self, F&& f)
+  transform_impl(std::true_type, Self&& self, F&& f)
       -> optional<remove_cvref_t<decltype(invoke(std::forward<F>(f)))>>
   {
     using Opt = optional<remove_cvref_t<invoke_result_t<F>>>;
@@ -618,7 +615,7 @@ class optional : private detail::optional_move_assign_base<T> {
 
   template <typename Self, typename F>
   static GUL_CXX14_CONSTEXPR auto
-  optional_transform_impl(std::false_type, Self&& self, F&& f)
+  transform_impl(std::false_type, Self&& self, F&& f)
       -> optional<remove_cvref_t<decltype(invoke(
           std::forward<F>(f), std::forward<Self>(self).value()))>>
   {
@@ -633,7 +630,7 @@ class optional : private detail::optional_move_assign_base<T> {
 
   template <typename Self, typename F>
   static GUL_CXX14_CONSTEXPR auto
-  optional_or_else_impl(std::true_type, Self&& self, F&& f)
+  or_else_impl(std::true_type, Self&& self, F&& f)
       -> remove_cvref_t<decltype(invoke(std::forward<F>(f)))>
   {
     using Opt = remove_cvref_t<Self>;
@@ -646,7 +643,7 @@ class optional : private detail::optional_move_assign_base<T> {
 
   template <typename Self, typename F>
   static GUL_CXX14_CONSTEXPR auto
-  optional_or_else_impl(std::false_type, Self&& self, F&& f)
+  or_else_impl(std::false_type, Self&& self, F&& f)
       -> remove_cvref_t<decltype(invoke(std::forward<F>(f)))>
   {
     using Opt = remove_cvref_t<Self>;
@@ -847,7 +844,7 @@ public:
                                    Args&&... args) -> add_lvalue_reference_t<T>
   {
     if (this->has_value()) {
-      this->destroy();
+      this->reset();
     }
 
     return this->construct(init, std::forward<Args>(args)...);
@@ -856,118 +853,99 @@ public:
   using base_type::reset;
 
   template <typename F>
-  GUL_CXX14_CONSTEXPR auto and_then(F&& f) & -> decltype(optional_and_then_impl(
+  GUL_CXX14_CONSTEXPR auto and_then(F&& f) & -> decltype(and_then_impl(
       std::is_void<T> {}, *this, std::forward<F>(f)))
 
   {
-    return optional_and_then_impl(std::is_void<T> {}, *this,
-                                  std::forward<F>(f));
+    return and_then_impl(std::is_void<T> {}, *this, std::forward<F>(f));
   }
 
   template <typename F>
-  GUL_CXX14_CONSTEXPR auto
-  and_then(F&& f) const& -> decltype(optional_and_then_impl(std::is_void<T> {},
-                                                            *this,
-                                                            std::forward<F>(f)))
+  GUL_CXX14_CONSTEXPR auto and_then(F&& f) const& -> decltype(and_then_impl(
+      std::is_void<T> {}, *this, std::forward<F>(f)))
   {
-    return optional_and_then_impl(std::is_void<T> {}, *this,
-                                  std::forward<F>(f));
+    return and_then_impl(std::is_void<T> {}, *this, std::forward<F>(f));
   }
 
   template <typename F>
-  GUL_CXX14_CONSTEXPR auto
-  and_then(F&& f) && -> decltype(optional_and_then_impl(std::is_void<T> {},
-                                                        std::move(*this),
-                                                        std::forward<F>(f)))
+  GUL_CXX14_CONSTEXPR auto and_then(F&& f) && -> decltype(and_then_impl(
+      std::is_void<T> {}, std::move(*this), std::forward<F>(f)))
   {
-    return optional_and_then_impl(std::is_void<T> {}, std::move(*this),
-                                  std::forward<F>(f));
+    return and_then_impl(std::is_void<T> {}, std::move(*this),
+                         std::forward<F>(f));
   }
 
 #ifndef GUL_CXX_COMPILER_GCC48
   template <typename F>
-  GUL_CXX14_CONSTEXPR auto
-  and_then(F&& f) const&& -> decltype(optional_and_then_impl(
+  GUL_CXX14_CONSTEXPR auto and_then(F&& f) const&& -> decltype(and_then_impl(
       std::is_void<T> {}, std::move(*this), std::forward<F>(f)))
   {
-    return optional_and_then_impl(std::is_void<T> {}, std::move(*this),
-                                  std::forward<F>(f));
+    return and_then_impl(std::is_void<T> {}, std::move(*this),
+                         std::forward<F>(f));
   }
 #endif
 
   template <typename F>
-  GUL_CXX14_CONSTEXPR auto
-  transform(F&& f) & -> decltype(optional_transform_impl(std::is_void<T> {},
-                                                         *this,
-                                                         std::forward<F>(f)))
-  {
-    return optional_transform_impl(std::is_void<T> {}, *this,
-                                   std::forward<F>(f));
-  }
-
-  template <typename F>
-  GUL_CXX14_CONSTEXPR auto
-  transform(F&& f) const& -> decltype(optional_transform_impl(
+  GUL_CXX14_CONSTEXPR auto transform(F&& f) & -> decltype(transform_impl(
       std::is_void<T> {}, *this, std::forward<F>(f)))
   {
-    return optional_transform_impl(std::is_void<T> {}, *this,
-                                   std::forward<F>(f));
+    return transform_impl(std::is_void<T> {}, *this, std::forward<F>(f));
   }
 
   template <typename F>
-  GUL_CXX14_CONSTEXPR auto
-  transform(F&& f) && -> decltype(optional_transform_impl(std::is_void<T> {},
-                                                          std::move(*this),
-                                                          std::forward<F>(f)))
+  GUL_CXX14_CONSTEXPR auto transform(F&& f) const& -> decltype(transform_impl(
+      std::is_void<T> {}, *this, std::forward<F>(f)))
   {
-    return optional_transform_impl(std::is_void<T> {}, std::move(*this),
-                                   std::forward<F>(f));
+    return transform_impl(std::is_void<T> {}, *this, std::forward<F>(f));
+  }
+
+  template <typename F>
+  GUL_CXX14_CONSTEXPR auto transform(F&& f) && -> decltype(transform_impl(
+      std::is_void<T> {}, std::move(*this), std::forward<F>(f)))
+  {
+    return transform_impl(std::is_void<T> {}, std::move(*this),
+                          std::forward<F>(f));
   }
 
 #ifndef GUL_CXX_COMPILER_GCC48
   template <typename F>
-  GUL_CXX14_CONSTEXPR auto
-  transform(F&& f) const&& -> decltype(optional_transform_impl(
+  GUL_CXX14_CONSTEXPR auto transform(F&& f) const&& -> decltype(transform_impl(
       std::is_void<T> {}, std::move(*this), std::forward<F>(f)))
   {
-    return optional_transform_impl(std::is_void<T> {}, std::move(*this),
-                                   std::forward<F>(f));
+    return transform_impl(std::is_void<T> {}, std::move(*this),
+                          std::forward<F>(f));
   }
 #endif
 
   template <typename F>
-  GUL_CXX14_CONSTEXPR auto or_else(F&& f) & -> decltype(optional_or_else_impl(
+  GUL_CXX14_CONSTEXPR auto or_else(F&& f) & -> decltype(or_else_impl(
       std::is_void<T> {}, *this, std::forward<F>(f)))
   {
-    return optional_or_else_impl(std::is_void<T> {}, *this, std::forward<F>(f));
+    return or_else_impl(std::is_void<T> {}, *this, std::forward<F>(f));
   }
 
   template <typename F>
-  GUL_CXX14_CONSTEXPR auto
-  or_else(F&& f) const& -> decltype(optional_or_else_impl(std::is_void<T> {},
-                                                          *this,
-                                                          std::forward<F>(f)))
+  GUL_CXX14_CONSTEXPR auto or_else(F&& f) const& -> decltype(or_else_impl(
+      std::is_void<T> {}, *this, std::forward<F>(f)))
   {
-    return optional_or_else_impl(std::is_void<T> {}, *this, std::forward<F>(f));
+    return or_else_impl(std::is_void<T> {}, *this, std::forward<F>(f));
   }
 
   template <typename F>
-  GUL_CXX14_CONSTEXPR auto or_else(F&& f) && -> decltype(optional_or_else_impl(
+  GUL_CXX14_CONSTEXPR auto or_else(F&& f) && -> decltype(or_else_impl(
       std::is_void<T> {}, std::move(*this), std::forward<F>(f)))
   {
-    return optional_or_else_impl(std::is_void<T> {}, std::move(*this),
-                                 std::forward<F>(f));
+    return or_else_impl(std::is_void<T> {}, std::move(*this),
+                        std::forward<F>(f));
   }
 
 #ifndef GUL_CXX_COMPILER_GCC48
   template <typename F>
-  GUL_CXX14_CONSTEXPR auto
-  or_else(F&& f) const&& -> decltype(optional_or_else_impl(std::is_void<T> {},
-                                                           std::move(*this),
-                                                           std::forward<F>(f)))
+  GUL_CXX14_CONSTEXPR auto or_else(F&& f) const&& -> decltype(or_else_impl(
+      std::is_void<T> {}, std::move(*this), std::forward<F>(f)))
   {
-    return optional_or_else_impl(std::is_void<T> {}, std::move(*this),
-                                 std::forward<F>(f));
+    return or_else_impl(std::is_void<T> {}, std::move(*this),
+                        std::forward<F>(f));
   }
 #endif
 
