@@ -1,6 +1,7 @@
 # GUL
 
 [![build](https://github.com/Ramirisu/gul/actions/workflows/build_matrix.yml/badge.svg)](https://github.com/Ramirisu/gul/actions/workflows/build_matrix.yml)
+[![codecov](https://codecov.io/gh/Ramirisu/gul/branch/main/graph/badge.svg?token=XEKI3XKCK0)](https://codecov.io/gh/Ramirisu/gul)
 ![std](https://img.shields.io/badge/std-11%2F14%2F17%2F20-blue.svg)
 ![license](https://img.shields.io/badge/license-BSL--1.0-blue)
 

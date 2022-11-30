@@ -6,6 +6,7 @@ project(
   LANGUAGES CXX)
 
 option(GUL_BUILD_TESTS "Build tests" OFF)
+option(GUL_ENABLE_CODECOV "Enable code coverage" OFF)
 
 include(cmake/CPM.cmake)
 

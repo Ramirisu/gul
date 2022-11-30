@@ -2,4 +2,6 @@
 .vscode
 out
 build
+coverage_report
+coverage.info
 CMakePresets.json

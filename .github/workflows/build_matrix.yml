@@ -68,6 +68,12 @@ jobs:
             build_type: Debug
             generators: Ninja
             install: sudo apt install g++-12
+          - os: ubuntu-22.04
+            cxx: g++
+            std: 11
+            build_type: Debug
+            generators: Ninja
+            extra_args: -DGUL_ENABLE_CODECOV=ON
           - os: ubuntu-20.04
             cxx: clang++-3.5
             std: 11
@@ -233,9 +239,8 @@ jobs:
       - name: Configure
         shell: bash
         run: |
-          mkdir build
           cmake \
-            -B . \
+            -B build \
             -G "${{ matrix.generators }}" \
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
             -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} \
@@ -245,8 +250,20 @@ jobs:
 
       - name: Build
         shell: bash
-        run: cmake --build .
+        run: cmake --build build
 
       - name: Test
         shell: bash
+        working-directory:  ${{ github.workspace }}/build
         run: ctest --output-on-failure .
+
+      - name: Upload code coverage report
+        if: matrix.extra_args == '-DGUL_ENABLE_CODECOV=ON'
+        shell: bash
+        run: |
+          sudo apt install lcov
+          lcov --capture --directory $(pwd)'/build' --output-file coverage.info
+          lcov --extract coverage.info $(pwd)'/include/gul/*' --output-file coverage.info
+          curl -Os https://uploader.codecov.io/latest/linux/codecov
+          chmod +x codecov
+          ./codecov -t ${CODECOV_TOKEN}
