@@ -165,6 +165,13 @@ jobs:
             build_type: Debug
             generators: Ninja
             install: sudo apt install clang-13
+          - os: ubuntu-22.04
+            cxx: clang++-13
+            std: 11
+            build_type: Debug
+            generators: Ninja
+            extra_args: -DCMAKE_CXX_FLAGS=-fsanitize=address
+            install: sudo apt install clang-13
           - os: windows-2019
             cxx: cl
             std: 14
