@@ -204,8 +204,7 @@ public:
   constexpr basic_string_view(const basic_string_view&) noexcept = default;
 
   GUL_CXX14_CONSTEXPR basic_string_view&
-  operator=(const basic_string_view&) noexcept
-      = default;
+  operator=(const basic_string_view&) noexcept = default;
 
   GUL_CXX14_CONSTEXPR const_reference operator[](size_type index) const
   {
@@ -405,12 +404,12 @@ public:
 
   GUL_CXX14_CONSTEXPR bool contains(CharT c) const noexcept
   {
-    return find(c) != npos;
+    return contains(basic_string_view(std::addressof(c), 1));
   }
 
   GUL_CXX14_CONSTEXPR bool contains(const CharT* s) const
   {
-    return find(s) != npos;
+    return contains(basic_string_view(s));
   }
 
   GUL_CXX14_CONSTEXPR size_type find(basic_string_view sv,
@@ -447,12 +446,13 @@ public:
 
   GUL_CXX14_CONSTEXPR size_type find(const CharT* s,
                                      size_type index,
-                                     size_type count) const
+                                     size_type count) const noexcept
   {
     return find(basic_string_view(s, count), index);
   }
 
-  GUL_CXX14_CONSTEXPR size_type find(const CharT* s, size_type index = 0) const
+  GUL_CXX14_CONSTEXPR size_type find(const CharT* s,
+                                     size_type index = 0) const noexcept
   {
     return find(basic_string_view(s), index);
   }
@@ -485,13 +485,13 @@ public:
 
   GUL_CXX14_CONSTEXPR size_type rfind(const CharT* s,
                                       size_type index,
-                                      size_type count) const
+                                      size_type count) const noexcept
   {
     return rfind(basic_string_view(s, count), index);
   }
 
   GUL_CXX14_CONSTEXPR size_type rfind(const CharT* s,
-                                      size_type index = npos) const
+                                      size_type index = npos) const noexcept
   {
     return rfind(basic_string_view(s), index);
   }
@@ -521,13 +521,14 @@ public:
 
   GUL_CXX14_CONSTEXPR size_type find_first_of(const CharT* s,
                                               size_type index,
-                                              size_type count) const
+                                              size_type count) const noexcept
   {
     return find_first_of(basic_string_view(s, count), index);
   }
 
   GUL_CXX14_CONSTEXPR size_type find_first_of(const CharT* s,
-                                              size_type index = 0) const
+                                              size_type index
+                                              = 0) const noexcept
   {
     return find_first_of(basic_string_view(s), index);
   }
@@ -558,13 +559,14 @@ public:
 
   GUL_CXX14_CONSTEXPR size_type find_last_of(const CharT* s,
                                              size_type index,
-                                             size_type count) const
+                                             size_type count) const noexcept
   {
     return find_last_of(basic_string_view(s, count), index);
   }
 
   GUL_CXX14_CONSTEXPR size_type find_last_of(const CharT* s,
-                                             size_type index = npos) const
+                                             size_type index
+                                             = npos) const noexcept
   {
     return find_last_of(basic_string_view(s), index);
   }
@@ -592,15 +594,15 @@ public:
     return find_first_not_of(basic_string_view(std::addressof(c), 1), index);
   }
 
-  GUL_CXX14_CONSTEXPR size_type find_first_not_of(const CharT* s,
-                                                  size_type index,
-                                                  size_type count) const
+  GUL_CXX14_CONSTEXPR size_type find_first_not_of(
+      const CharT* s, size_type index, size_type count) const noexcept
   {
     return find_first_not_of(basic_string_view(s, count), index);
   }
 
   GUL_CXX14_CONSTEXPR size_type find_first_not_of(const CharT* s,
-                                                  size_type index = 0) const
+                                                  size_type index
+                                                  = 0) const noexcept
   {
     return find_first_not_of(basic_string_view(s), index);
   }
@@ -610,7 +612,7 @@ public:
                                                  = npos) const noexcept
   {
 
-    if (sv.size() > 0 && size() > 0) {
+    if (size() > 0) {
       const auto end = data();
       for (auto current = start_ + std::min(index, size() - 1); current >= end;
            --current) {
@@ -632,13 +634,14 @@ public:
 
   GUL_CXX14_CONSTEXPR size_type find_last_not_of(const CharT* s,
                                                  size_type index,
-                                                 size_type count) const
+                                                 size_type count) const noexcept
   {
     return find_last_not_of(basic_string_view(s, count), index);
   }
 
   GUL_CXX14_CONSTEXPR size_type find_last_not_of(const CharT* s,
-                                                 size_type index = npos) const
+                                                 size_type index
+                                                 = npos) const noexcept
   {
     return find_last_not_of(basic_string_view(s), index);
   }
@@ -696,6 +699,14 @@ private:
 template <class CharT, class Traits>
 constexpr typename basic_string_view<CharT, Traits>::size_type
     basic_string_view<CharT, Traits>::npos;
+
+template <class CharT, class Traits>
+GUL_CXX14_CONSTEXPR void
+swap(basic_string_view<CharT, Traits>& lhs,
+     basic_string_view<CharT, Traits>& rhs) noexcept(noexcept(lhs.swap(rhs)))
+{
+  lhs.swap(rhs);
+}
 
 template <class CharT, class Traits>
 constexpr bool operator==(basic_string_view<CharT, Traits> lhs,

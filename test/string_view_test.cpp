@@ -33,6 +33,9 @@ TEST_CASE("basic")
     CHECK_EQ(sv.at(1), 'e');
     CHECK_EQ(sv[2], 'l');
     CHECK_EQ(sv.at(2), 'l');
+#if !GUL_NO_EXCEPTIONS
+    CHECK_THROWS_AS(sv.at(sv.size()), std::out_of_range);
+#endif
     CHECK_EQ(sv.front(), 'h');
     CHECK_EQ(sv.back(), '!');
     CHECK_EQ(sv.length(), strlen(s));
@@ -52,6 +55,13 @@ TEST_CASE("basic")
     string_view sv(s);
     sv.remove_suffix(3);
     CHECK_EQ(sv, string_view(s, strlen(s) - 3));
+  }
+  {
+    string_view sv(s);
+    string_view empty;
+    swap(sv, empty);
+    CHECK_EQ(sv, string_view());
+    CHECK_EQ(empty, string_view(s));
   }
   {
     string_view sv(s);
@@ -213,6 +223,8 @@ TEST_CASE("basic")
     CHECK_EQ(sv.find_last_not_of("#"), 11);
     CHECK_EQ(sv.find_last_not_of('!', 10), 10);
     CHECK_EQ(sv.find_last_not_of("!#", 10), 10);
+    CHECK_EQ(sv.find_last_not_of(""), 11);
+    CHECK_EQ(string_view().find_last_not_of(""), string_view::npos);
   }
   {
     string_view sv(s);
@@ -235,6 +247,7 @@ TEST_CASE("basic")
     ++it;
     CHECK_EQ(it, sv.end());
     CHECK_EQ(it, sv.cend());
+    CHECK_NE(it, sv.begin());
     CHECK_FALSE(sv.begin() < sv.begin());
     CHECK(sv.begin() < sv.end());
     CHECK(sv.begin() <= sv.begin());
@@ -257,14 +270,36 @@ TEST_CASE("basic")
     CHECK_EQ(it, sv.crend());
   }
   {
+    CHECK(string_view() == string_view());
+    CHECK(!(string_view() == string_view("1")));
+    CHECK(!(string_view() != string_view()));
+    CHECK(string_view() != string_view("1"));
+    CHECK(string_view() < string_view("1"));
+    CHECK(!(string_view("1") < string_view("1")));
+    CHECK(!(string_view("1") < string_view()));
+    CHECK(string_view() <= string_view("1"));
+    CHECK(string_view("1") <= string_view("1"));
+    CHECK(!(string_view("1") <= string_view()));
+    CHECK(!(string_view() > string_view("1")));
+    CHECK(!(string_view("1") > string_view("1")));
+    CHECK(string_view("1") > string_view());
+    CHECK(!(string_view() >= string_view("1")));
+    CHECK(string_view("1") >= string_view("1"));
+    CHECK(string_view("1") >= string_view());
+  }
+  {
     auto sv = "hello world!"_sv;
     static_assert_same<decltype(sv), string_view>();
+    CHECK_EQ(sv, string_view("hello world!"));
     auto wsv = L"hello world!"_sv;
     static_assert_same<decltype(wsv), wstring_view>();
+    CHECK_EQ(wsv, wstring_view(L"hello world!"));
     auto u16sv = u"hello world!"_sv;
     static_assert_same<decltype(u16sv), u16string_view>();
+    CHECK_EQ(u16sv, u16string_view(u"hello world!"));
     auto u32sv = U"hello world!"_sv;
     static_assert_same<decltype(u32sv), u32string_view>();
+    CHECK_EQ(u32sv, u32string_view(U"hello world!"));
   }
   {
     std::string str(s);
