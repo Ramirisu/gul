@@ -428,7 +428,7 @@ public:
     for (auto current = data() + index;; ++current) {
       current = Traits::find(current, end - current + 1, sv.front());
       if (current == nullptr) {
-        return npos;
+        break;
       }
 
       if (Traits::compare(current, sv.data(), sv.size()) == 0) {

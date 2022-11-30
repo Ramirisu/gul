@@ -721,6 +721,7 @@ struct expected_copy_construct_base : expected_storage_base<T, E> {
 
   GUL_CXX14_CONSTEXPR
   expected_copy_construct_base(const expected_copy_construct_base& other)
+      : expected_storage_base<T, E>::expected_storage_base()
   {
     this->construct_from(other);
   }

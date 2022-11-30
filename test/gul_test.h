@@ -18,4 +18,4 @@ template <typename L, typename R>
 void static_assert_same()
 {
   STATIC_ASSERT(std::is_same<L, R>::value);
-};
+}

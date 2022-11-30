@@ -426,6 +426,7 @@ struct optional_copy_construct_base<T, false> : optional_storage_base<T> {
 
   GUL_CXX14_CONSTEXPR
   optional_copy_construct_base(const optional_copy_construct_base& other)
+      : optional_storage_base<T>::optional_storage_base()
   {
     this->construct_from(other);
   }

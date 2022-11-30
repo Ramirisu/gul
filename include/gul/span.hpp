@@ -430,20 +430,27 @@ span(const std::array<T, N>&) -> span<const T, N>;
 
 #endif
 
+namespace detail {
+template <std::size_t N, std::size_t Mul>
+struct extent_multiplier : integral_constant<std::size_t, N * Mul> { };
+template <std::size_t Mul>
+struct extent_multiplier<dynamic_extent, Mul>
+    : integral_constant<std::size_t, dynamic_extent> { };
+}
+
 template <class T, std::size_t N>
-span<const byte, (N == dynamic_extent ? dynamic_extent : N * sizeof(T))>
-as_bytes(span<T, N> s) noexcept
+auto as_bytes(span<T, N> s) noexcept
+    -> span<const byte, detail::extent_multiplier<N, sizeof(N)>::value>
 {
-  return span<const byte,
-              (N == dynamic_extent ? dynamic_extent : N * sizeof(T))>(
+  return span<const byte, detail::extent_multiplier<N, sizeof(N)>::value>(
       reinterpret_cast<const byte*>(s.data()), s.size_bytes());
 }
 
 template <class T, std::size_t N>
-span<byte, (N == dynamic_extent ? dynamic_extent : N * sizeof(T))>
-as_writable_bytes(span<T, N> s) noexcept
+auto as_writable_bytes(span<T, N> s) noexcept
+    -> span<byte, detail::extent_multiplier<N, sizeof(N)>::value>
 {
-  return span<byte, (N == dynamic_extent ? dynamic_extent : N * sizeof(T))>(
+  return span<byte, detail::extent_multiplier<N, sizeof(N)>::value>(
       reinterpret_cast<byte*>(s.data()), s.size_bytes());
 }
 
