@@ -11,6 +11,8 @@
 
 #include <gul/type_traits.hpp>
 
+#include <functional>
+
 GUL_NAMESPACE_BEGIN
 
 namespace detail {
@@ -31,7 +33,24 @@ template <typename C,
           typename Pointed,
           class T1,
           typename... Args,
-          GUL_REQUIRES(!std::is_base_of<C, decay_t<T1>>::value)>
+          GUL_REQUIRES(!std::is_base_of<C, decay_t<T1>>::value
+                       && is_specialization_of<decay_t<T1>,
+                                               std::reference_wrapper>::value)>
+constexpr auto
+invoke_memfun_impl(Pointed C::*f, T1&& t1, Args&&... args) noexcept(
+    noexcept((t1.get().*f)(std::forward<Args>(args)...)))
+    -> decltype((t1.get().*f)(std::forward<Args>(args)...))
+{
+  return (t1.get().*f)(std::forward<Args>(args)...);
+}
+
+template <typename C,
+          typename Pointed,
+          class T1,
+          typename... Args,
+          GUL_REQUIRES(!std::is_base_of<C, decay_t<T1>>::value
+                       && !is_specialization_of<decay_t<T1>,
+                                                std::reference_wrapper>::value)>
 constexpr auto
 invoke_memfun_impl(Pointed C::*f, T1&& t1, Args&&... args) noexcept(
     noexcept(((*std::forward<T1>(t1)).*f)(std::forward<Args>(args)...)))
@@ -53,7 +72,23 @@ constexpr auto invoke_memobj_impl(Pointed C::*f, T1&& t1) noexcept(
 template <typename C,
           typename Pointed,
           class T1,
-          GUL_REQUIRES(!std::is_base_of<C, decay_t<T1>>::value)>
+          GUL_REQUIRES(!std::is_base_of<C, decay_t<T1>>::value
+                       && is_specialization_of<decay_t<T1>,
+                                               std::reference_wrapper>::value)>
+constexpr auto
+invoke_memobj_impl(Pointed C::*f,
+                   T1&& t1) noexcept(noexcept(std::forward<T1>(t1).get().*f))
+    -> decltype(std::forward<T1>(t1).get().*f)
+{
+  return std::forward<T1>(t1).get().*f;
+}
+
+template <typename C,
+          typename Pointed,
+          class T1,
+          GUL_REQUIRES(!std::is_base_of<C, decay_t<T1>>::value
+                       && !is_specialization_of<decay_t<T1>,
+                                                std::reference_wrapper>::value)>
 constexpr auto
 invoke_memobj_impl(Pointed C::*f,
                    T1&& t1) noexcept(noexcept((*std::forward<T1>(t1)).*f))

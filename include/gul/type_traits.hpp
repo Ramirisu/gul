@@ -9,6 +9,7 @@
 
 #include <gul/config.hpp>
 
+#include <functional>
 #include <type_traits>
 
 GUL_NAMESPACE_BEGIN
@@ -325,11 +326,25 @@ namespace is_invocable_detail {
 
     template <typename C, typename Pointed, typename Arg1, typename... Args>
     static auto test(Pointed C::*f, Arg1&& arg1, Args&&... args) //
+        noexcept(noexcept((std::forward<Arg1>(arg1).get()
+                           .*f)(std::forward<Args>(args)...)))
+            -> enable_if_t<
+                !std::is_base_of<C, remove_reference_t<Arg1>>::value
+                    && is_specialization_of<remove_cvref_t<Arg1>,
+                                            std::reference_wrapper>::value,
+                decltype((std::forward<Arg1>(arg1).get()
+                          .*f)(std::forward<Args>(args)...))>;
+
+    template <typename C, typename Pointed, typename Arg1, typename... Args>
+    static auto test(Pointed C::*f, Arg1&& arg1, Args&&... args) //
         noexcept(noexcept(((*std::forward<Arg1>(arg1))
                            .*f)(std::forward<Args>(args)...)))
-            -> enable_if_t<!std::is_base_of<C, remove_reference_t<Arg1>>::value,
-                           decltype(((*std::forward<Arg1>(arg1))
-                                     .*f)(std::forward<Args>(args)...))>;
+            -> enable_if_t<
+                !std::is_base_of<C, remove_reference_t<Arg1>>::value
+                    && !is_specialization_of<remove_cvref_t<Arg1>,
+                                             std::reference_wrapper>::value,
+                decltype(((*std::forward<Arg1>(arg1))
+                          .*f)(std::forward<Args>(args)...))>;
   };
 
   template <typename T>
@@ -342,9 +357,20 @@ namespace is_invocable_detail {
     template <typename C, typename Pointed, typename Arg1>
     static auto test(Pointed C::*o,
                      Arg1&& arg1) //
-        noexcept(noexcept((*std::forward<Arg1>(arg1)).*o))
-            -> enable_if_t<!std::is_base_of<C, remove_reference_t<Arg1>>::value,
-                           decltype((*std::forward<Arg1>(arg1)).*o)>;
+        noexcept(noexcept(std::forward<Arg1>(arg1).get().*o)) -> enable_if_t<
+            !std::is_base_of<C, remove_reference_t<Arg1>>::value
+                && is_specialization_of<remove_cvref_t<Arg1>,
+                                        std::reference_wrapper>::value,
+            decltype(std::forward<Arg1>(arg1).get().*o)>;
+
+    template <typename C, typename Pointed, typename Arg1>
+    static auto test(Pointed C::*o,
+                     Arg1&& arg1) //
+        noexcept(noexcept((*std::forward<Arg1>(arg1)).*o)) -> enable_if_t<
+            !std::is_base_of<C, remove_reference_t<Arg1>>::value
+                && !is_specialization_of<remove_cvref_t<Arg1>,
+                                         std::reference_wrapper>::value,
+            decltype((*std::forward<Arg1>(arg1)).*o)>;
   };
 
   template <typename F, typename... Args>
