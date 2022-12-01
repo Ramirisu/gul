@@ -493,8 +493,10 @@ using detail::invoke_result_t;
 using detail::negation;
 using detail::negation_t;
 using detail::remove_cv_t;
+using detail::remove_cvref;
 using detail::remove_cvref_t;
 using detail::remove_reference_t;
+using detail::type_identity;
 using detail::type_identity_t;
 using detail::void_t;
 

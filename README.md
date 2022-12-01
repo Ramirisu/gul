@@ -33,6 +33,23 @@ gul is an open-source library providing general utilities for c++11. Many of the
 |                                 `fifo_map`                                 | An associative container that contains key-value pairs with unique keys. `Key`s are sorted by insertion order.                                                                  |                                none                                 |
 |                                 `lru_map`                                  | An associative container that contains key-value pairs with at most `capacity` unique keys. The least recently used `Key` will be purged when the map is full during insertion. |                                none                                 |
 
+|                                            Type traits                                            |                              From std?                              |
+| :-----------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------: |
+|                                         `is_null_pointer`                                         |  [c++14](https://en.cppreference.com/w/cpp/types/is_null_pointer)   |
+| `is_swappable_with`</br>`is_swappable`</br>`is_nothrow_swappable_with`</br>`is_nothrow_swappable` |    [c++17](https://en.cppreference.com/w/cpp/types/is_swappable)    |
+|                                        `is_bounded_array`                                         |  [c++20](https://en.cppreference.com/w/cpp/types/is_bounded_array)  |
+|                                       `is_unbounded_array`                                        | [c++20](https://en.cppreference.com/w/cpp/types/is_unbounded_array) |
+|                                         `is_scoped_enum`                                          |   [c++23](https://en.cppreference.com/w/cpp/types/is_scoped_enum)   |
+|                                `is_invocable`</br>`is_invocable_r`                                |    [c++17](https://en.cppreference.com/w/cpp/types/is_invocable)    |
+|                                           `conjunction`                                           |    [c++17](https://en.cppreference.com/w/cpp/types/conjunction)     |
+|                                           `disjunction`                                           |    [c++17](https://en.cppreference.com/w/cpp/types/disjunction)     |
+|                                            `negation`                                             |      [c++17](https://en.cppreference.com/w/cpp/types/negation)      |
+|                                          `invoke_result`                                          |     [c++17](https://en.cppreference.com/w/cpp/types/result_of)      |
+|                                             `void_t`                                              |       [c++17](https://en.cppreference.com/w/cpp/types/void_t)       |
+|                                          `remove_cvref`                                           |    [c++20](https://en.cppreference.com/w/cpp/types/remove_cvref)    |
+|                                          `type_identity`                                          |   [c++20](https://en.cppreference.com/w/cpp/types/type_identity)    |
+
+
 ## Integration
 
 Requirements
@@ -59,9 +76,10 @@ gul is header-only. Just `#include` the header file `all.hpp` to utilize all fea
 
 CMake
 
-| Option          | Description | Value  | Default |
-| :-------------- | :---------- | :----: | :-----: |
-| GUL_BUILD_TESTS | Build tests | ON/OFF |   OFF   |
+| Option             | Description                | Value  | Default |
+| :----------------- | :------------------------- | :----: | :-----: |
+| GUL_BUILD_TESTS    | Build tests                | ON/OFF |   OFF   |
+| GUL_ENABLE_CODECOV | Enable code coverage build | ON/OFF |   OFF   |
 
 ```sh
 cd gul/
