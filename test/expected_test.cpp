@@ -316,26 +316,46 @@ TEST_CASE("default constructor")
 TEST_CASE("copy/move constructor")
 {
   {
-    auto s = expected<dc<int>, dc<int>>({ 0, 1, 2 });
-    expected<dc<int>, dc<int>> d(s);
-    CHECK_EQ(s.value(), dc<int>({ 0, 1, 2 }));
-    CHECK_EQ(d.value(), dc<int>({ 0, 1, 2 }));
+    auto s = expected<void, int>(in_place);
+    expected<void, int> d(s);
+    CHECK(d);
   }
   {
-    auto s = expected<dc<int>, dc<int>>(unexpect, { 0, 1, 2 });
-    expected<dc<int>, dc<int>> d(s);
+    auto s = expected<void, int>(unexpect, 1);
+    expected<void, int> d(s);
+    CHECK(!d);
+  }
+  {
+    auto s = expected<void, int>(in_place);
+    expected<void, int> d(std::move(s));
+    CHECK(d);
+  }
+  {
+    auto s = expected<void, int>(unexpect, 1);
+    expected<void, int> d(std::move(s));
+    CHECK(!d);
+  }
+  {
+    auto s = expected<void, dc<int>>(in_place);
+    expected<void, dc<int>> d(s);
+    CHECK(s);
+    CHECK(d);
+  }
+  {
+    auto s = expected<void, dc<int>>(unexpect, { 0, 1, 2 });
+    expected<void, dc<int>> d(s);
     CHECK_EQ(s.error(), dc<int>({ 0, 1, 2 }));
     CHECK_EQ(d.error(), dc<int>({ 0, 1, 2 }));
   }
   {
-    auto s = expected<dc<int>, dc<int>>({ 0, 1, 2 });
-    expected<dc<int>, dc<int>> d(std::move(s));
-    CHECK_EQ(s.value(), dc<int>());
-    CHECK_EQ(d.value(), dc<int>({ 0, 1, 2 }));
+    auto s = expected<void, dc<int>>(in_place);
+    expected<void, dc<int>> d(std::move(s));
+    CHECK(s);
+    CHECK(d);
   }
   {
-    auto s = expected<dc<int>, dc<int>>(unexpect, { 0, 1, 2 });
-    expected<dc<int>, dc<int>> d(std::move(s));
+    auto s = expected<void, dc<int>>(unexpect, { 0, 1, 2 });
+    expected<void, dc<int>> d(std::move(s));
     CHECK_EQ(s.error(), dc<int>());
     CHECK_EQ(d.error(), dc<int>({ 0, 1, 2 }));
   }
@@ -422,6 +442,155 @@ TEST_CASE("in-place constructor")
   {
     auto exp = expected<int, ndc<int>>(unexpect, { 0, 1, 2 });
     CHECK_EQ(exp.error(), ndc<int>({ 0, 1, 2 }));
+  }
+}
+
+TEST_CASE("copy/move assignment operator")
+{
+  {
+    auto s = expected<void, int>(in_place);
+    auto d = expected<void, int>(in_place);
+    d = s;
+    CHECK(d);
+  }
+  {
+    auto s = expected<void, int>(unexpect, 1);
+    auto d = expected<void, int>(in_place);
+    d = s;
+    CHECK(!d);
+  }
+  {
+    auto s = expected<void, int>(in_place);
+    auto d = expected<void, int>(unexpect, 1);
+    d = s;
+    CHECK(d);
+  }
+  {
+    auto s = expected<void, int>(in_place);
+    auto d = expected<void, int>(in_place);
+    d = s;
+    CHECK(d);
+  }
+  {
+    auto s = expected<void, int>(in_place);
+    auto d = expected<void, int>(in_place);
+    d = std::move(s);
+    CHECK(d);
+  }
+  {
+    auto s = expected<void, int>(unexpect, 1);
+    auto d = expected<void, int>(in_place);
+    d = std::move(s);
+    CHECK(!d);
+  }
+  {
+    auto s = expected<void, int>(in_place);
+    auto d = expected<void, int>(unexpect, 1);
+    d = std::move(s);
+    CHECK(d);
+  }
+  {
+    auto s = expected<void, int>(in_place);
+    auto d = expected<void, int>(in_place);
+    d = std::move(s);
+    CHECK(d);
+  }
+  {
+    auto s = expected<void, dc<int>>(in_place);
+    auto d = expected<void, dc<int>>(in_place);
+    d = s;
+    CHECK(d);
+  }
+  {
+    auto s = expected<void, dc<int>>(unexpect, { 0, 1, 2 });
+    auto d = expected<void, dc<int>>(in_place);
+    d = s;
+    CHECK_EQ(d.error(), dc<int>({ 0, 1, 2 }));
+  }
+  {
+    auto s = expected<void, dc<int>>(in_place);
+    auto d = expected<void, dc<int>>(unexpect, { 3, 4, 5 });
+    d = s;
+    CHECK(d);
+  }
+  {
+    auto s = expected<void, dc<int>>(unexpect, { 0, 1, 2 });
+    auto d = expected<void, dc<int>>(unexpect, { 3, 4, 5 });
+    d = s;
+    CHECK_EQ(d.error(), dc<int>({ 0, 1, 2 }));
+  }
+  {
+    auto s = expected<void, dc<int>>(in_place);
+    auto d = expected<void, dc<int>>(in_place);
+    d = std::move(s);
+    CHECK(d);
+  }
+  {
+    auto s = expected<void, dc<int>>(unexpect, { 0, 1, 2 });
+    auto d = expected<void, dc<int>>(in_place);
+    d = std::move(s);
+    CHECK_EQ(d.error(), dc<int>({ 0, 1, 2 }));
+  }
+  {
+    auto s = expected<void, dc<int>>(in_place);
+    auto d = expected<void, dc<int>>(unexpect, { 3, 4, 5 });
+    d = std::move(s);
+    CHECK(d);
+  }
+  {
+    auto s = expected<void, dc<int>>(unexpect, { 0, 1, 2 });
+    auto d = expected<void, dc<int>>(unexpect, { 3, 4, 5 });
+    d = std::move(s);
+    CHECK_EQ(d.error(), dc<int>({ 0, 1, 2 }));
+  }
+
+  {
+    auto s = expected<dc<int>, dc<int>>({ 0, 1, 2 });
+    auto d = expected<dc<int>, dc<int>>({ 3, 4, 5 });
+    d = s;
+    CHECK_EQ(d.value(), dc<int>({ 0, 1, 2 }));
+  }
+  {
+    auto s = expected<dc<int>, dc<int>>(unexpect, { 0, 1, 2 });
+    auto d = expected<dc<int>, dc<int>>({ 3, 4, 5 });
+    d = s;
+    CHECK_EQ(d.error(), dc<int>({ 0, 1, 2 }));
+  }
+  {
+    auto s = expected<dc<int>, dc<int>>({ 0, 1, 2 });
+    auto d = expected<dc<int>, dc<int>>(unexpect, { 3, 4, 5 });
+    d = s;
+    CHECK_EQ(d.value(), dc<int>({ 0, 1, 2 }));
+  }
+  {
+    auto s = expected<dc<int>, dc<int>>(unexpect, { 0, 1, 2 });
+    auto d = expected<dc<int>, dc<int>>(unexpect, { 3, 4, 5 });
+    d = s;
+    CHECK_EQ(d.error(), dc<int>({ 0, 1, 2 }));
+  }
+  {
+    auto s = expected<dc<int>, dc<int>>({ 0, 1, 2 });
+    auto d = expected<dc<int>, dc<int>>({ 3, 4, 5 });
+    d = std::move(s);
+    CHECK_EQ(d.value(), dc<int>({ 0, 1, 2 }));
+  }
+  {
+    auto s = expected<dc<int>, dc<int>>(unexpect, { 0, 1, 2 });
+    auto d = expected<dc<int>, dc<int>>({ 3, 4, 5 });
+    d = std::move(s);
+    CHECK_EQ(d.error(), dc<int>({ 0, 1, 2 }));
+  }
+  {
+    auto s = expected<dc<int>, dc<int>>({ 0, 1, 2 });
+    auto d = expected<dc<int>, dc<int>>(unexpect, { 3, 4, 5 });
+    d = std::move(s);
+    CHECK_EQ(d.value(), dc<int>({ 0, 1, 2 }));
+  }
+  {
+    auto s = expected<dc<int>, dc<int>>(unexpect, { 0, 1, 2 });
+    auto d = expected<dc<int>, dc<int>>(unexpect, { 3, 4, 5 });
+    d = std::move(s);
+    CHECK_EQ(d.error(), dc<int>({ 0, 1, 2 }));
   }
 }
 
@@ -529,6 +698,22 @@ TEST_CASE("operator*")
 #ifndef GUL_CXX_COMPILER_GCC48
   assert_is_same<deref_op, const expected<int, int>, const int&&>();
 #endif
+  {
+    auto exp = expected<void, int>(in_place);
+    *exp;
+  }
+  {
+    const auto exp = expected<void, int>(in_place);
+    *exp;
+  }
+  {
+    auto exp = expected<void, int>(in_place);
+    *std::move(exp);
+  }
+  {
+    const auto exp = expected<void, int>(in_place);
+    *std::move(exp);
+  }
   {
     auto exp = expected<int, int>(1);
     CHECK_EQ(*exp, 1);
@@ -1125,18 +1310,24 @@ TEST_CASE("swap")
     CHECK_EQ(b.value(), ndc<int>({ 0, 1, 2 }));
   }
 
-  class throw_move_constructible {
+#if !GUL_NO_EXCEPTIONS
+  class move_throw {
   public:
-    throw_move_constructible(int val)
+    move_throw(int val)
         : val_(val)
     {
     }
 
-    throw_move_constructible(const throw_move_constructible&) = default;
-    throw_move_constructible(throw_move_constructible&&) = default;
-    throw_move_constructible& operator=(const throw_move_constructible&)
-        = default;
-    throw_move_constructible& operator=(throw_move_constructible&&) = default;
+    move_throw(const move_throw&) = default;
+    move_throw(move_throw&& other)
+        : val_(other.val_)
+    {
+      if (val_ < 0) {
+        throw val_;
+      }
+    }
+    move_throw& operator=(const move_throw&) = default;
+    move_throw& operator=(move_throw&&) = default;
 
     int v() const noexcept
     {
@@ -1146,20 +1337,32 @@ TEST_CASE("swap")
   private:
     int val_ = 0;
   };
+  STATIC_ASSERT(!std::is_nothrow_move_constructible<move_throw>::value);
   {
-    auto a = expected<throw_move_constructible, int>(1);
-    auto b = expected<throw_move_constructible, int>(unexpect, 2);
+    auto a = expected<move_throw, int>(1);
+    auto b = expected<move_throw, int>(unexpect, 2);
     swap(a, b);
     CHECK_EQ(a.error(), 2);
     CHECK_EQ(b.value().v(), 1);
   }
   {
-    auto a = expected<int, throw_move_constructible>(1);
-    auto b = expected<int, throw_move_constructible>(unexpect, 2);
+    auto a = expected<int, move_throw>(1);
+    auto b = expected<int, move_throw>(unexpect, 2);
     swap(a, b);
     CHECK_EQ(a.error().v(), 2);
     CHECK_EQ(b.value(), 1);
   }
+  {
+    auto a = expected<move_throw, int>(-1);
+    auto b = expected<move_throw, int>(unexpect, 2);
+    CHECK_THROWS_AS(swap(a, b), int);
+  }
+  {
+    auto a = expected<int, move_throw>(1);
+    auto b = expected<int, move_throw>(unexpect, -1);
+    CHECK_THROWS_AS(swap(a, b), int);
+  }
+#endif
 }
 
 TEST_CASE("compare")

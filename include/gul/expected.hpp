@@ -137,12 +137,6 @@ class bad_expected_access;
 
 template <>
 class bad_expected_access<void> : public std::exception {
-public:
-  const char* what() const noexcept override
-  {
-    return "bad expected access";
-  }
-
 protected:
   bad_expected_access() noexcept = default;
 
@@ -687,7 +681,6 @@ struct expected_storage_base<void, E> : expected_destruct_base<void, E> {
   {
     if (this->has_) {
       if (other.has_value()) {
-        this->val_ = std::forward<Other>(other).value();
       } else {
         destroy_val();
         construct_err(std::forward<Other>(other).get_err());
@@ -695,7 +688,7 @@ struct expected_storage_base<void, E> : expected_destruct_base<void, E> {
     } else {
       if (other.has_value()) {
         destroy_err();
-        construct_val(std::forward<Other>(other).value());
+        construct_val();
       } else {
         this->err_ = std::forward<Other>(other).get_err();
       }
@@ -818,6 +811,7 @@ struct expected_copy_assign_base : expected_move_construct_base<T, E> {
   operator=(const expected_copy_assign_base& other)
   {
     this->assign_from(other);
+    return *this;
   }
 
   GUL_CXX14_CONSTEXPR expected_copy_assign_base&
@@ -860,6 +854,7 @@ struct expected_move_assign_base : expected_copy_assign_base<T, E> {
   operator=(expected_move_assign_base&& other)
   {
     this->assign_from(std::move(other));
+    return *this;
   }
 };
 
@@ -924,7 +919,8 @@ class expected : private detail::expected_move_assign_base<T, E>,
             std::is_constructible<unexpected<E>, expected<T2, E2>&>,
             std::is_constructible<unexpected<E>, expected<T2, E2>>,
             std::is_constructible<unexpected<E>, const expected<T2, E2>&>,
-            std::is_constructible<unexpected<E>, const expected<T2, E2>>>> { };
+            std::is_constructible<unexpected<E>, const expected<T2, E2>>>> {
+  };
 
   template <typename Self, typename F>
   static GUL_CXX14_CONSTEXPR auto
