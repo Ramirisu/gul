@@ -9,6 +9,8 @@
 
 #include <gul/expected.hpp>
 
+#include <cstring>
+
 using namespace gul;
 
 TEST_SUITE_BEGIN("expected");
@@ -196,6 +198,38 @@ TEST_CASE("unexpected")
     CHECK_EQ(lhs.error(), dc<int>(2));
     CHECK_EQ(rhs.error(), dc<int>(1));
   }
+  {
+    CHECK(gul::unexpected<int>(1) == gul::unexpected<int>(1));
+    CHECK(!(gul::unexpected<int>(1) == gul::unexpected<int>(2)));
+    CHECK(!(gul::unexpected<int>(1) != gul::unexpected<int>(1)));
+    CHECK(gul::unexpected<int>(1) != gul::unexpected<int>(2));
+  }
+}
+
+TEST_CASE("bad_expected_access")
+{
+#if !GUL_NO_EXCEPTIONS
+  {
+    auto ex = bad_expected_access<int>(1);
+    CHECK_EQ(ex.error(), 1);
+  }
+  {
+    const auto ex = bad_expected_access<int>(1);
+    CHECK_EQ(ex.error(), 1);
+  }
+  {
+    auto ex = bad_expected_access<int>(1);
+    CHECK_EQ(std::move(ex).error(), 1);
+  }
+  {
+    const auto ex = bad_expected_access<int>(1);
+    CHECK_EQ(std::move(ex).error(), 1);
+  }
+  {
+    auto ex = bad_expected_access<int>(1);
+    CHECK(strcmp(ex.what(), "bad expected access") == 0);
+  }
+#endif
 }
 
 TEST_CASE("trivially")
@@ -423,27 +457,51 @@ TEST_CASE("converting assignment operator")
 {
   {
     auto exp = expected<void, int>();
-    auto une = gul::unexpected<int>(1);
+    auto une = gul::unexpected<int>(2);
     exp = une;
-    CHECK_EQ(exp.error(), 1);
+    CHECK_EQ(exp.error(), 2);
+  }
+  {
+    auto exp = expected<void, int>(unexpect);
+    auto une = gul::unexpected<int>(2);
+    exp = une;
+    CHECK_EQ(exp.error(), 2);
   }
   {
     auto exp = expected<void, int>();
-    auto une = gul::unexpected<int>(1);
+    auto une = gul::unexpected<int>(2);
     exp = std::move(une);
-    CHECK_EQ(exp.error(), 1);
+    CHECK_EQ(exp.error(), 2);
+  }
+  {
+    auto exp = expected<void, int>(unexpect);
+    auto une = gul::unexpected<int>(2);
+    exp = std::move(une);
+    CHECK_EQ(exp.error(), 2);
   }
   {
     auto exp = expected<int, int>();
-    auto une = gul::unexpected<int>(1);
+    auto une = gul::unexpected<int>(2);
     exp = une;
-    CHECK_EQ(exp.error(), 1);
+    CHECK_EQ(exp.error(), 2);
+  }
+  {
+    auto exp = expected<int, int>(unexpect, 1);
+    auto une = gul::unexpected<int>(2);
+    exp = une;
+    CHECK_EQ(exp.error(), 2);
   }
   {
     auto exp = expected<int, int>();
-    auto une = gul::unexpected<int>(1);
+    auto une = gul::unexpected<int>(2);
     exp = std::move(une);
-    CHECK_EQ(exp.error(), 1);
+    CHECK_EQ(exp.error(), 2);
+  }
+  {
+    auto exp = expected<int, int>(unexpect, 1);
+    auto une = gul::unexpected<int>(2);
+    exp = std::move(une);
+    CHECK_EQ(exp.error(), 2);
   }
 }
 
@@ -540,6 +598,22 @@ TEST_CASE("value")
   assert_is_same<fn_value, const expected<int, int>, const int&&>();
 #endif
 
+  {
+    auto exp = expected<void, int>(in_place);
+    exp.value();
+  }
+  {
+    const auto exp = expected<void, int>(in_place);
+    exp.value();
+  }
+  {
+    auto exp = expected<void, int>(in_place);
+    std::move(exp).value();
+  }
+  {
+    const auto exp = expected<void, int>(in_place);
+    std::move(exp).value();
+  }
 #if !GUL_NO_EXCEPTIONS
   {
     auto exp = expected<void, int>(unexpect);
@@ -762,170 +836,233 @@ TEST_CASE("emplace")
 
 TEST_CASE("and_then")
 {
-  auto v_to_s = []() -> expected<std::string, int> { return "1"; };
   {
-    auto u = expected<void, int>(unexpect, 0);
-    CHECK_EQ(u.and_then(v_to_s).error(), 0);
-    auto e = expected<void, int>();
-    CHECK_EQ(e.and_then(v_to_s).value(), "1");
+    auto f = []() -> expected<std::string, int> { return "1"; };
+    {
+      auto u = expected<void, int>(unexpect, 0);
+      CHECK_EQ(u.and_then(f).error(), 0);
+      auto e = expected<void, int>();
+      CHECK_EQ(e.and_then(f).value(), "1");
+    }
+    {
+      const auto u = expected<void, int>(unexpect, 0);
+      CHECK_EQ(u.and_then(f).error(), 0);
+      const auto e = expected<void, int>();
+      CHECK_EQ(e.and_then(f).value(), "1");
+    }
+    {
+      auto u = expected<void, int>(unexpect, 0);
+      CHECK_EQ(std::move(u).and_then(f).error(), 0);
+      auto e = expected<void, int>();
+      CHECK_EQ(std::move(e).and_then(f).value(), "1");
+    }
+    {
+      const auto u = expected<void, int>(unexpect, 0);
+      CHECK_EQ(std::move(u).and_then(f).error(), 0);
+      const auto e = expected<void, int>();
+      CHECK_EQ(std::move(e).and_then(f).value(), "1");
+    }
   }
   {
-    const auto u = expected<void, int>(unexpect, 0);
-    CHECK_EQ(u.and_then(v_to_s).error(), 0);
-    const auto e = expected<void, int>();
-    CHECK_EQ(e.and_then(v_to_s).value(), "1");
-  }
-  {
-    auto u = expected<void, int>(unexpect, 0);
-    CHECK_EQ(std::move(u).and_then(v_to_s).error(), 0);
-    auto e = expected<void, int>();
-    CHECK_EQ(std::move(e).and_then(v_to_s).value(), "1");
-  }
-  {
-    const auto u = expected<void, int>(unexpect, 0);
-    CHECK_EQ(std::move(u).and_then(v_to_s).error(), 0);
-    const auto e = expected<void, int>();
-    CHECK_EQ(std::move(e).and_then(v_to_s).value(), "1");
-  }
-  auto i_to_s
-      = [](int i) -> expected<std::string, int> { return std::to_string(i); };
-  {
-    auto u = expected<int, int>(unexpect, 0);
-    CHECK_EQ(u.and_then(i_to_s).error(), 0);
-    auto e = expected<int, int>(1);
-    CHECK_EQ(e.and_then(i_to_s).value(), "1");
-  }
-  {
-    const auto u = expected<int, int>(unexpect, 0);
-    CHECK_EQ(u.and_then(i_to_s).error(), 0);
-    const auto e = expected<int, int>(1);
-    CHECK_EQ(e.and_then(i_to_s).value(), "1");
-  }
-  {
-    auto u = expected<int, int>(unexpect, 0);
-    CHECK_EQ(std::move(u).and_then(i_to_s).error(), 0);
-    auto e = expected<int, int>(1);
-    CHECK_EQ(std::move(e).and_then(i_to_s).value(), "1");
-  }
-  {
-    const auto u = expected<int, int>(unexpect, 0);
-    CHECK_EQ(std::move(u).and_then(i_to_s).error(), 0);
-    const auto e = expected<int, int>(1);
-    CHECK_EQ(std::move(e).and_then(i_to_s).value(), "1");
+    auto f
+        = [](int i) -> expected<std::string, int> { return std::to_string(i); };
+    {
+      auto u = expected<int, int>(unexpect, 0);
+      CHECK_EQ(u.and_then(f).error(), 0);
+      auto e = expected<int, int>(1);
+      CHECK_EQ(e.and_then(f).value(), "1");
+    }
+    {
+      const auto u = expected<int, int>(unexpect, 0);
+      CHECK_EQ(u.and_then(f).error(), 0);
+      const auto e = expected<int, int>(1);
+      CHECK_EQ(e.and_then(f).value(), "1");
+    }
+    {
+      auto u = expected<int, int>(unexpect, 0);
+      CHECK_EQ(std::move(u).and_then(f).error(), 0);
+      auto e = expected<int, int>(1);
+      CHECK_EQ(std::move(e).and_then(f).value(), "1");
+    }
+    {
+      const auto u = expected<int, int>(unexpect, 0);
+      CHECK_EQ(std::move(u).and_then(f).error(), 0);
+      const auto e = expected<int, int>(1);
+      CHECK_EQ(std::move(e).and_then(f).value(), "1");
+    }
   }
 }
 
 TEST_CASE("or_else")
 {
-  auto i_to_s = [](int i) -> expected<int, std::string> {
-    return gul::unexpected<std::string>(std::to_string(i));
-  };
   {
-    auto u = expected<int, int>(unexpect);
-    CHECK_EQ(u.or_else(i_to_s).error(), "0");
-    auto e = expected<int, int>(1);
-    CHECK_EQ(e.or_else(i_to_s).value(), 1);
+    auto f = [](int i) -> expected<void, std::string> {
+      return gul::unexpected<std::string>(std::to_string(i));
+    };
+    {
+      auto u = expected<void, int>(unexpect);
+      CHECK_EQ(u.or_else(f).error(), "0");
+      auto e = expected<void, int>(in_place);
+      CHECK(e.or_else(f));
+    }
+    {
+      const auto u = expected<void, int>(unexpect);
+      CHECK_EQ(u.or_else(f).error(), "0");
+      const auto e = expected<void, int>(in_place);
+      CHECK(e.or_else(f));
+    }
+    {
+      auto u = expected<void, int>(unexpect);
+      CHECK_EQ(std::move(u).or_else(f).error(), "0");
+      auto e = expected<void, int>(in_place);
+      CHECK(std::move(e).or_else(f));
+    }
+    {
+      const auto u = expected<void, int>(unexpect);
+      CHECK_EQ(std::move(u).or_else(f).error(), "0");
+      const auto e = expected<void, int>(in_place);
+      CHECK(std::move(e).or_else(f));
+    }
   }
   {
-    const auto u = expected<int, int>(unexpect);
-    CHECK_EQ(u.or_else(i_to_s).error(), "0");
-    const auto e = expected<int, int>(1);
-    CHECK_EQ(e.or_else(i_to_s).value(), 1);
-  }
-  {
-    auto u = expected<int, int>(unexpect);
-    CHECK_EQ(std::move(u).or_else(i_to_s).error(), "0");
-    auto e = expected<int, int>(1);
-    CHECK_EQ(std::move(e).or_else(i_to_s).value(), 1);
-  }
-  {
-    const auto u = expected<int, int>(unexpect);
-    CHECK_EQ(std::move(u).or_else(i_to_s).error(), "0");
-    const auto e = expected<int, int>(1);
-    CHECK_EQ(std::move(e).or_else(i_to_s).value(), 1);
+    auto f = [](int i) -> expected<int, std::string> {
+      return gul::unexpected<std::string>(std::to_string(i));
+    };
+    {
+      auto u = expected<int, int>(unexpect);
+      CHECK_EQ(u.or_else(f).error(), "0");
+      auto e = expected<int, int>(1);
+      CHECK_EQ(e.or_else(f).value(), 1);
+    }
+    {
+      const auto u = expected<int, int>(unexpect);
+      CHECK_EQ(u.or_else(f).error(), "0");
+      const auto e = expected<int, int>(1);
+      CHECK_EQ(e.or_else(f).value(), 1);
+    }
+    {
+      auto u = expected<int, int>(unexpect);
+      CHECK_EQ(std::move(u).or_else(f).error(), "0");
+      auto e = expected<int, int>(1);
+      CHECK_EQ(std::move(e).or_else(f).value(), 1);
+    }
+    {
+      const auto u = expected<int, int>(unexpect);
+      CHECK_EQ(std::move(u).or_else(f).error(), "0");
+      const auto e = expected<int, int>(1);
+      CHECK_EQ(std::move(e).or_else(f).value(), 1);
+    }
   }
 }
 
 TEST_CASE("transform")
 {
-  auto v_to_s = []() -> std::string { return "1"; };
   {
-    auto u = expected<void, int>(unexpect);
-    CHECK_EQ(u.transform(v_to_s).error(), 0);
-    auto e = expected<void, int>();
-    CHECK_EQ(e.transform(v_to_s).value(), "1");
+    auto f = []() -> std::string { return "1"; };
+    {
+      auto u = expected<void, int>(unexpect);
+      CHECK_EQ(u.transform(f).error(), 0);
+      auto e = expected<void, int>();
+      CHECK_EQ(e.transform(f).value(), "1");
+    }
+    {
+      const auto u = expected<void, int>(unexpect);
+      CHECK_EQ(u.transform(f).error(), 0);
+      const auto e = expected<void, int>();
+      CHECK_EQ(e.transform(f).value(), "1");
+    }
+    {
+      auto u = expected<void, int>(unexpect);
+      CHECK_EQ(std::move(u).transform(f).error(), 0);
+      auto e = expected<void, int>();
+      CHECK_EQ(std::move(e).transform(f).value(), "1");
+    }
+    {
+      const auto u = expected<void, int>(unexpect);
+      CHECK_EQ(std::move(u).transform(f).error(), 0);
+      const auto e = expected<void, int>();
+      CHECK_EQ(std::move(e).transform(f).value(), "1");
+    }
   }
   {
-    const auto u = expected<void, int>(unexpect);
-    CHECK_EQ(u.transform(v_to_s).error(), 0);
-    const auto e = expected<void, int>();
-    CHECK_EQ(e.transform(v_to_s).value(), "1");
-  }
-  {
-    auto u = expected<void, int>(unexpect);
-    CHECK_EQ(std::move(u).transform(v_to_s).error(), 0);
-    auto e = expected<void, int>();
-    CHECK_EQ(std::move(e).transform(v_to_s).value(), "1");
-  }
-  {
-    const auto u = expected<void, int>(unexpect);
-    CHECK_EQ(std::move(u).transform(v_to_s).error(), 0);
-    const auto e = expected<void, int>();
-    CHECK_EQ(std::move(e).transform(v_to_s).value(), "1");
-  }
-  auto i_to_s = [](int i) -> std::string { return std::to_string(i); };
-  {
-    auto u = expected<int, int>(unexpect);
-    CHECK_EQ(u.transform(i_to_s).error(), 0);
-    auto e = expected<int, int>(1);
-    CHECK_EQ(e.transform(i_to_s).value(), "1");
-  }
-  {
-    const auto u = expected<int, int>(unexpect);
-    CHECK_EQ(u.transform(i_to_s).error(), 0);
-    const auto e = expected<int, int>(1);
-    CHECK_EQ(e.transform(i_to_s).value(), "1");
-  }
-  {
-    auto u = expected<int, int>(unexpect);
-    CHECK_EQ(std::move(u).transform(i_to_s).error(), 0);
-    auto e = expected<int, int>(1);
-    CHECK_EQ(std::move(e).transform(i_to_s).value(), "1");
-  }
-  {
-    const auto u = expected<int, int>(unexpect);
-    CHECK_EQ(std::move(u).transform(i_to_s).error(), 0);
-    const auto e = expected<int, int>(1);
-    CHECK_EQ(std::move(e).transform(i_to_s).value(), "1");
+    auto f = [](int i) -> std::string { return std::to_string(i); };
+    {
+      auto u = expected<int, int>(unexpect);
+      CHECK_EQ(u.transform(f).error(), 0);
+      auto e = expected<int, int>(1);
+      CHECK_EQ(e.transform(f).value(), "1");
+    }
+    {
+      const auto u = expected<int, int>(unexpect);
+      CHECK_EQ(u.transform(f).error(), 0);
+      const auto e = expected<int, int>(1);
+      CHECK_EQ(e.transform(f).value(), "1");
+    }
+    {
+      auto u = expected<int, int>(unexpect);
+      CHECK_EQ(std::move(u).transform(f).error(), 0);
+      auto e = expected<int, int>(1);
+      CHECK_EQ(std::move(e).transform(f).value(), "1");
+    }
+    {
+      const auto u = expected<int, int>(unexpect);
+      CHECK_EQ(std::move(u).transform(f).error(), 0);
+      const auto e = expected<int, int>(1);
+      CHECK_EQ(std::move(e).transform(f).value(), "1");
+    }
   }
 }
 
 TEST_CASE("transform_error")
 {
-  auto i_to_s = [](int i) -> std::string { return std::to_string(i); };
+  auto f = [](int i) -> std::string { return std::to_string(i); };
+  {
+    auto u = expected<void, int>(unexpect);
+    CHECK_EQ(u.transform_error(f).error(), "0");
+    auto e = expected<void, int>(in_place);
+    CHECK(e.transform_error(f));
+  }
+  {
+    const auto u = expected<void, int>(unexpect);
+    CHECK_EQ(u.transform_error(f).error(), "0");
+    const auto e = expected<void, int>(in_place);
+    CHECK(e.transform_error(f));
+  }
+  {
+    auto u = expected<void, int>(unexpect);
+    CHECK_EQ(std::move(u).transform_error(f).error(), "0");
+    auto e = expected<void, int>(in_place);
+    CHECK(std::move(e).transform_error(f));
+  }
+  {
+    const auto u = expected<void, int>(unexpect);
+    CHECK_EQ(std::move(u).transform_error(f).error(), "0");
+    const auto e = expected<void, int>(in_place);
+    CHECK(std::move(e).transform_error(f));
+  }
   {
     auto u = expected<int, int>(unexpect);
-    CHECK_EQ(u.transform_error(i_to_s).error(), "0");
+    CHECK_EQ(u.transform_error(f).error(), "0");
     auto e = expected<int, int>(1);
-    CHECK_EQ(e.transform_error(i_to_s).value(), 1);
+    CHECK_EQ(e.transform_error(f).value(), 1);
   }
   {
     const auto u = expected<int, int>(unexpect);
-    CHECK_EQ(u.transform_error(i_to_s).error(), "0");
+    CHECK_EQ(u.transform_error(f).error(), "0");
     const auto e = expected<int, int>(1);
-    CHECK_EQ(e.transform_error(i_to_s).value(), 1);
+    CHECK_EQ(e.transform_error(f).value(), 1);
   }
   {
     auto u = expected<int, int>(unexpect);
-    CHECK_EQ(std::move(u).transform_error(i_to_s).error(), "0");
+    CHECK_EQ(std::move(u).transform_error(f).error(), "0");
     auto e = expected<int, int>(1);
-    CHECK_EQ(std::move(e).transform_error(i_to_s).value(), 1);
+    CHECK_EQ(std::move(e).transform_error(f).value(), 1);
   }
   {
     const auto u = expected<int, int>(unexpect);
-    CHECK_EQ(std::move(u).transform_error(i_to_s).error(), "0");
+    CHECK_EQ(std::move(u).transform_error(f).error(), "0");
     const auto e = expected<int, int>(1);
-    CHECK_EQ(std::move(e).transform_error(i_to_s).value(), 1);
+    CHECK_EQ(std::move(e).transform_error(f).value(), 1);
   }
 }
 

@@ -1,5 +1,5 @@
 # Configure
-cmake -B build -DGUL_BUILD_TESTS=ON -DGUL_ENABLE_CODECOV=ON
+cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DGUL_BUILD_TESTS=ON -DGUL_ENABLE_CODECOV=ON
 
 # Build
 cmake --build build

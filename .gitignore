@@ -1,5 +1,6 @@
 .vs
 .vscode
+.cache
 out
 build
 coverage_report
