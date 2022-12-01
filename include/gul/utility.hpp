@@ -9,13 +9,13 @@
 
 #include <gul/config.hpp>
 
+#include <gul/detail/utility.hpp>
+
 #include <utility>
 
 GUL_NAMESPACE_BEGIN
 
-struct in_place_t {
-  explicit in_place_t() = default;
-};
+using detail::in_place_t;
 
 GUL_CXX17_INLINE constexpr in_place_t in_place {};
 

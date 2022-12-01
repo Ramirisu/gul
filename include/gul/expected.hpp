@@ -9,6 +9,8 @@
 
 #include <gul/config.hpp>
 
+#include <gul/detail/constructor_base.hpp>
+
 #include <gul/functional.hpp>
 #include <gul/type_traits.hpp>
 #include <gul/utility.hpp>
@@ -755,22 +757,6 @@ template <typename T, typename E>
 struct expected_copy_construct_base<T, E, true, true>
     : expected_storage_base<T, E> {
   using expected_storage_base<T, E>::expected_storage_base;
-
-  GUL_CXX14_CONSTEXPR expected_copy_construct_base() = default;
-
-  GUL_CXX14_CONSTEXPR
-  expected_copy_construct_base(const expected_copy_construct_base&) = default;
-
-  GUL_CXX14_CONSTEXPR
-  expected_copy_construct_base(expected_copy_construct_base&&) = default;
-
-  GUL_CXX14_CONSTEXPR expected_copy_construct_base&
-  operator=(const expected_copy_construct_base&)
-      = default;
-
-  GUL_CXX14_CONSTEXPR expected_copy_construct_base&
-  operator=(expected_copy_construct_base&&)
-      = default;
 };
 
 template <typename T,
@@ -805,22 +791,6 @@ template <typename T, typename E>
 struct expected_move_construct_base<T, E, true, true>
     : expected_copy_construct_base<T, E> {
   using expected_copy_construct_base<T, E>::expected_copy_construct_base;
-
-  GUL_CXX14_CONSTEXPR expected_move_construct_base() = default;
-
-  GUL_CXX14_CONSTEXPR
-  expected_move_construct_base(const expected_move_construct_base&) = default;
-
-  GUL_CXX14_CONSTEXPR
-  expected_move_construct_base(expected_move_construct_base&&) = default;
-
-  GUL_CXX14_CONSTEXPR expected_move_construct_base&
-  operator=(const expected_move_construct_base&)
-      = default;
-
-  GUL_CXX14_CONSTEXPR expected_move_construct_base&
-  operator=(expected_move_construct_base&&)
-      = default;
 };
 
 template <typename T,
@@ -859,22 +829,6 @@ template <typename T, typename E>
 struct expected_copy_assign_base<T, E, true, true>
     : expected_move_construct_base<T, E> {
   using expected_move_construct_base<T, E>::expected_move_construct_base;
-
-  GUL_CXX14_CONSTEXPR expected_copy_assign_base() = default;
-
-  GUL_CXX14_CONSTEXPR
-  expected_copy_assign_base(const expected_copy_assign_base&) = default;
-
-  GUL_CXX14_CONSTEXPR
-  expected_copy_assign_base(expected_copy_assign_base&&) = default;
-
-  GUL_CXX14_CONSTEXPR expected_copy_assign_base&
-  operator=(const expected_copy_assign_base&)
-      = default;
-
-  GUL_CXX14_CONSTEXPR expected_copy_assign_base&
-  operator=(expected_copy_assign_base&&)
-      = default;
 };
 
 template <typename T,
@@ -913,72 +867,48 @@ template <typename T, typename E>
 struct expected_move_assign_base<T, E, true, true>
     : expected_copy_assign_base<T, E> {
   using expected_copy_assign_base<T, E>::expected_copy_assign_base;
-
-  GUL_CXX14_CONSTEXPR expected_move_assign_base() = default;
-
-  GUL_CXX14_CONSTEXPR
-  expected_move_assign_base(const expected_move_assign_base&) = default;
-
-  GUL_CXX14_CONSTEXPR
-  expected_move_assign_base(expected_move_assign_base&&) = default;
-
-  GUL_CXX14_CONSTEXPR expected_move_assign_base&
-  operator=(const expected_move_assign_base&)
-      = default;
-
-  GUL_CXX14_CONSTEXPR expected_move_assign_base&
-  operator=(expected_move_assign_base&&)
-      = default;
-};
-
-template <typename T,
-          bool = disjunction<std::is_void<T>,
-                             std::is_default_constructible<T>>::value>
-struct expected_default_constructible_base {
-  GUL_CXX14_CONSTEXPR
-  expected_default_constructible_base(in_place_t) noexcept { }
-
-  GUL_CXX14_CONSTEXPR expected_default_constructible_base() noexcept = default;
-
-  GUL_CXX14_CONSTEXPR expected_default_constructible_base(
-      const expected_default_constructible_base&) noexcept = default;
-
-  GUL_CXX14_CONSTEXPR expected_default_constructible_base(
-      expected_default_constructible_base&&) noexcept = default;
-
-  GUL_CXX14_CONSTEXPR expected_default_constructible_base&
-  operator=(const expected_default_constructible_base&) noexcept = default;
-
-  GUL_CXX14_CONSTEXPR expected_default_constructible_base&
-  operator=(expected_default_constructible_base&&) noexcept = default;
 };
 
 template <typename T>
-struct expected_default_constructible_base<T, false> {
-  GUL_CXX14_CONSTEXPR
-  expected_default_constructible_base(in_place_t) noexcept { }
+using expected_enable_default_construct_base = detail::default_construct_base<
+    disjunction<std::is_void<T>, std::is_default_constructible<T>>::value>;
 
-  GUL_CXX14_CONSTEXPR expected_default_constructible_base() noexcept = delete;
+template <typename T, typename E>
+using expected_enable_copy_construct_base = detail::copy_construct_base<
+    conjunction<disjunction<std::is_void<T>, std::is_copy_constructible<T>>,
+                std::is_copy_constructible<E>>::value>;
 
-  GUL_CXX14_CONSTEXPR expected_default_constructible_base(
-      const expected_default_constructible_base&) noexcept = default;
+template <typename T, typename E>
+using expected_enable_move_construct_base = detail::move_construct_base<
+    conjunction<disjunction<std::is_void<T>, std::is_move_constructible<T>>,
+                std::is_move_constructible<E>>::value>;
 
-  GUL_CXX14_CONSTEXPR expected_default_constructible_base(
-      expected_default_constructible_base&&) noexcept = default;
+template <typename T, typename E>
+using expected_enable_copy_assign_base = detail::copy_assign_base<
+    conjunction<disjunction<std::is_void<T>,
+                            conjunction<std::is_copy_constructible<T>,
+                                        std::is_copy_assignable<T>>>,
+                std::is_copy_constructible<E>,
+                std::is_copy_assignable<E>>::value>;
 
-  GUL_CXX14_CONSTEXPR expected_default_constructible_base&
-  operator=(const expected_default_constructible_base&) noexcept = default;
-
-  GUL_CXX14_CONSTEXPR expected_default_constructible_base&
-  operator=(expected_default_constructible_base&&) noexcept = default;
-};
+template <typename T, typename E>
+using expected_enable_move_assign_base = detail::move_assign_base<
+    conjunction<disjunction<std::is_void<T>,
+                            conjunction<std::is_move_constructible<T>,
+                                        std::is_move_assignable<T>>>,
+                std::is_move_constructible<E>,
+                std::is_move_assignable<E>>::value>;
 }
 
 template <typename T, typename E>
 class expected : private detail::expected_move_assign_base<T, E>,
-                 private detail::expected_default_constructible_base<T> {
+                 private detail::expected_enable_default_construct_base<T>,
+                 private detail::expected_enable_copy_construct_base<T, E>,
+                 private detail::expected_enable_move_construct_base<T, E>,
+                 private detail::expected_enable_copy_assign_base<T, E>,
+                 private detail::expected_enable_move_assign_base<T, E> {
   using base_type = detail::expected_move_assign_base<T, E>;
-  using dc_base_type = detail::expected_default_constructible_base<T>;
+  using dc_base_type = detail::expected_enable_default_construct_base<T>;
 
   template <typename T2, typename E2>
   struct is_expected_constructible
@@ -994,8 +924,7 @@ class expected : private detail::expected_move_assign_base<T, E>,
             std::is_constructible<unexpected<E>, expected<T2, E2>&>,
             std::is_constructible<unexpected<E>, expected<T2, E2>>,
             std::is_constructible<unexpected<E>, const expected<T2, E2>&>,
-            std::is_constructible<unexpected<E>, const expected<T2, E2>>>> {
-  };
+            std::is_constructible<unexpected<E>, const expected<T2, E2>>>> { };
 
   template <typename Self, typename F>
   static GUL_CXX14_CONSTEXPR auto

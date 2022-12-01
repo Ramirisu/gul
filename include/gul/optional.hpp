@@ -9,6 +9,8 @@
 
 #include <gul/config.hpp>
 
+#include <gul/detail/constructor_base.hpp>
+
 #include <gul/functional.hpp>
 #include <gul/type_traits.hpp>
 #include <gul/utility.hpp>
@@ -537,10 +539,34 @@ struct optional_move_assign_base<T, false> : optional_copy_assign_base<T> {
     return *this;
   }
 };
+
+template <typename T>
+using optional_enable_copy_construct_base = detail::copy_construct_base<
+    disjunction<std::is_void<T>, std::is_copy_constructible<T>>::value>;
+
+template <typename T>
+using optional_enable_move_construct_base = detail::move_construct_base<
+    disjunction<std::is_void<T>, std::is_move_constructible<T>>::value>;
+
+template <typename T>
+using optional_enable_copy_assign_base = detail::copy_assign_base<
+    disjunction<std::is_void<T>,
+                conjunction<std::is_copy_constructible<T>,
+                            std::is_copy_assignable<T>>>::value>;
+
+template <typename T>
+using optional_enable_move_assign_base = detail::move_assign_base<
+    disjunction<std::is_void<T>,
+                conjunction<std::is_move_constructible<T>,
+                            std::is_move_assignable<T>>>::value>;
 }
 
 template <typename T>
-class optional : private detail::optional_move_assign_base<T> {
+class optional : private detail::optional_move_assign_base<T>,
+                 private detail::optional_enable_copy_construct_base<T>,
+                 private detail::optional_enable_move_construct_base<T>,
+                 private detail::optional_enable_copy_assign_base<T>,
+                 private detail::optional_enable_move_assign_base<T> {
   using base_type = detail::optional_move_assign_base<T>;
 
   template <typename U>
@@ -552,8 +578,7 @@ class optional : private detail::optional_move_assign_base<T> {
                              std::is_convertible<optional<U>&, T>,
                              std::is_convertible<const optional<U>&, T>,
                              std::is_convertible<optional<U>&&, T>,
-                             std::is_convertible<const optional<U>&&, T>>> {
-  };
+                             std::is_convertible<const optional<U>&&, T>>> { };
   template <typename U>
   struct is_optional_assignable
       : negation<conjunction<
@@ -569,8 +594,7 @@ class optional : private detail::optional_move_assign_base<T> {
             std::is_assignable<add_lvalue_reference_t<T>, const optional<U>&>,
             std::is_assignable<add_lvalue_reference_t<T>, optional<U>&&>,
             std::is_assignable<add_lvalue_reference_t<T>,
-                               const optional<U>&&>>> {
-  };
+                               const optional<U>&&>>> { };
 
   template <typename Self, typename F>
   static GUL_CXX14_CONSTEXPR auto
