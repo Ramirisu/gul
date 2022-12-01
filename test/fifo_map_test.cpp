@@ -37,6 +37,9 @@ TEST_CASE("basic")
   CHECK(!m.contains(1));
   CHECK(!m.contains(2));
   CHECK(!m.contains(3));
+  CHECK_EQ(
+      m.max_size(),
+      std::min(std::map<int, int>().max_size(), std::deque<int>().max_size()));
 }
 
 TEST_CASE("copy ctor")
@@ -78,7 +81,9 @@ TEST_CASE("get|cget")
     fifo_map<int, int> m({ { 1, 10 }, { 2, 20 } });
     static_assert_same<decltype(m.get(1)), optional<int&>>();
     static_assert_same<decltype(m.cget(1)), optional<const int&>>();
+    CHECK_EQ(m.get(0), optional<int&>());
     CHECK_EQ(m.get(1), 10);
+    CHECK_EQ(m.cget(0), optional<int&>());
     CHECK_EQ(m.cget(1), 10);
     m.get(1).value() = 100;
     CHECK_EQ(m.get(1), 100);
@@ -87,7 +92,9 @@ TEST_CASE("get|cget")
     const fifo_map<int, int> m({ { 1, 10 }, { 2, 20 } });
     static_assert_same<decltype(m.get(1)), optional<const int&>>();
     static_assert_same<decltype(m.cget(1)), optional<const int&>>();
+    CHECK_EQ(m.get(0), optional<int&>());
     CHECK_EQ(m.get(1), 10);
+    CHECK_EQ(m.cget(0), optional<int&>());
     CHECK_EQ(m.cget(1), 10);
   }
 }
@@ -151,6 +158,51 @@ TEST_CASE("iterator dereferece type")
   static_assert_same<decltype(*cm.rend()), const std::pair<const char, int>&>();
   static_assert_same<decltype(*cm.crend()),
                      const std::pair<const char, int>&>();
+}
+
+TEST_CASE("iterator")
+{
+  {
+    fifo_map<int, int> m({ { 3, 30 }, { 1, 10 }, { 2, 20 } });
+    CHECK_EQ(m.begin(), m.begin());
+    CHECK_NE(m.begin(), m.end());
+    CHECK_EQ(m.cbegin(), m.cbegin());
+    CHECK_NE(m.cbegin(), m.cend());
+    auto it = m.begin();
+    CHECK_EQ(*it++, std::pair<const int, int> { 3, 30 });
+    CHECK_EQ(*it++, std::pair<const int, int> { 1, 10 });
+    CHECK_EQ(*it++, std::pair<const int, int> { 2, 20 });
+    CHECK_EQ(it, m.end());
+    it--;
+    it--;
+    it--;
+    CHECK_EQ(it, m.begin());
+  }
+  {
+    const fifo_map<int, int> m({ { 1, 10 }, { 2, 20 } });
+    CHECK_EQ(m.begin(), m.begin());
+    CHECK_NE(m.begin(), m.end());
+    CHECK_EQ(m.cbegin(), m.cbegin());
+    CHECK_NE(m.cbegin(), m.cend());
+  }
+  {
+    fifo_map<int, int> m({ { 1, 10 }, { 2, 20 } });
+    CHECK_EQ(m.rbegin(), m.rbegin());
+    CHECK_NE(m.rbegin(), m.rend());
+    CHECK_EQ(m.crbegin(), m.crbegin());
+    CHECK_NE(m.crbegin(), m.crend());
+  }
+  {
+    const fifo_map<int, int> m({ { 1, 10 }, { 2, 20 } });
+    CHECK_EQ(m.rbegin(), m.rbegin());
+    CHECK_NE(m.rbegin(), m.rend());
+    CHECK_EQ(m.crbegin(), m.crbegin());
+    CHECK_NE(m.crbegin(), m.crend());
+  }
+  {
+    fifo_map<int, int> m({ { 1, 10 }, { 2, 20 } });
+    CHECK_EQ(m.begin()->second, 10);
+  }
 }
 
 TEST_SUITE_END();

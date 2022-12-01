@@ -33,7 +33,7 @@ class fifo_map {
                                           typename queue_type::iterator>;
 
   public:
-    using iterator_category = std::forward_iterator_tag;
+    using iterator_category = std::bidirectional_iterator_tag;
     using value_type = conditional_t<Const,
                                      const typename map_type::value_type,
                                      typename map_type::value_type>;
@@ -80,7 +80,7 @@ class fifo_map {
 
     pointer operator->() noexcept
     {
-      return &*curr_;
+      return std::addressof(**curr_);
     }
 
     friend bool operator==(const iterator_impl& lhs, const iterator_impl& rhs)
@@ -224,7 +224,7 @@ public:
 
   size_type max_size() const noexcept
   {
-    return std::numeric_limits<size_type>::max();
+    return std::min(map_.max_size(), queue_.max_size());
   }
 
   iterator begin()
