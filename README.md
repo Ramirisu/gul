@@ -33,7 +33,7 @@ gul is an open-source library providing general utilities for c++11. Many of the
 |                                 `fifo_map`                                 | An associative container that contains key-value pairs with unique keys. `Key`s are sorted by insertion order.                                                                  |                                none                                 |
 |                                 `lru_map`                                  | An associative container that contains key-value pairs with at most `capacity` unique keys. The least recently used `Key` will be purged when the map is full during insertion. |                                none                                 |
 
-|                                            Type traits                                            |                              From std?                              |
+|                                            Type Traits                                            |                              From std?                              |
 | :-----------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------: |
 |                                         `is_null_pointer`                                         |  [c++14](https://en.cppreference.com/w/cpp/types/is_null_pointer)   |
 | `is_swappable_with`</br>`is_swappable`</br>`is_nothrow_swappable_with`</br>`is_nothrow_swappable` |    [c++17](https://en.cppreference.com/w/cpp/types/is_swappable)    |
@@ -48,6 +48,7 @@ gul is an open-source library providing general utilities for c++11. Many of the
 |                                             `void_t`                                              |       [c++17](https://en.cppreference.com/w/cpp/types/void_t)       |
 |                                          `remove_cvref`                                           |    [c++20](https://en.cppreference.com/w/cpp/types/remove_cvref)    |
 |                                          `type_identity`                                          |   [c++20](https://en.cppreference.com/w/cpp/types/type_identity)    |
+|                                         `function_traits`                                         |                                none                                 |
 
 
 ## Integration
