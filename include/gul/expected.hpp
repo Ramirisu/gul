@@ -362,6 +362,16 @@ template <typename T, typename E>
 struct expected_storage_base : expected_destruct_base<T, E> {
   using expected_destruct_base<T, E>::expected_destruct_base;
 
+  GUL_CXX14_CONSTEXPR add_pointer_t<T> operator->() noexcept
+  {
+    return std::addressof(this->val_);
+  }
+
+  GUL_CXX14_CONSTEXPR add_pointer_t<const T> operator->() const noexcept
+  {
+    return std::addressof(this->val_);
+  }
+
   GUL_CXX14_CONSTEXPR T& operator*() & noexcept
   {
     return this->val_;
@@ -585,6 +595,10 @@ private:
 template <typename E>
 struct expected_storage_base<void, E> : expected_destruct_base<void, E> {
   using expected_destruct_base<void, E>::expected_destruct_base;
+
+  GUL_CXX14_CONSTEXPR void operator->() noexcept { }
+
+  GUL_CXX14_CONSTEXPR void operator->() const noexcept { }
 
   GUL_CXX14_CONSTEXPR void operator*() const& noexcept { }
 
@@ -919,8 +933,7 @@ class expected : private detail::expected_move_assign_base<T, E>,
             std::is_constructible<unexpected<E>, expected<T2, E2>&>,
             std::is_constructible<unexpected<E>, expected<T2, E2>>,
             std::is_constructible<unexpected<E>, const expected<T2, E2>&>,
-            std::is_constructible<unexpected<E>, const expected<T2, E2>>>> {
-  };
+            std::is_constructible<unexpected<E>, const expected<T2, E2>>>> { };
 
   template <typename Self, typename F>
   static GUL_CXX14_CONSTEXPR auto
@@ -1132,7 +1145,7 @@ public:
           expected(const expected<T2, E2>& other)
       : dc_base_type(in_place)
   {
-    this->construct_from(other);
+    (*this).construct_from(other);
   }
 
   template <
@@ -1149,7 +1162,7 @@ public:
           expected(expected<T2, E2>&& other)
       : dc_base_type(in_place)
   {
-    this->construct_from(std::move(other));
+    (*this).construct_from(std::move(other));
   }
 
   template <
@@ -1275,12 +1288,12 @@ public:
                       std::is_assignable<add_lvalue_reference_t<T>, U>>::value)>
   GUL_CXX14_CONSTEXPR expected& operator=(U&& u)
   {
-    if (this->has_value()) {
-      this->val_ = std::forward<U>(u);
+    if (has_value()) {
+      (*this).val_ = std::forward<U>(u);
     } else {
-      this->destroy_err();
-      this->construct_val(std::forward<U>(u));
-      this->has_ = true;
+      (*this).destroy_err();
+      (*this).construct_val(std::forward<U>(u));
+      (*this).has_ = true;
     }
 
     return *this;
@@ -1293,12 +1306,12 @@ public:
                                                   const E2&>>::value)>
   GUL_CXX14_CONSTEXPR expected& operator=(const unexpected<E2>& une)
   {
-    if (this->has_value()) {
-      this->destroy_val();
-      this->has_ = false;
-      this->construct_err(une.error());
+    if (has_value()) {
+      (*this).destroy_val();
+      (*this).has_ = false;
+      (*this).construct_err(une.error());
     } else {
-      this->get_err() = une.error();
+      (*this).get_err() = une.error();
     }
 
     return *this;
@@ -1311,34 +1324,24 @@ public:
                    std::is_assignable<add_lvalue_reference_t<E>, E2>>::value)>
   GUL_CXX14_CONSTEXPR expected& operator=(unexpected<E2>&& une)
   {
-    if (this->has_value()) {
-      this->destroy_val();
-      this->has_ = false;
-      this->construct_err(std::move(une).error());
+    if (has_value()) {
+      (*this).destroy_val();
+      (*this).has_ = false;
+      (*this).construct_err(std::move(une).error());
     } else {
-      this->get_err() = std::move(une).error();
+      (*this).get_err() = std::move(une).error();
     }
 
     return *this;
   }
 
-  template <bool B = !std::is_void<T>::value, GUL_REQUIRES(B)>
-  GUL_CXX14_CONSTEXPR T* operator->() noexcept
-  {
-    return std::addressof(this->val_);
-  }
-
-  template <bool B = !std::is_void<T>::value, GUL_REQUIRES(B)>
-  GUL_CXX14_CONSTEXPR const T* operator->() const noexcept
-  {
-    return std::addressof(this->val_);
-  }
+  using base_type::operator->;
 
   using base_type::operator*;
 
   GUL_CXX14_CONSTEXPR explicit operator bool() const noexcept
   {
-    return this->has_;
+    return has_value();
   }
 
   using base_type::has_value;
@@ -1349,26 +1352,26 @@ public:
 
   GUL_CXX14_CONSTEXPR E& error() & noexcept
   {
-    GUL_ASSERT(!this->has_value());
-    return this->get_err();
+    GUL_ASSERT(!has_value());
+    return get_err();
   }
 
   GUL_CXX14_CONSTEXPR const E& error() const& noexcept
   {
-    GUL_ASSERT(!this->has_value());
-    return this->get_err();
+    GUL_ASSERT(!has_value());
+    return get_err();
   }
 
   GUL_CXX14_CONSTEXPR E&& error() && noexcept
   {
-    GUL_ASSERT(!this->has_value());
+    GUL_ASSERT(!has_value());
     return std::move(*this).get_err();
   }
 
 #ifndef GUL_CXX_COMPILER_GCC48
   GUL_CXX14_CONSTEXPR const E&& error() const&& noexcept
   {
-    GUL_ASSERT(!this->has_value());
+    GUL_ASSERT(!has_value());
     return std::move(*this).get_err();
   }
 #endif
@@ -1380,7 +1383,7 @@ public:
                   "[expected::value_or] T must be copy constructible");
     static_assert(std::is_convertible<U, T>::value,
                   "[expected::value_or] U must be convertible to T");
-    if (this->has_value()) {
+    if (has_value()) {
       return value();
     } else {
       return static_cast<T>(std::forward<U>(default_value));
@@ -1394,7 +1397,7 @@ public:
                   "[expected::value_or] T must be move constructible");
     static_assert(std::is_convertible<U, T>::value,
                   "[expected::value_or] U must be convertible to T");
-    if (this->has_value()) {
+    if (has_value()) {
       return std::move(value());
     } else {
       return static_cast<T>(std::forward<U>(default_value));
@@ -1408,7 +1411,7 @@ public:
                   "[expected::error_or] E must be copy constructible");
     static_assert(std::is_convertible<U, E>::value,
                   "[expected::error_or] U must be convertible to E");
-    if (this->has_value()) {
+    if (has_value()) {
       return static_cast<E>(std::forward<U>(default_error));
     } else {
       return error();
@@ -1422,7 +1425,7 @@ public:
                   "[expected::error_or] E must be move constructible");
     static_assert(std::is_convertible<U, E>::value,
                   "[expected::error_or] U must be convertible to E");
-    if (this->has_value()) {
+    if (has_value()) {
       return static_cast<E>(std::forward<U>(default_error));
     } else {
       return std::move(error());
@@ -1434,16 +1437,16 @@ public:
                                      std::is_constructible<T, Args...>>::value)>
   GUL_CXX14_CONSTEXPR auto
   emplace(Args&&... args) noexcept(std::is_void<T>::value)
-      -> decltype(this->construct_val(std::forward<Args>(args)...))
+      -> decltype((*this).construct_val(std::forward<Args>(args)...))
   {
-    if (this->has_value()) {
-      this->destroy_val();
+    if (has_value()) {
+      (*this).destroy_val();
     } else {
-      this->destroy_err();
+      (*this).destroy_err();
     }
 
-    this->has_ = true;
-    return this->construct_val(std::forward<Args>(args)...);
+    (*this).has_ = true;
+    return (*this).construct_val(std::forward<Args>(args)...);
   }
 
   template <
@@ -1453,16 +1456,16 @@ public:
           std::is_constructible<T, std::initializer_list<U>&, Args...>::value)>
   GUL_CXX14_CONSTEXPR auto emplace(std::initializer_list<U> init,
                                    Args&&... args)
-      -> decltype(this->construct_val(init, std::forward<Args>(args)...))
+      -> decltype((*this).construct_val(init, std::forward<Args>(args)...))
   {
-    if (this->has_value()) {
-      this->destroy_val();
+    if (has_value()) {
+      (*this).destroy_val();
     } else {
-      this->destroy_err();
+      (*this).destroy_err();
     }
 
-    this->has_ = true;
-    return this->construct_val(init, std::forward<Args>(args)...);
+    (*this).has_ = true;
+    return (*this).construct_val(init, std::forward<Args>(args)...);
   }
 
   template <typename F, GUL_REQUIRES(std::is_copy_constructible<E>::value)>

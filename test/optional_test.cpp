@@ -572,6 +572,11 @@ TEST_CASE("converting assignment operator")
 TEST_CASE("operator->")
 {
   {
+    int val = 1;
+    auto exp = optional<int&>(val);
+    CHECK_EQ(exp.operator->(), &val);
+  }
+  {
     auto exp = optional<dc<int>>(in_place, { 0, 1, 2 });
     CHECK_EQ(exp->size(), 3);
   }

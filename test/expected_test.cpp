@@ -677,6 +677,10 @@ TEST_CASE("converting assignment operator")
 TEST_CASE("operator->")
 {
   {
+    auto exp = expected<int, int>(1);
+    CHECK_EQ(*exp.operator->(), 1);
+  }
+  {
     auto exp = expected<ndc<int>, int>({ 0, 1, 2 });
     CHECK_EQ(exp->size(), 3);
   }

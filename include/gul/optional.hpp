@@ -137,6 +137,18 @@ template <typename T, bool = std::is_reference<T>::value>
 struct optional_storage_base : optional_destruct_base<T> {
   using optional_destruct_base<T>::optional_destruct_base;
 
+  GUL_CXX14_CONSTEXPR add_pointer_t<T> operator->() noexcept
+  {
+    GUL_ASSERT(this->has_);
+    return std::addressof(this->val_);
+  }
+
+  GUL_CXX14_CONSTEXPR add_pointer_t<const T> operator->() const noexcept
+  {
+    GUL_ASSERT(this->has_);
+    return std::addressof(this->val_);
+  }
+
   GUL_CXX14_CONSTEXPR T& operator*() & noexcept
   {
     GUL_ASSERT(this->has_);
@@ -265,6 +277,19 @@ struct optional_storage_base<T, true> : optional_throw_base {
     valptr_ = nullptr;
   }
 
+  GUL_CXX14_CONSTEXPR add_pointer_t<remove_reference_t<T>> operator->() noexcept
+  {
+    GUL_ASSERT(has_value());
+    return valptr_;
+  }
+
+  GUL_CXX14_CONSTEXPR add_pointer_t<const remove_reference_t<T>>
+  operator->() const noexcept
+  {
+    GUL_ASSERT(has_value());
+    return valptr_;
+  }
+
   GUL_CXX14_CONSTEXPR T& operator*() const& noexcept
   {
     GUL_ASSERT(has_value());
@@ -348,6 +373,16 @@ struct optional_storage_base<void, B> : optional_throw_base {
   GUL_CXX14_CONSTEXPR void reset() noexcept
   {
     has_ = false;
+  }
+
+  GUL_CXX14_CONSTEXPR void operator->() noexcept
+  {
+    GUL_ASSERT(this->has_);
+  }
+
+  GUL_CXX14_CONSTEXPR void operator->() const noexcept
+  {
+    GUL_ASSERT(this->has_);
   }
 
   GUL_CXX14_CONSTEXPR void operator*() & noexcept
@@ -739,7 +774,7 @@ public:
                                      is_optional_constructible<U>>::value)>
   GUL_CXX14_CONSTEXPR optional(const optional<U>& other)
   {
-    this->construct_from(other);
+    (*this).construct_from(other);
   }
 
   template <typename U,
@@ -747,14 +782,14 @@ public:
                                      is_optional_constructible<U>>::value)>
   GUL_CXX14_CONSTEXPR optional(optional<U>&& other)
   {
-    this->construct_from(std::move(other));
+    (*this).construct_from(std::move(other));
   }
 
   ~optional() noexcept = default;
 
   GUL_CXX14_CONSTEXPR optional& operator=(nullopt_t) noexcept
   {
-    this->reset();
+    reset();
     return *this;
   }
 
@@ -769,10 +804,10 @@ public:
                                negation<std::is_same<decay_t<U>, T>>>>::value)>
   GUL_CXX14_CONSTEXPR optional& operator=(U&& u)
   {
-    if (this->has_value()) {
-      this->value() = std::forward<U>(u);
+    if (has_value()) {
+      (*this).value() = std::forward<U>(u);
     } else {
-      this->construct(std::forward<U>(u));
+      (*this).construct(std::forward<U>(u));
     }
     return *this;
   }
@@ -789,7 +824,7 @@ public:
                       is_optional_assignable<U>>::value)>
   GUL_CXX14_CONSTEXPR optional& operator=(const optional<U>& other)
   {
-    this->assign_from(other);
+    (*this).assign_from(other);
     return *this;
   }
 
@@ -800,26 +835,16 @@ public:
                             is_optional_assignable<U>>::value)>
   GUL_CXX14_CONSTEXPR optional& operator=(optional<U>&& other)
   {
-    this->assign_from(std::move(other));
+    (*this).assign_from(std::move(other));
     return *this;
   }
 
   GUL_CXX14_CONSTEXPR explicit operator bool() const noexcept
   {
-    return this->has_value();
+    return has_value();
   }
 
-  template <bool B = !std::is_void<T>::value, GUL_REQUIRES(B)>
-  GUL_CXX14_CONSTEXPR add_pointer_t<T> operator->() noexcept
-  {
-    return std::addressof(value());
-  }
-
-  template <bool B = !std::is_void<T>::value, GUL_REQUIRES(B)>
-  GUL_CXX14_CONSTEXPR add_pointer_t<const T> operator->() const noexcept
-  {
-    return std::addressof(value());
-  }
+  using base_type::operator->;
 
   using base_type::operator*;
 
@@ -830,7 +855,7 @@ public:
   template <typename U>
   GUL_CXX14_CONSTEXPR remove_reference_t<T> value_or(U&& default_value) const&
   {
-    if (this->has_value()) {
+    if (has_value()) {
       return value();
     } else {
       return static_cast<remove_reference_t<T>>(std::forward<U>(default_value));
@@ -840,7 +865,7 @@ public:
   template <typename U>
   GUL_CXX14_CONSTEXPR remove_reference_t<T> value_or(U&& default_value) &&
   {
-    if (this->has_value()) {
+    if (has_value()) {
       return std::move(value());
     } else {
       return static_cast<remove_reference_t<T>>(std::forward<U>(default_value));
@@ -852,11 +877,11 @@ public:
                                      std::is_constructible<T, Args...>>::value)>
   GUL_CXX14_CONSTEXPR auto emplace(Args&&... args) -> add_lvalue_reference_t<T>
   {
-    if (this->has_value()) {
-      this->reset();
+    if (has_value()) {
+      reset();
     }
 
-    return this->construct(std::forward<Args>(args)...);
+    return (*this).construct(std::forward<Args>(args)...);
   }
 
   template <typename U,
@@ -867,11 +892,11 @@ public:
   GUL_CXX14_CONSTEXPR auto emplace(std::initializer_list<U> init,
                                    Args&&... args) -> add_lvalue_reference_t<T>
   {
-    if (this->has_value()) {
-      this->reset();
+    if (has_value()) {
+      reset();
     }
 
-    return this->construct(init, std::forward<Args>(args)...);
+    return (*this).construct(init, std::forward<Args>(args)...);
   }
 
   using base_type::reset;
@@ -977,21 +1002,21 @@ public:
       conjunction<std::is_nothrow_move_constructible<T>,
                   detail::is_nothrow_swappable<T>>::value)
   {
-    if (this->has_value()) {
+    if (has_value()) {
       if (other) {
         using std::swap;
         swap(value(), other.value());
       } else {
         other.construct(std::move(value()));
-        this->destroy();
-        this->has_ = false;
+        (*this).destroy();
+        (*this).has_ = false;
         other.has_ = true;
       }
     } else {
       if (other) {
-        this->construct(std::move(other.value()));
+        (*this).construct(std::move(other.value()));
         other.destroy();
-        this->has_ = true;
+        (*this).has_ = true;
         other.has_ = false;
       }
     }
