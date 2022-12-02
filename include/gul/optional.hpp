@@ -167,7 +167,7 @@ struct optional_storage_base : optional_destruct_base<T> {
     return std::move(this->val_);
   }
 
-#ifndef GUL_CXX_COMPILER_GCC48
+#if !defined(GUL_CXX_COMPILER_GCC48)
   GUL_CXX14_CONSTEXPR const T&& operator*() const&& noexcept
   {
     GUL_ASSERT(this->has_);
@@ -199,7 +199,7 @@ struct optional_storage_base : optional_destruct_base<T> {
     return std::move(this->val_);
   }
 
-#ifndef GUL_CXX_COMPILER_GCC48
+#if !defined(GUL_CXX_COMPILER_GCC48)
   GUL_CXX14_CONSTEXPR const T&& value() const&&
   {
     if (!this->has_) {
@@ -400,7 +400,7 @@ struct optional_storage_base<void, B> : optional_throw_base {
     GUL_ASSERT(has_);
   }
 
-#ifndef GUL_CXX_COMPILER_GCC48
+#if !defined(GUL_CXX_COMPILER_GCC48)
   GUL_CXX14_CONSTEXPR void operator*() const&& noexcept
   {
     GUL_ASSERT(has_);
@@ -428,7 +428,7 @@ struct optional_storage_base<void, B> : optional_throw_base {
     }
   }
 
-#ifndef GUL_CXX_COMPILER_GCC48
+#if !defined(GUL_CXX_COMPILER_GCC48)
   GUL_CXX14_CONSTEXPR void value() const&&
   {
     if (!has_value()) {
@@ -924,7 +924,7 @@ public:
                          std::forward<F>(f));
   }
 
-#ifndef GUL_CXX_COMPILER_GCC48
+#if !defined(GUL_CXX_COMPILER_GCC48)
   template <typename F>
   GUL_CXX14_CONSTEXPR auto and_then(F&& f) const&& -> decltype(and_then_impl(
       std::is_void<T> {}, std::move(*this), std::forward<F>(f)))
@@ -956,7 +956,7 @@ public:
                           std::forward<F>(f));
   }
 
-#ifndef GUL_CXX_COMPILER_GCC48
+#if !defined(GUL_CXX_COMPILER_GCC48)
   template <typename F>
   GUL_CXX14_CONSTEXPR auto transform(F&& f) const&& -> decltype(transform_impl(
       std::is_void<T> {}, std::move(*this), std::forward<F>(f)))
@@ -988,7 +988,7 @@ public:
                         std::forward<F>(f));
   }
 
-#ifndef GUL_CXX_COMPILER_GCC48
+#if !defined(GUL_CXX_COMPILER_GCC48)
   template <typename F>
   GUL_CXX14_CONSTEXPR auto or_else(F&& f) const&& -> decltype(or_else_impl(
       std::is_void<T> {}, std::move(*this), std::forward<F>(f)))

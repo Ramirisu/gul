@@ -260,6 +260,7 @@ public:
   {
   }
 
+#if !defined(GUL_CXX_COMPILER_MSVC2015)
   template <std::size_t N,
             GUL_REQUIRES(extent == dynamic_extent || N == extent)>
   constexpr span(type_identity_t<element_type> (&arr)[N]) noexcept
@@ -285,6 +286,7 @@ public:
       , dc_base_type(in_place)
   {
   }
+#endif
 
   GUL_CXX14_CONSTEXPR span(const span&) noexcept = default;
 
@@ -426,12 +428,10 @@ span(const std::array<T, N>&) -> span<const T, N>;
 
 namespace detail {
 template <std::size_t N, std::size_t Mul>
-struct extent_multiplier : integral_constant<std::size_t, N * Mul> {
-};
+struct extent_multiplier : integral_constant<std::size_t, N * Mul> { };
 template <std::size_t Mul>
 struct extent_multiplier<dynamic_extent, Mul>
-    : integral_constant<std::size_t, dynamic_extent> {
-};
+    : integral_constant<std::size_t, dynamic_extent> { };
 }
 
 template <class T, std::size_t N>

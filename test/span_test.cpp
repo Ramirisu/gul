@@ -81,9 +81,47 @@ TEST_CASE("basic")
     CHECK_EQ(s[1], '1');
     CHECK_EQ(s[2], '2');
   }
+#if !defined(GUL_CXX_COMPILER_MSVC2015)
   {
     int arr[] = { 0, 1, 2, 3 };
     auto s = span<int>(arr);
+    CHECK(!s.empty());
+    CHECK_EQ(s.data(), arr);
+    CHECK_EQ(s.size(), 4);
+    CHECK_EQ(s.size_bytes(), 16);
+    CHECK_EQ(s.front(), 0);
+    CHECK_EQ(s.back(), 3);
+    CHECK_EQ(s[1], 1);
+    CHECK_EQ(s[2], 2);
+  }
+  {
+    std::array<int, 4> arr { { 0, 1, 2, 3 } };
+    auto s = span<int>(arr);
+    CHECK(!s.empty());
+    CHECK_EQ(s.data(), arr.data());
+    CHECK_EQ(s.size(), 4);
+    CHECK_EQ(s.size_bytes(), 16);
+    CHECK_EQ(s.front(), 0);
+    CHECK_EQ(s.back(), 3);
+    CHECK_EQ(s[1], 1);
+    CHECK_EQ(s[2], 2);
+  }
+  {
+    const std::array<int, 4> arr { { 0, 1, 2, 3 } };
+    auto s = span<const int>(arr);
+    CHECK(!s.empty());
+    CHECK_EQ(s.data(), arr.data());
+    CHECK_EQ(s.size(), 4);
+    CHECK_EQ(s.size_bytes(), 16);
+    CHECK_EQ(s.front(), 0);
+    CHECK_EQ(s.back(), 3);
+    CHECK_EQ(s[1], 1);
+    CHECK_EQ(s[2], 2);
+  }
+#endif
+  {
+    int arr[] = { 0, 1, 2, 3 };
+    auto s = span<int>(arr, arr + sizeof(arr) / sizeof(arr[0]));
     CHECK(!s.empty());
     CHECK_EQ(s.data(), arr);
     CHECK_EQ(s.size(), 4);
@@ -148,36 +186,12 @@ TEST_CASE("basic")
     }
   }
   {
-    std::array<int, 4> arr { { 0, 1, 2, 3 } };
-    auto s = span<int>(arr);
-    CHECK(!s.empty());
-    CHECK_EQ(s.data(), arr.data());
-    CHECK_EQ(s.size(), 4);
-    CHECK_EQ(s.size_bytes(), 16);
-    CHECK_EQ(s.front(), 0);
-    CHECK_EQ(s.back(), 3);
-    CHECK_EQ(s[1], 1);
-    CHECK_EQ(s[2], 2);
-  }
-  {
-    const std::array<int, 4> arr { { 0, 1, 2, 3 } };
-    auto s = span<const int>(arr);
-    CHECK(!s.empty());
-    CHECK_EQ(s.data(), arr.data());
-    CHECK_EQ(s.size(), 4);
-    CHECK_EQ(s.size_bytes(), 16);
-    CHECK_EQ(s.front(), 0);
-    CHECK_EQ(s.back(), 3);
-    CHECK_EQ(s[1], 1);
-    CHECK_EQ(s[2], 2);
-  }
-  {
     auto s = span<int>();
     CHECK_EQ(s.begin(), s.end());
   }
   {
     int arr[] = { 0, 1, 2, 3 };
-    auto s = span<int>(arr);
+    auto s = span<int>(arr, arr + sizeof(arr) / sizeof(arr[0]));
     auto it = s.begin();
     CHECK_EQ(*it++, 0);
     CHECK_EQ(*it++, 1);
@@ -205,7 +219,7 @@ TEST_CASE("basic")
   }
   {
     int arr[] = { 0, 1, 2, 3 };
-    auto s = span<int>(arr);
+    auto s = span<int>(arr, arr + sizeof(arr) / sizeof(arr[0]));
     auto it = s.rbegin();
     CHECK_EQ(*it++, 3);
     CHECK_EQ(*it++, 2);
@@ -219,12 +233,12 @@ TEST_CASE("basic")
       int m = 10;
     };
     x arr[] = { {} };
-    auto s = span<x>(arr);
+    auto s = span<x>(arr, arr + sizeof(arr) / sizeof(arr[0]));
     CHECK_EQ(s.begin()->m, 10);
   }
   {
     int arr[] = { 0, 1, 2, 3 };
-    auto s = span<int>(arr);
+    auto s = span<int>(arr, arr + sizeof(arr) / sizeof(arr[0]));
     auto rs = as_bytes(s);
     static_assert_same<decltype(rs.front()), const byte&>();
     CHECK_EQ(rs.data(), reinterpret_cast<const byte*>(arr));

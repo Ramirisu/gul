@@ -91,7 +91,7 @@ public:
     return std::move(err_);
   }
 
-#ifndef GUL_CXX_COMPILER_GCC48
+#if !defined(GUL_CXX_COMPILER_GCC48)
   GUL_CXX14_CONSTEXPR const E&& error() const&& noexcept
   {
     return std::move(err_);
@@ -170,7 +170,7 @@ public:
     return std::move(err_);
   }
 
-#ifndef GUL_CXX_COMPILER_GCC48
+#if !defined(GUL_CXX_COMPILER_GCC48)
   const E&& error() const&& noexcept
   {
     return std::move(err_);
@@ -387,7 +387,7 @@ struct expected_storage_base : expected_destruct_base<T, E> {
     return std::move(this->val_);
   }
 
-#ifndef GUL_CXX_COMPILER_GCC48
+#if !defined(GUL_CXX_COMPILER_GCC48)
   GUL_CXX14_CONSTEXPR const T&& operator*() const&& noexcept
   {
     return std::move(this->val_);
@@ -423,7 +423,7 @@ struct expected_storage_base : expected_destruct_base<T, E> {
     return std::move(this->val_);
   }
 
-#ifndef GUL_CXX_COMPILER_GCC48
+#if !defined(GUL_CXX_COMPILER_GCC48)
   GUL_CXX14_CONSTEXPR const T&& value() const&&
   {
     if (!this->has_) {
@@ -448,10 +448,12 @@ struct expected_storage_base : expected_destruct_base<T, E> {
     return std::move(this->err_);
   }
 
+#if !defined(GUL_CXX_COMPILER_GCC48)
   GUL_CXX14_CONSTEXPR const E&& get_err() const&& noexcept
   {
     return std::move(this->err_);
   }
+#endif
 
   template <typename... Args>
   GUL_CXX14_CONSTEXPR T& construct_val(Args&&... args)
@@ -630,7 +632,7 @@ struct expected_storage_base<void, E> : expected_destruct_base<void, E> {
     }
   }
 
-#ifndef GUL_CXX_COMPILER_GCC48
+#if !defined(GUL_CXX_COMPILER_GCC48)
   GUL_CXX14_CONSTEXPR void value() const&&
   {
     if (!this->has_) {
@@ -654,10 +656,12 @@ struct expected_storage_base<void, E> : expected_destruct_base<void, E> {
     return std::move(this->err_);
   }
 
+#if !defined(GUL_CXX_COMPILER_GCC48)
   GUL_CXX14_CONSTEXPR const E&& get_err() const&& noexcept
   {
     return std::move(this->err_);
   }
+#endif
 
   GUL_CXX14_CONSTEXPR void construct_val() noexcept
   {
@@ -933,7 +937,8 @@ class expected : private detail::expected_move_assign_base<T, E>,
             std::is_constructible<unexpected<E>, expected<T2, E2>&>,
             std::is_constructible<unexpected<E>, expected<T2, E2>>,
             std::is_constructible<unexpected<E>, const expected<T2, E2>&>,
-            std::is_constructible<unexpected<E>, const expected<T2, E2>>>> { };
+            std::is_constructible<unexpected<E>, const expected<T2, E2>>>> {
+  };
 
   template <typename Self, typename F>
   static GUL_CXX14_CONSTEXPR auto
@@ -1211,7 +1216,7 @@ public:
 
   template <typename... Args
 #if defined(_MSC_VER) && !defined(__clang__) && !defined(GUL_HAS_CXX17)
-  // workaround: MSVC /std:c++14
+// workaround: MSVC /std:c++14
 #else
             ,
             GUL_REQUIRES(std::is_constructible<T, Args...>::value)
@@ -1248,7 +1253,7 @@ public:
 
   template <typename... Args
 #if defined(_MSC_VER) && !defined(__clang__) && !defined(GUL_HAS_CXX17)
-  // workaround: MSVC /std:c++14
+// workaround: MSVC /std:c++14
 #else
             ,
             GUL_REQUIRES(std::is_constructible<E, Args...>::value)
@@ -1368,7 +1373,7 @@ public:
     return std::move(*this).get_err();
   }
 
-#ifndef GUL_CXX_COMPILER_GCC48
+#if !defined(GUL_CXX_COMPILER_GCC48)
   GUL_CXX14_CONSTEXPR const E&& error() const&& noexcept
   {
     GUL_ASSERT(!has_value());
@@ -1490,7 +1495,7 @@ public:
                          std::forward<F>(f));
   }
 
-#ifndef GUL_CXX_COMPILER_GCC48
+#if !defined(GUL_CXX_COMPILER_GCC48)
   template <typename F, GUL_REQUIRES(std::is_move_constructible<E>::value)>
   GUL_CXX14_CONSTEXPR auto and_then(F&& f) const&& -> decltype(and_then_impl(
       std::is_void<T> {}, std::move(*this), std::forward<F>(f)))
@@ -1531,7 +1536,7 @@ public:
                         std::forward<F>(f));
   }
 
-#ifndef GUL_CXX_COMPILER_GCC48
+#if !defined(GUL_CXX_COMPILER_GCC48)
   template <typename F,
             bool B = disjunction<std::is_void<T>,
                                  std::is_move_constructible<T>>::value,
@@ -1566,7 +1571,7 @@ public:
                           std::forward<F>(f));
   }
 
-#ifndef GUL_CXX_COMPILER_GCC48
+#if !defined(GUL_CXX_COMPILER_GCC48)
   template <typename F, GUL_REQUIRES(std::is_move_constructible<E>::value)>
   GUL_CXX14_CONSTEXPR auto transform(F&& f) const&& -> decltype(transform_impl(
       std::is_void<T> {}, std::move(*this), std::forward<F>(f)))
@@ -1611,7 +1616,7 @@ public:
                                 std::forward<F>(f));
   }
 
-#ifndef GUL_CXX_COMPILER_GCC48
+#if !defined(GUL_CXX_COMPILER_GCC48)
   template <typename F,
             bool B = disjunction<std::is_void<T>,
                                  std::is_move_constructible<T>>::value,

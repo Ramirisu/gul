@@ -237,9 +237,13 @@ TEST_CASE("trivially")
   {
     using type = expected<void, int>;
     STATIC_ASSERT(detail::is_trivially_copy_constructible<type>::value);
+#if !defined(GUL_CXX_COMPILER_MSVC2015)
     STATIC_ASSERT(detail::is_trivially_copy_assignable<type>::value);
-#ifndef GUL_CXX_COMPILER_GCC48
+#endif
+#if !defined(GUL_CXX_COMPILER_GCC48)
     STATIC_ASSERT(detail::is_trivially_move_constructible<type>::value);
+#endif
+#if !defined(GUL_CXX_COMPILER_GCC48) && !defined(GUL_CXX_COMPILER_MSVC2015)
     STATIC_ASSERT(detail::is_trivially_move_assignable<type>::value);
 #endif
     STATIC_ASSERT(std::is_trivially_destructible<type>::value);
@@ -247,9 +251,13 @@ TEST_CASE("trivially")
   {
     using type = expected<int, int>;
     STATIC_ASSERT(detail::is_trivially_copy_constructible<type>::value);
+#if !defined(GUL_CXX_COMPILER_MSVC2015)
     STATIC_ASSERT(detail::is_trivially_copy_assignable<type>::value);
-#ifndef GUL_CXX_COMPILER_GCC48
+#endif
+#if !defined(GUL_CXX_COMPILER_GCC48)
     STATIC_ASSERT(detail::is_trivially_move_constructible<type>::value);
+#endif
+#if !defined(GUL_CXX_COMPILER_GCC48) && !defined(GUL_CXX_COMPILER_MSVC2015)
     STATIC_ASSERT(detail::is_trivially_move_assignable<type>::value);
 #endif
     STATIC_ASSERT(std::is_trivially_destructible<type>::value);
@@ -258,7 +266,7 @@ TEST_CASE("trivially")
     using type = expected<int, dc<int>>;
     STATIC_ASSERT(!detail::is_trivially_copy_constructible<type>::value);
     STATIC_ASSERT(!detail::is_trivially_copy_assignable<type>::value);
-#ifndef GUL_CXX_COMPILER_GCC48
+#if !defined(GUL_CXX_COMPILER_GCC48)
     STATIC_ASSERT(!detail::is_trivially_move_constructible<type>::value);
     STATIC_ASSERT(!detail::is_trivially_move_assignable<type>::value);
 #endif
@@ -268,7 +276,7 @@ TEST_CASE("trivially")
     using type = expected<dc<int>, int>;
     STATIC_ASSERT(!detail::is_trivially_copy_constructible<type>::value);
     STATIC_ASSERT(!detail::is_trivially_copy_assignable<type>::value);
-#ifndef GUL_CXX_COMPILER_GCC48
+#if !defined(GUL_CXX_COMPILER_GCC48)
     STATIC_ASSERT(!detail::is_trivially_move_constructible<type>::value);
     STATIC_ASSERT(!detail::is_trivially_move_assignable<type>::value);
 #endif
@@ -278,7 +286,7 @@ TEST_CASE("trivially")
     using type = expected<dc<int>, dc<int>>;
     STATIC_ASSERT(!detail::is_trivially_copy_constructible<type>::value);
     STATIC_ASSERT(!detail::is_trivially_copy_assignable<type>::value);
-#ifndef GUL_CXX_COMPILER_GCC48
+#if !defined(GUL_CXX_COMPILER_GCC48)
     STATIC_ASSERT(!detail::is_trivially_move_constructible<type>::value);
     STATIC_ASSERT(!detail::is_trivially_move_assignable<type>::value);
 #endif
@@ -699,7 +707,7 @@ TEST_CASE("operator*")
   assert_is_same<deref_op, expected<int, int>&, int&>();
   assert_is_same<deref_op, const expected<int, int>&, const int&>();
   assert_is_same<deref_op, expected<int, int>, int&&>();
-#ifndef GUL_CXX_COMPILER_GCC48
+#if !defined(GUL_CXX_COMPILER_GCC48)
   assert_is_same<deref_op, const expected<int, int>, const int&&>();
 #endif
   {
@@ -783,7 +791,7 @@ TEST_CASE("value")
   assert_is_same<fn_value, expected<int, int>&, int&>();
   assert_is_same<fn_value, const expected<int, int>&, const int&>();
   assert_is_same<fn_value, expected<int, int>, int&&>();
-#ifndef GUL_CXX_COMPILER_GCC48
+#if !defined(GUL_CXX_COMPILER_GCC48)
   assert_is_same<fn_value, const expected<int, int>, const int&&>();
 #endif
 

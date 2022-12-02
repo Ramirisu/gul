@@ -124,7 +124,7 @@ using invoke_result_t = typename std::result_of<F(Args...)>::type;
 template <typename T>
 struct is_null_pointer : std::is_same<std::nullptr_t, remove_cv_t<T>> { };
 
-#ifdef GUL_CXX_COMPILER_GCC48
+#if defined(GUL_CXX_COMPILER_GCC48)
 
 template <typename T>
 struct is_trivially_copy_constructible : std::has_trivial_copy_constructor<T> {
@@ -190,9 +190,17 @@ namespace swap_detail {
 
   template <typename T, typename U>
   struct is_nothrow_swappable_with_impl<T, U, true>
+#if !defined(GUL_CXX_COMPILER_MSVC2015)
       : integral_constant<bool,
                           noexcept(
-                              swap(std::declval<T>(), std::declval<U>()))> { };
+                              swap(std::declval<T>(), std::declval<U>()))> {
+  };
+#else
+  {
+    static constexpr bool value
+        = noexcept(swap(std::declval<T>(), std::declval<U>()));
+  };
+#endif
 }
 
 template <typename T, typename U>

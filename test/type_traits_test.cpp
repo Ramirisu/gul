@@ -36,13 +36,13 @@ struct non_std_nothrow_swappable {
 };
 
 struct non_swappable {
-#ifndef GUL_CXX_COMPILER_GCC48
+#if !defined(GUL_CXX_COMPILER_GCC48)
   friend void swap(non_swappable&, non_swappable&) = delete;
 #endif
 };
 
 struct nothrow_non_swappable {
-#ifndef GUL_CXX_COMPILER_GCC48
+#if !defined(GUL_CXX_COMPILER_GCC48)
   friend void swap(nothrow_non_swappable&, nothrow_non_swappable&) noexcept
       = delete;
 #endif
@@ -56,7 +56,7 @@ TEST_CASE("is_swappable_with")
       is_swappable_with<std::std_swappable&, std::std_swappable&>::value);
   STATIC_ASSERT(
       is_swappable_with<non_std_swappable&, non_std_swappable&>::value);
-#ifndef GUL_CXX_COMPILER_GCC48
+#if !defined(GUL_CXX_COMPILER_GCC48)
   STATIC_ASSERT(!is_swappable_with<non_swappable&, non_swappable&>::value);
 #endif
 
@@ -68,7 +68,7 @@ TEST_CASE("is_swappable")
   STATIC_ASSERT(is_swappable<int>::value);
   STATIC_ASSERT(is_swappable<std::std_swappable>::value);
   STATIC_ASSERT(is_swappable<non_std_swappable>::value);
-#ifndef GUL_CXX_COMPILER_GCC48
+#if !defined(GUL_CXX_COMPILER_GCC48)
   STATIC_ASSERT(!is_swappable<non_swappable>::value);
 #endif
 }
@@ -81,7 +81,7 @@ TEST_CASE("is_nothrow_swappable_with")
                                            std::std_swappable&>::value);
   STATIC_ASSERT(!is_nothrow_swappable_with<non_std_swappable&,
                                            non_std_swappable&>::value);
-#ifndef GUL_CXX_COMPILER_GCC48
+#if !defined(GUL_CXX_COMPILER_GCC48)
   STATIC_ASSERT(
       !is_nothrow_swappable_with<non_swappable&, non_swappable&>::value);
 #endif
@@ -89,7 +89,7 @@ TEST_CASE("is_nothrow_swappable_with")
                                           std::std_nothrow_swappable&>::value);
   STATIC_ASSERT(is_nothrow_swappable_with<non_std_nothrow_swappable&,
                                           non_std_nothrow_swappable&>::value);
-#ifndef GUL_CXX_COMPILER_GCC48
+#if !defined(GUL_CXX_COMPILER_GCC48)
   STATIC_ASSERT(!is_nothrow_swappable_with<nothrow_non_swappable&,
                                            nothrow_non_swappable&>::value);
 #endif
@@ -103,7 +103,7 @@ TEST_CASE("is_nothrow_swappable")
   STATIC_ASSERT(!is_nothrow_swappable<non_std_swappable>::value);
   STATIC_ASSERT(is_nothrow_swappable<std::std_nothrow_swappable>::value);
   STATIC_ASSERT(is_nothrow_swappable<non_std_nothrow_swappable>::value);
-#ifndef GUL_CXX_COMPILER_GCC48
+#if !defined(GUL_CXX_COMPILER_GCC48)
   STATIC_ASSERT(!is_nothrow_swappable<non_swappable>::value);
   STATIC_ASSERT(!is_nothrow_swappable<nothrow_non_swappable>::value);
 #endif
@@ -118,8 +118,14 @@ TEST_CASE("is_nothrow_convertible")
   struct to { };
   struct to_nothrow { };
   struct from {
-    operator to();
-    operator to_nothrow() noexcept;
+    operator to()
+    {
+      return to();
+    }
+    operator to_nothrow() noexcept
+    {
+      return to_nothrow();
+    }
   };
   STATIC_ASSERT(!is_nothrow_convertible<from, to>::value);
   STATIC_ASSERT(is_nothrow_convertible<from, to_nothrow>::value);
@@ -173,16 +179,16 @@ TEST_CASE("is_invocable")
   }
   {
     struct f {
-      void operator()();
+      void operator()() { }
     };
     struct fi {
-      void operator()(int);
+      void operator()(int) { }
     };
     struct fn {
-      void operator()() noexcept;
+      void operator()() noexcept { }
     };
     struct fin {
-      void operator()(int) noexcept;
+      void operator()(int) noexcept { }
     };
     STATIC_ASSERT(is_invocable<f>::value);
     STATIC_ASSERT(!is_invocable<f, int>::value);
@@ -203,10 +209,16 @@ TEST_CASE("is_invocable")
     STATIC_ASSERT(is_nothrow_invocable<fin, int>::value);
 #endif
     struct f_ri {
-      int operator()();
+      int operator()()
+      {
+        return 0;
+      }
     };
     struct fn_ri {
-      int operator()() noexcept;
+      int operator()() noexcept
+      {
+        return 0;
+      }
     };
     STATIC_ASSERT(is_invocable_r<void, f>::value);
     STATIC_ASSERT(!is_invocable_r<int, f>::value);
@@ -229,18 +241,30 @@ TEST_CASE("is_invocable")
   }
   {
     struct s {
-      void f();
-      void fc() const;
-      void fi(int);
-      void fic(int) const;
-      void fn() noexcept;
-      void fcn() const noexcept;
-      void fin(int) noexcept;
-      void ficn(int) const noexcept;
-      int f_ri();
-      int fc_ri() const;
-      int fn_ri() noexcept;
-      int fcn_ri() const noexcept;
+      void f() { }
+      void fc() const { }
+      void fi(int) { }
+      void fic(int) const { }
+      void fn() noexcept { }
+      void fcn() const noexcept { }
+      void fin(int) noexcept { }
+      void ficn(int) const noexcept { }
+      int f_ri()
+      {
+        return 0;
+      }
+      int fc_ri() const
+      {
+        return 0;
+      }
+      int fn_ri() noexcept
+      {
+        return 0;
+      }
+      int fcn_ri() const noexcept
+      {
+        return 0;
+      }
       int o = 0;
       const int oc = 0;
     };
@@ -438,23 +462,33 @@ void f() { }
 TEST_CASE("function_traits")
 {
   auto l = []() {};
-  void (*fptr)() = f;
+  void (*fptr)();
+  fptr = f;
   struct c {
-    void f();
-    void fc() const;
-    void fl() &;
-    void fcl() const&;
-    void fr() &&;
-    void fcr() const&&;
-    void fn() noexcept;
-    void fln() & noexcept;
-    void fcln() const& noexcept;
-    void frn() && noexcept;
-    void fcrn() const&& noexcept;
-    void operator()();
-    double unary(int);
-    int binary(char, long);
-    long ternary(short, int, char);
+    void f() { }
+    void fc() const { }
+    void fl() & { }
+    void fcl() const& { }
+    void fr() && { }
+    void fcr() const&& { }
+    void fn() noexcept { }
+    void fln() & noexcept { }
+    void fcln() const& noexcept { }
+    void frn() && noexcept { }
+    void fcrn() const&& noexcept { }
+    void operator()() { }
+    double unary(int)
+    {
+      return 0;
+    }
+    int binary(char, long)
+    {
+      return 0;
+    }
+    long ternary(short, int, char)
+    {
+      return 0;
+    }
   };
   static_assert_same<function_traits<decltype(l)>::result_type, void>();
   static_assert_same<function_traits<decltype(f)>::result_type, void>();

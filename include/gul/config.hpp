@@ -51,11 +51,19 @@
 #define GUL_CXX_COMPILER_GCC
 #endif
 
+#if defined(_MSC_VER) && !defined(__clang__)
+#define GUL_CXX_COMPILER_MSVC
+#endif
+
 #if defined(GUL_CXX_COMPILER_GCC) && __GNUC__ < 5
 #define GUL_CXX_COMPILER_GCC48
 #endif
 
-#ifdef GUL_HAS_CXX14
+#if defined(GUL_CXX_COMPILER_MSVC) && 1900 <= _MSC_VER && _MSC_VER < 1910
+#define GUL_CXX_COMPILER_MSVC2015
+#endif
+
+#if defined(GUL_HAS_CXX14) && !defined(GUL_CXX_COMPILER_MSVC2015)
 #define GUL_CXX14_CONSTEXPR constexpr
 #else
 #define GUL_CXX14_CONSTEXPR
