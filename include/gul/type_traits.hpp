@@ -468,6 +468,83 @@ template <typename E>
 struct is_scoped_enum<E, true>
     : negation<std::is_convertible<E, typename std::underlying_type<E>::type>> {
 };
+
+namespace function_traits_detail {
+  template <typename F>
+  struct function_traits_impl;
+
+  template <typename R, typename... Args>
+  struct function_traits_impl<R(Args...)> {
+    using result_type = R;
+    static constexpr std::size_t arity = sizeof...(Args);
+    template <std::size_t Index>
+    struct arg {
+      using type =
+          typename std::tuple_element<Index, std::tuple<Args...>>::type;
+    };
+  };
+}
+
+template <typename F>
+struct function_traits : function_traits<decltype(&F::operator())> { };
+
+template <typename R, typename... Args>
+struct function_traits<R(Args...)>
+    : function_traits_detail::function_traits_impl<R(Args...)> { };
+
+template <typename R, typename... Args>
+struct function_traits<R (*)(Args...)>
+    : function_traits_detail::function_traits_impl<R(Args...)> { };
+
+template <typename R, typename C, typename... Args>
+struct function_traits<R (C::*)(Args...)>
+    : function_traits_detail::function_traits_impl<R(Args...)> { };
+
+template <typename R, typename C, typename... Args>
+struct function_traits<R (C::*)(Args...) const>
+    : function_traits_detail::function_traits_impl<R(Args...)> { };
+
+template <typename R, typename C, typename... Args>
+struct function_traits<R (C::*)(Args...)&>
+    : function_traits_detail::function_traits_impl<R(Args...)> { };
+
+template <typename R, typename C, typename... Args>
+struct function_traits<R (C::*)(Args...) const&>
+    : function_traits_detail::function_traits_impl<R(Args...)> { };
+
+template <typename R, typename C, typename... Args>
+struct function_traits<R (C::*)(Args...) &&>
+    : function_traits_detail::function_traits_impl<R(Args...)> { };
+
+template <typename R, typename C, typename... Args>
+struct function_traits<R (C::*)(Args...) const&&>
+    : function_traits_detail::function_traits_impl<R(Args...)> { };
+
+#ifdef GUL_HAS_CXX17
+template <typename R, typename C, typename... Args>
+struct function_traits<R (C::*)(Args...) noexcept>
+    : function_traits_detail::function_traits_impl<R(Args...)> { };
+
+template <typename R, typename C, typename... Args>
+struct function_traits<R (C::*)(Args...) const noexcept>
+    : function_traits_detail::function_traits_impl<R(Args...)> { };
+
+template <typename R, typename C, typename... Args>
+struct function_traits<R (C::*)(Args...) & noexcept>
+    : function_traits_detail::function_traits_impl<R(Args...)> { };
+
+template <typename R, typename C, typename... Args>
+struct function_traits<R (C::*)(Args...) const & noexcept>
+    : function_traits_detail::function_traits_impl<R(Args...)> { };
+
+template <typename R, typename C, typename... Args>
+struct function_traits<R (C::*)(Args...) && noexcept>
+    : function_traits_detail::function_traits_impl<R(Args...)> { };
+
+template <typename R, typename C, typename... Args>
+struct function_traits<R (C::*)(Args...) const && noexcept>
+    : function_traits_detail::function_traits_impl<R(Args...)> { };
+#endif
 }
 
 using detail::is_bounded_array;
@@ -499,6 +576,8 @@ using detail::remove_reference_t;
 using detail::type_identity;
 using detail::type_identity_t;
 using detail::void_t;
+
+using detail::function_traits;
 
 #define GUL_REQUIRES(...) detail::enable_if_t<__VA_ARGS__, int> = 0
 
