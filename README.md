@@ -50,6 +50,9 @@ gul is an open-source library providing general utilities for c++11. Many of the
 |                                          `type_identity`                                          |   [c++20](https://en.cppreference.com/w/cpp/types/type_identity)    |
 |                                         `function_traits`                                         |                                none                                 |
 
+|       Functional        |                              From std?                               |
+| :---------------------: | :------------------------------------------------------------------: |
+| `invoke`</br>`invoke_r` | [c++17](https://en.cppreference.com/w/cpp/utility/functional/invoke) |
 
 ## Integration
 
