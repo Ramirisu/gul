@@ -9,9 +9,13 @@
 
 #include <gul/config.hpp>
 
+#include <gul/detail/constructor_base.hpp>
+
 #include <gul/byte.hpp>
 #include <gul/type_traits.hpp>
 #include <gul/utility.hpp>
+
+#include <iterator>
 
 GUL_NAMESPACE_BEGIN
 
@@ -46,27 +50,16 @@ struct span_storage_base<T, dynamic_extent> {
   std::size_t size_ = 0;
 };
 
-template <std::size_t Extent,
-          bool CanDefaultConstruct = (Extent == 0 || Extent == dynamic_extent)>
-struct span_default_constructible {
-  constexpr span_default_constructible() noexcept = default;
-
-  constexpr span_default_constructible(in_place_t) noexcept { }
-};
-
 template <std::size_t Extent>
-struct span_default_constructible<Extent, false> {
-  constexpr span_default_constructible() noexcept = delete;
-
-  constexpr span_default_constructible(in_place_t) noexcept { }
-};
+using enable_default_construct_base
+    = detail::default_construct_base<Extent == 0 || Extent == dynamic_extent>;
 }
 
 template <typename T, std::size_t Extent = dynamic_extent>
 class span : private detail::span_storage_base<T, Extent>,
-             private detail::span_default_constructible<Extent> {
+             private detail::enable_default_construct_base<Extent> {
   using base_type = detail::span_storage_base<T, Extent>;
-  using dc_base_type = detail::span_default_constructible<Extent>;
+  using dc_base_type = detail::enable_default_construct_base<Extent>;
 
   class iterator_impl {
     friend class span;
@@ -245,22 +238,23 @@ public:
   {
   }
 
-  template <typename It,
+  template <typename Iter,
             GUL_REQUIRES(std::is_convertible<
-                         typename std::iterator_traits<It>::reference,
+                         typename std::iterator_traits<Iter>::reference,
                          element_type&>::value)>
   constexpr GUL_CXX20_EXPLICIT(Extent != dynamic_extent)
-      span(It first, size_type size)
+      span(Iter first, size_type size)
       : base_type(first.operator->(), size)
       , dc_base_type(in_place)
   {
   }
 
-  template <typename It,
+  template <typename Iter,
             GUL_REQUIRES(std::is_convertible<
-                         typename std::iterator_traits<It>::reference,
+                         typename std::iterator_traits<Iter>::reference,
                          element_type&>::value)>
-  constexpr GUL_CXX20_EXPLICIT(Extent != dynamic_extent) span(It first, It last)
+  constexpr GUL_CXX20_EXPLICIT(Extent != dynamic_extent)
+      span(Iter first, Iter last)
       : base_type(first.operator->(), size_type(last - first))
       , dc_base_type(in_place)
   {
@@ -415,9 +409,9 @@ constexpr std::size_t span<T, Extent>::extent;
 
 #ifdef GUL_HAS_CXX17
 
-template <typename It, typename EndOrSize>
-span(It, EndOrSize)
-    -> span<remove_reference_t<typename std::iterator_traits<It>::reference>>;
+template <typename Iter, typename EndOrSize>
+span(Iter, EndOrSize)
+    -> span<remove_reference_t<typename std::iterator_traits<Iter>::reference>>;
 
 template <typename T, std::size_t N>
 span(T (&)[N]) -> span<T, N>;
@@ -432,10 +426,12 @@ span(const std::array<T, N>&) -> span<const T, N>;
 
 namespace detail {
 template <std::size_t N, std::size_t Mul>
-struct extent_multiplier : integral_constant<std::size_t, N * Mul> { };
+struct extent_multiplier : integral_constant<std::size_t, N * Mul> {
+};
 template <std::size_t Mul>
 struct extent_multiplier<dynamic_extent, Mul>
-    : integral_constant<std::size_t, dynamic_extent> { };
+    : integral_constant<std::size_t, dynamic_extent> {
+};
 }
 
 template <class T, std::size_t N>

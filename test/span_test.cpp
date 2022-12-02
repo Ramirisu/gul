@@ -8,6 +8,7 @@
 #include <gul_test.h>
 
 #include <gul/span.hpp>
+#include <gul/string_view.hpp>
 
 #include <array>
 
@@ -55,6 +56,30 @@ TEST_CASE("basic")
     CHECK_EQ(s.back(), 3);
     CHECK_EQ(s[1], 1);
     CHECK_EQ(s[2], 2);
+  }
+  {
+    auto sv = string_view("0123");
+    auto s = span<const char>(sv.begin(), sv.size());
+    CHECK(!s.empty());
+    CHECK_EQ(s.data(), sv.data());
+    CHECK_EQ(s.size(), 4);
+    CHECK_EQ(s.size_bytes(), 4 * sizeof(char));
+    CHECK_EQ(s.front(), '0');
+    CHECK_EQ(s.back(), '3');
+    CHECK_EQ(s[1], '1');
+    CHECK_EQ(s[2], '2');
+  }
+  {
+    auto sv = string_view("0123");
+    auto s = span<const char>(sv.begin(), sv.end());
+    CHECK(!s.empty());
+    CHECK_EQ(s.data(), sv.data());
+    CHECK_EQ(s.size(), 4);
+    CHECK_EQ(s.size_bytes(), 4 * sizeof(char));
+    CHECK_EQ(s.front(), '0');
+    CHECK_EQ(s.back(), '3');
+    CHECK_EQ(s[1], '1');
+    CHECK_EQ(s[2], '2');
   }
   {
     int arr[] = { 0, 1, 2, 3 };
@@ -188,6 +213,14 @@ TEST_CASE("basic")
     CHECK_EQ(*it++, 0);
     CHECK_EQ(it, s.rend());
     CHECK(s.rbegin() != s.rend());
+  }
+  {
+    struct x {
+      int m = 10;
+    };
+    x arr[] = { {} };
+    auto s = span<x>(arr);
+    CHECK_EQ(s.begin()->m, 10);
   }
   {
     int arr[] = { 0, 1, 2, 3 };
