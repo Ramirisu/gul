@@ -62,6 +62,7 @@ Requirements
 * GCC 4.8 (or later)
 * Clang 3.5 (or later)
 * MSVC 2015 v140 (or later)
+* Apple Clang 12 (or later)
 
 CMake
 

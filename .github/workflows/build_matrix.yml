@@ -196,7 +196,17 @@ jobs:
             build_type: Debug
             generators: Visual Studio 16 2019
             extra_args: -A x64 -T v142
+          - os: macos-10.15
+            cxx: clang++
+            std: 11
+            built_type: Debug
+            generators: Ninja
           - os: macos-11
+            cxx: clang++
+            std: 11
+            built_type: Debug
+            generators: Ninja
+          - os: macos-12
             cxx: clang++
             std: 11
             built_type: Debug
