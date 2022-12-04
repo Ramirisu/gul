@@ -12,6 +12,7 @@
 #include <gul/type_traits.hpp>
 
 #include <climits>
+#include <cstddef>
 #include <string>
 
 GUL_NAMESPACE_BEGIN
@@ -204,7 +205,8 @@ public:
   constexpr basic_string_view(const basic_string_view&) noexcept = default;
 
   GUL_CXX14_CONSTEXPR basic_string_view&
-  operator=(const basic_string_view&) noexcept = default;
+  operator=(const basic_string_view&) noexcept
+      = default;
 
   GUL_CXX14_CONSTEXPR const_reference operator[](size_type index) const
   {

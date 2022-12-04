@@ -9,6 +9,7 @@
 
 #include <gul/config.hpp>
 
+#include <cstddef>
 #include <functional>
 #include <type_traits>
 
