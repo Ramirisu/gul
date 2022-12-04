@@ -36,18 +36,20 @@ gul is an open-source library providing general utilities for c++11. Many of the
 |                                            Type Traits                                            |                              From std?                              |
 | :-----------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------: |
 |                                         `is_null_pointer`                                         |  [c++14](https://en.cppreference.com/w/cpp/types/is_null_pointer)   |
+|                                     `is_nothrow_convertible`                                      |   [c++20](https://en.cppreference.com/w/cpp/types/is_convertible)   |
 | `is_swappable_with`</br>`is_swappable`</br>`is_nothrow_swappable_with`</br>`is_nothrow_swappable` |    [c++17](https://en.cppreference.com/w/cpp/types/is_swappable)    |
 |                                        `is_bounded_array`                                         |  [c++20](https://en.cppreference.com/w/cpp/types/is_bounded_array)  |
 |                                       `is_unbounded_array`                                        | [c++20](https://en.cppreference.com/w/cpp/types/is_unbounded_array) |
 |                                         `is_scoped_enum`                                          |   [c++23](https://en.cppreference.com/w/cpp/types/is_scoped_enum)   |
 |                                `is_invocable`</br>`is_invocable_r`                                |    [c++17](https://en.cppreference.com/w/cpp/types/is_invocable)    |
-|                                           `conjunction`                                           |    [c++17](https://en.cppreference.com/w/cpp/types/conjunction)     |
-|                                           `disjunction`                                           |    [c++17](https://en.cppreference.com/w/cpp/types/disjunction)     |
-|                                            `negation`                                             |      [c++17](https://en.cppreference.com/w/cpp/types/negation)      |
-|                                          `invoke_result`                                          |     [c++17](https://en.cppreference.com/w/cpp/types/result_of)      |
+|                                      `is_specialization_of`                                       |                                none                                 |
+|                                 `conjunction`</br>`conjunction_t`                                 |    [c++17](https://en.cppreference.com/w/cpp/types/conjunction)     |
+|                                 `disjunction`</br>`disjunction_t`                                 |    [c++17](https://en.cppreference.com/w/cpp/types/disjunction)     |
+|                                    `negation`</br>`negation_t`                                    |      [c++17](https://en.cppreference.com/w/cpp/types/negation)      |
+|                               `invoke_result`</br>`invoke_result_t`                               |     [c++17](https://en.cppreference.com/w/cpp/types/result_of)      |
 |                                             `void_t`                                              |       [c++17](https://en.cppreference.com/w/cpp/types/void_t)       |
-|                                          `remove_cvref`                                           |    [c++20](https://en.cppreference.com/w/cpp/types/remove_cvref)    |
-|                                          `type_identity`                                          |   [c++20](https://en.cppreference.com/w/cpp/types/type_identity)    |
+|                                `remove_cvref`</br>`remove_cvref_t`                                |    [c++20](https://en.cppreference.com/w/cpp/types/remove_cvref)    |
+|                               `type_identity`</br>`type_identity_t`                               |   [c++20](https://en.cppreference.com/w/cpp/types/type_identity)    |
 |                                         `function_traits`                                         |                                none                                 |
 
 |       Functional        |                              From std?                               |
