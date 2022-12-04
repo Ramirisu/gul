@@ -9,7 +9,6 @@
 
 #include <gul/type_traits.hpp>
 
-using namespace gul::detail;
 using namespace gul;
 
 TEST_SUITE_BEGIN("type_traits");
