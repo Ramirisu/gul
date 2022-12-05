@@ -79,8 +79,8 @@ TEST_CASE("get|cget")
 {
   {
     fifo_map<int, int> m({ { 1, 10 }, { 2, 20 } });
-    static_assert_same<decltype(m.get(1)), optional<int&>>();
-    static_assert_same<decltype(m.cget(1)), optional<const int&>>();
+    STATIC_ASSERT_SAME(decltype(m.get(1)), optional<int&>);
+    STATIC_ASSERT_SAME(decltype(m.cget(1)), optional<const int&>);
     CHECK_EQ(m.get(0), optional<int&>());
     CHECK_EQ(m.get(1), 10);
     CHECK_EQ(m.cget(0), optional<int&>());
@@ -90,8 +90,8 @@ TEST_CASE("get|cget")
   }
   {
     const fifo_map<int, int> m({ { 1, 10 }, { 2, 20 } });
-    static_assert_same<decltype(m.get(1)), optional<const int&>>();
-    static_assert_same<decltype(m.cget(1)), optional<const int&>>();
+    STATIC_ASSERT_SAME(decltype(m.get(1)), optional<const int&>);
+    STATIC_ASSERT_SAME(decltype(m.cget(1)), optional<const int&>);
     CHECK_EQ(m.get(0), optional<int&>());
     CHECK_EQ(m.get(1), 10);
     CHECK_EQ(m.cget(0), optional<int&>());
@@ -133,31 +133,25 @@ TEST_CASE("insertion order")
 TEST_CASE("iterator dereferece type")
 {
   auto m = fifo_map<char, int>();
-  static_assert_same<decltype(*m.begin()), std::pair<const char, int>&>();
-  static_assert_same<decltype(*m.cbegin()),
-                     const std::pair<const char, int>&>();
-  static_assert_same<decltype(*m.rbegin()), std::pair<const char, int>&>();
-  static_assert_same<decltype(*m.crbegin()),
-                     const std::pair<const char, int>&>();
-  static_assert_same<decltype(*m.end()), std::pair<const char, int>&>();
-  static_assert_same<decltype(*m.cend()), const std::pair<const char, int>&>();
-  static_assert_same<decltype(*m.rend()), std::pair<const char, int>&>();
-  static_assert_same<decltype(*m.crend()), const std::pair<const char, int>&>();
+  STATIC_ASSERT_SAME(decltype(*m.begin()), std::pair<const char, int>&);
+  STATIC_ASSERT_SAME(decltype(*m.cbegin()), const std::pair<const char, int>&);
+  STATIC_ASSERT_SAME(decltype(*m.rbegin()), std::pair<const char, int>&);
+  STATIC_ASSERT_SAME(decltype(*m.crbegin()), const std::pair<const char, int>&);
+  STATIC_ASSERT_SAME(decltype(*m.end()), std::pair<const char, int>&);
+  STATIC_ASSERT_SAME(decltype(*m.cend()), const std::pair<const char, int>&);
+  STATIC_ASSERT_SAME(decltype(*m.rend()), std::pair<const char, int>&);
+  STATIC_ASSERT_SAME(decltype(*m.crend()), const std::pair<const char, int>&);
 
   const auto cm = fifo_map<char, int>();
-  static_assert_same<decltype(*cm.begin()),
-                     const std::pair<const char, int>&>();
-  static_assert_same<decltype(*cm.cbegin()),
-                     const std::pair<const char, int>&>();
-  static_assert_same<decltype(*cm.rbegin()),
-                     const std::pair<const char, int>&>();
-  static_assert_same<decltype(*cm.crbegin()),
-                     const std::pair<const char, int>&>();
-  static_assert_same<decltype(*cm.end()), const std::pair<const char, int>&>();
-  static_assert_same<decltype(*cm.cend()), const std::pair<const char, int>&>();
-  static_assert_same<decltype(*cm.rend()), const std::pair<const char, int>&>();
-  static_assert_same<decltype(*cm.crend()),
-                     const std::pair<const char, int>&>();
+  STATIC_ASSERT_SAME(decltype(*cm.begin()), const std::pair<const char, int>&);
+  STATIC_ASSERT_SAME(decltype(*cm.cbegin()), const std::pair<const char, int>&);
+  STATIC_ASSERT_SAME(decltype(*cm.rbegin()), const std::pair<const char, int>&);
+  STATIC_ASSERT_SAME(decltype(*cm.crbegin()),
+                     const std::pair<const char, int>&);
+  STATIC_ASSERT_SAME(decltype(*cm.end()), const std::pair<const char, int>&);
+  STATIC_ASSERT_SAME(decltype(*cm.cend()), const std::pair<const char, int>&);
+  STATIC_ASSERT_SAME(decltype(*cm.rend()), const std::pair<const char, int>&);
+  STATIC_ASSERT_SAME(decltype(*cm.crend()), const std::pair<const char, int>&);
 }
 
 TEST_CASE("iterator")

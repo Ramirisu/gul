@@ -13,9 +13,5 @@
 #include <type_traits>
 
 #define STATIC_ASSERT(...) static_assert(__VA_ARGS__, "")
-
-template <typename L, typename R>
-void static_assert_same()
-{
-  STATIC_ASSERT(std::is_same<L, R>::value);
-}
+#define STATIC_ASSERT_SAME(...)                                                \
+  static_assert(std::is_same<__VA_ARGS__>::value, "")

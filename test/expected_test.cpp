@@ -995,10 +995,10 @@ TEST_CASE("error_or")
 
 TEST_CASE("emplace")
 {
-  static_assert_same<decltype(std::declval<expected<void, int>&>().emplace()),
-                     void>();
-  static_assert_same<decltype(std::declval<expected<int, int>&>().emplace(1)),
-                     int&>();
+  STATIC_ASSERT_SAME(decltype(std::declval<expected<void, int>&>().emplace()),
+                     void);
+  STATIC_ASSERT_SAME(decltype(std::declval<expected<int, int>&>().emplace(1)),
+                     int&);
   {
     auto e = expected<void, int>(unexpect, 0);
     e.emplace();

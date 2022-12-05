@@ -289,16 +289,16 @@ TEST_CASE("basic")
   }
   {
     auto sv = "hello world!"_sv;
-    static_assert_same<decltype(sv), string_view>();
+    STATIC_ASSERT_SAME(decltype(sv), string_view);
     CHECK_EQ(sv, string_view("hello world!"));
     auto wsv = L"hello world!"_sv;
-    static_assert_same<decltype(wsv), wstring_view>();
+    STATIC_ASSERT_SAME(decltype(wsv), wstring_view);
     CHECK_EQ(wsv, wstring_view(L"hello world!"));
     auto u16sv = u"hello world!"_sv;
-    static_assert_same<decltype(u16sv), u16string_view>();
+    STATIC_ASSERT_SAME(decltype(u16sv), u16string_view);
     CHECK_EQ(u16sv, u16string_view(u"hello world!"));
     auto u32sv = U"hello world!"_sv;
-    static_assert_same<decltype(u32sv), u32string_view>();
+    STATIC_ASSERT_SAME(decltype(u32sv), u32string_view);
     CHECK_EQ(u32sv, u32string_view(U"hello world!"));
   }
   {

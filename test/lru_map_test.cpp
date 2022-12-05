@@ -109,7 +109,7 @@ TEST_CASE("peek|cpeek")
 {
   {
     lru_map<int, int> m(4, { { 1, 10 }, { 2, 20 } });
-    static_assert_same<decltype(m.peek(1)), optional<int&>>();
+    STATIC_ASSERT_SAME(decltype(m.peek(1)), optional<int&>);
     int v = 10;
     CHECK_EQ(m.peek(1), optional<int&>(v));
     m.peek(1).value() = 100;
@@ -118,13 +118,13 @@ TEST_CASE("peek|cpeek")
   }
   {
     const lru_map<int, int> m(4, { { 1, 10 }, { 2, 20 } });
-    static_assert_same<decltype(m.peek(1)), optional<const int&>>();
+    STATIC_ASSERT_SAME(decltype(m.peek(1)), optional<const int&>);
     int v = 10;
     CHECK_EQ(m.peek(1), optional<const int&>(v));
   }
   {
     lru_map<int, int> m(4, { { 1, 10 }, { 2, 20 } });
-    static_assert_same<decltype(m.cpeek(1)), optional<const int&>>();
+    STATIC_ASSERT_SAME(decltype(m.cpeek(1)), optional<const int&>);
     int v = 10;
     CHECK_EQ(m.cpeek(1), optional<const int&>(v));
   }
@@ -133,8 +133,8 @@ TEST_CASE("peek|cpeek")
 TEST_CASE("get|cget")
 {
   lru_map<int, int> m(4, { { 1, 10 }, { 2, 20 } });
-  static_assert_same<decltype(m.get(1)), optional<int&>>();
-  static_assert_same<decltype(m.cget(1)), optional<const int&>>();
+  STATIC_ASSERT_SAME(decltype(m.get(1)), optional<int&>);
+  STATIC_ASSERT_SAME(decltype(m.cget(1)), optional<const int&>);
   m.get(1);
   CHECK_NE(m.peek_lru(),
            optional<std::pair<int, int>>(std::pair<int, int> { 1, 10 }));
@@ -205,7 +205,7 @@ TEST_CASE("iterator")
     std::map<int, int> exp({ { 1, 10 }, { 2, 20 }, { 3, 30 }, { 4, 40 } });
     lru_map<int, int> m(4, { { 1, 10 }, { 2, 20 }, { 3, 30 }, { 4, 40 } });
     for (auto it = m.begin(); it != m.end(); ++it) {
-      static_assert_same<decltype(*it), std::pair<int, int>&>();
+      STATIC_ASSERT_SAME(decltype(*it), std::pair<int, int>&);
       CHECK_EQ(exp.at(it->first), it->second);
       exp.erase(it->first);
     }
@@ -216,7 +216,7 @@ TEST_CASE("iterator")
     const lru_map<int, int> m(4,
                               { { 1, 10 }, { 2, 20 }, { 3, 30 }, { 4, 40 } });
     for (auto it = m.begin(); it != m.end(); ++it) {
-      static_assert_same<decltype(*it), const std::pair<int, int>&>();
+      STATIC_ASSERT_SAME(decltype(*it), const std::pair<int, int>&);
       CHECK_EQ(exp.at(it->first), it->second);
       exp.erase(it->first);
     }
@@ -226,7 +226,7 @@ TEST_CASE("iterator")
     std::map<int, int> exp({ { 1, 10 }, { 2, 20 }, { 3, 30 }, { 4, 40 } });
     lru_map<int, int> m(4, { { 1, 10 }, { 2, 20 }, { 3, 30 }, { 4, 40 } });
     for (auto it = m.cbegin(); it != m.cend(); ++it) {
-      static_assert_same<decltype(*it), const std::pair<int, int>&>();
+      STATIC_ASSERT_SAME(decltype(*it), const std::pair<int, int>&);
       CHECK_EQ(exp.at(it->first), it->second);
       exp.erase(it->first);
     }
@@ -236,7 +236,7 @@ TEST_CASE("iterator")
     std::map<int, int> exp({ { 1, 10 }, { 2, 20 }, { 3, 30 }, { 4, 40 } });
     lru_map<int, int> m(4, { { 1, 10 }, { 2, 20 }, { 3, 30 }, { 4, 40 } });
     for (auto it = m.rbegin(); it != m.rend(); ++it) {
-      static_assert_same<decltype(*it), std::pair<int, int>&>();
+      STATIC_ASSERT_SAME(decltype(*it), std::pair<int, int>&);
       CHECK_EQ(exp.at(it->first), it->second);
       exp.erase(it->first);
     }
@@ -247,7 +247,7 @@ TEST_CASE("iterator")
     const lru_map<int, int> m(4,
                               { { 1, 10 }, { 2, 20 }, { 3, 30 }, { 4, 40 } });
     for (auto it = m.rbegin(); it != m.rend(); ++it) {
-      static_assert_same<decltype(*it), const std::pair<int, int>&>();
+      STATIC_ASSERT_SAME(decltype(*it), const std::pair<int, int>&);
       CHECK_EQ(exp.at(it->first), it->second);
       exp.erase(it->first);
     }
@@ -257,7 +257,7 @@ TEST_CASE("iterator")
     std::map<int, int> exp({ { 1, 10 }, { 2, 20 }, { 3, 30 }, { 4, 40 } });
     lru_map<int, int> m(4, { { 1, 10 }, { 2, 20 }, { 3, 30 }, { 4, 40 } });
     for (auto it = m.crbegin(); it != m.crend(); ++it) {
-      static_assert_same<decltype(*it), const std::pair<int, int>&>();
+      STATIC_ASSERT_SAME(decltype(*it), const std::pair<int, int>&);
       CHECK_EQ(exp.at(it->first), it->second);
       exp.erase(it->first);
     }
@@ -269,7 +269,7 @@ TEST_CASE("lower_bound|upper_bound|equal_range")
 {
   {
     lru_map<int, int> m(4, { { 1, 10 }, { 3, 30 }, { 5, 50 } });
-    static_assert_same<decltype(m.lower_bound(0)), decltype(m)::iterator>();
+    STATIC_ASSERT_SAME(decltype(m.lower_bound(0)), decltype(m)::iterator);
     CHECK_EQ(m.lower_bound(0), std::next(m.begin(), 0));
     CHECK_EQ(m.lower_bound(1), std::next(m.begin(), 0));
     CHECK_EQ(m.lower_bound(2), std::next(m.begin(), 1));
@@ -280,8 +280,7 @@ TEST_CASE("lower_bound|upper_bound|equal_range")
   }
   {
     const lru_map<int, int> m(4, { { 1, 10 }, { 3, 30 }, { 5, 50 } });
-    static_assert_same<decltype(m.lower_bound(0)),
-                       decltype(m)::const_iterator>();
+    STATIC_ASSERT_SAME(decltype(m.lower_bound(0)), decltype(m)::const_iterator);
     CHECK_EQ(m.lower_bound(0), std::next(m.begin(), 0));
     CHECK_EQ(m.lower_bound(1), std::next(m.begin(), 0));
     CHECK_EQ(m.lower_bound(2), std::next(m.begin(), 1));
@@ -292,7 +291,7 @@ TEST_CASE("lower_bound|upper_bound|equal_range")
   }
   {
     lru_map<int, int> m(4, { { 1, 10 }, { 3, 30 }, { 5, 50 } });
-    static_assert_same<decltype(m.upper_bound(0)), decltype(m)::iterator>();
+    STATIC_ASSERT_SAME(decltype(m.upper_bound(0)), decltype(m)::iterator);
     CHECK_EQ(m.upper_bound(0), std::next(m.begin(), 0));
     CHECK_EQ(m.upper_bound(1), std::next(m.begin(), 1));
     CHECK_EQ(m.upper_bound(2), std::next(m.begin(), 1));
@@ -303,8 +302,7 @@ TEST_CASE("lower_bound|upper_bound|equal_range")
   }
   {
     const lru_map<int, int> m(4, { { 1, 10 }, { 3, 30 }, { 5, 50 } });
-    static_assert_same<decltype(m.upper_bound(0)),
-                       decltype(m)::const_iterator>();
+    STATIC_ASSERT_SAME(decltype(m.upper_bound(0)), decltype(m)::const_iterator);
     CHECK_EQ(m.upper_bound(0), std::next(m.begin(), 0));
     CHECK_EQ(m.upper_bound(1), std::next(m.begin(), 1));
     CHECK_EQ(m.upper_bound(2), std::next(m.begin(), 1));
@@ -315,9 +313,8 @@ TEST_CASE("lower_bound|upper_bound|equal_range")
   }
   {
     lru_map<int, int> m(4, { { 1, 10 }, { 3, 30 }, { 5, 50 } });
-    static_assert_same<
-        decltype(m.equal_range(0)),
-        std::pair<decltype(m)::iterator, decltype(m)::iterator>>();
+    STATIC_ASSERT_SAME(decltype(m.equal_range(0)),
+                       std::pair<decltype(m)::iterator, decltype(m)::iterator>);
     CHECK_EQ(m.equal_range(0).first, std::next(m.begin(), 0));
     CHECK_EQ(m.equal_range(0).second, std::next(m.begin(), 0));
     CHECK_EQ(m.equal_range(1).first, std::next(m.begin(), 0));
@@ -335,9 +332,9 @@ TEST_CASE("lower_bound|upper_bound|equal_range")
   }
   {
     const lru_map<int, int> m(4, { { 1, 10 }, { 3, 30 }, { 5, 50 } });
-    static_assert_same<
+    STATIC_ASSERT_SAME(
         decltype(m.equal_range(0)),
-        std::pair<decltype(m)::const_iterator, decltype(m)::const_iterator>>();
+        std::pair<decltype(m)::const_iterator, decltype(m)::const_iterator>);
     CHECK_EQ(m.equal_range(0).first, std::next(m.begin(), 0));
     CHECK_EQ(m.equal_range(0).second, std::next(m.begin(), 0));
     CHECK_EQ(m.equal_range(1).first, std::next(m.begin(), 0));
