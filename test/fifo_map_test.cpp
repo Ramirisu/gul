@@ -39,7 +39,9 @@ TEST_CASE("basic")
   CHECK(!m.contains(3));
   CHECK_EQ(
       m.max_size(),
-      std::min(std::map<int, int>().max_size(), std::deque<int>().max_size()));
+      std::min(std::map<int, int>().max_size(),
+               std::deque<typename std::map<int, int>::iterator>().max_size())
+          / 2);
 }
 
 TEST_CASE("copy ctor")

@@ -224,7 +224,7 @@ public:
 
   size_type max_size() const noexcept
   {
-    return std::min(map_.max_size(), queue_.max_size());
+    return std::min(map_.max_size(), queue_.max_size()) / 2;
   }
 
   iterator begin()
