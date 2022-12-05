@@ -1,12 +1,6 @@
-name: CodeQL
+name: codecov
 
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-  schedule:
-    - cron: '30 1 * * 0'
+on: [push, pull_request]
 
 jobs:
   build:
@@ -19,15 +13,8 @@ jobs:
         build_type: [Debug]
         generator: [Ninja]
 
-    permissions:
-      security-events: write
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v2
+      - uses: actions/checkout@v3
 
       - name: Install dependencies on ubuntu
         if: startsWith(matrix.os, 'ubuntu')
@@ -46,11 +33,24 @@ jobs:
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
             -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} \
             -DCMAKE_CXX_STANDARD:STRING=${{ matrix.std }} \
-            -DGUL_BUILD_TESTS=ON
+            -DGUL_BUILD_TESTS=ON \
+            -DGUL_ENABLE_CODECOV=ON
 
       - name: Build
         shell: bash
         run: cmake --build build
 
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v2
+      - name: Test
+        shell: bash
+        working-directory:  ${{ github.workspace }}/build
+        run: ctest --output-on-failure .
+
+      - name: Upload code coverage report
+        shell: bash
+        run: |
+          sudo apt install lcov
+          lcov --capture --directory $(pwd)'/build' --output-file coverage.info
+          lcov --extract coverage.info $(pwd)'/include/gul/*' --output-file coverage.info
+          curl -Os https://uploader.codecov.io/latest/linux/codecov
+          chmod +x codecov
+          ./codecov -t ${CODECOV_TOKEN}
