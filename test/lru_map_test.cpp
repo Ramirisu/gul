@@ -50,6 +50,13 @@ TEST_CASE("basic")
   CHECK(!m.contains(1));
   CHECK(!m.contains(2));
   CHECK(!m.contains(3));
+  CHECK_EQ(
+      m.max_size(),
+      std::min(
+          std::list<std::pair<int, int>>().max_size(),
+          std::map<int, typename std::list<std::pair<int, int>>::iterator>()
+              .max_size())
+          / 2);
 }
 
 TEST_CASE("Compare")
@@ -93,6 +100,17 @@ TEST_CASE("copy constructor")
   CHECK_EQ(c.peek(2), optional<int>(20));
 }
 
+TEST_CASE("move constructor")
+{
+  lru_map<int, int> m(2, { { 1, 10 }, { 2, 20 } });
+  lru_map<int, int> c(std::move(m));
+  m.clear();
+  CHECK_EQ(c.capacity(), 2);
+  CHECK_EQ(c.size(), 2);
+  CHECK_EQ(c.peek(1), optional<int>(10));
+  CHECK_EQ(c.peek(2), optional<int>(20));
+}
+
 TEST_CASE("copy assignment operator")
 {
   lru_map<int, int> m(2, { { 1, 10 }, { 2, 20 } });
@@ -105,11 +123,24 @@ TEST_CASE("copy assignment operator")
   CHECK_EQ(c.peek(2), optional<int>(20));
 }
 
+TEST_CASE("move assignment operator")
+{
+  lru_map<int, int> m(2, { { 1, 10 }, { 2, 20 } });
+  lru_map<int, int> c(2, { { 3, 30 }, { 4, 40 } });
+  c = std::move(m);
+  m.clear();
+  CHECK_EQ(c.capacity(), 2);
+  CHECK_EQ(c.size(), 2);
+  CHECK_EQ(c.peek(1), optional<int>(10));
+  CHECK_EQ(c.peek(2), optional<int>(20));
+}
+
 TEST_CASE("peek|cpeek")
 {
   {
     lru_map<int, int> m(4, { { 1, 10 }, { 2, 20 } });
     STATIC_ASSERT_SAME(decltype(m.peek(1)), optional<int&>);
+    CHECK_EQ(m.peek(0), optional<int&>());
     int v = 10;
     CHECK_EQ(m.peek(1), optional<int&>(v));
     m.peek(1).value() = 100;
@@ -119,12 +150,14 @@ TEST_CASE("peek|cpeek")
   {
     const lru_map<int, int> m(4, { { 1, 10 }, { 2, 20 } });
     STATIC_ASSERT_SAME(decltype(m.peek(1)), optional<const int&>);
+    CHECK_EQ(m.peek(0), optional<int&>());
     int v = 10;
     CHECK_EQ(m.peek(1), optional<const int&>(v));
   }
   {
     lru_map<int, int> m(4, { { 1, 10 }, { 2, 20 } });
     STATIC_ASSERT_SAME(decltype(m.cpeek(1)), optional<const int&>);
+    CHECK_EQ(m.cpeek(0), optional<int&>());
     int v = 10;
     CHECK_EQ(m.cpeek(1), optional<const int&>(v));
   }
@@ -135,18 +168,36 @@ TEST_CASE("get|cget")
   lru_map<int, int> m(4, { { 1, 10 }, { 2, 20 } });
   STATIC_ASSERT_SAME(decltype(m.get(1)), optional<int&>);
   STATIC_ASSERT_SAME(decltype(m.cget(1)), optional<const int&>);
-  m.get(1);
-  CHECK_NE(m.peek_lru(),
-           optional<std::pair<int, int>>(std::pair<int, int> { 1, 10 }));
-  m.get(2);
-  CHECK_NE(m.peek_lru(),
-           optional<std::pair<int, int>>(std::pair<int, int> { 2, 20 }));
-  m.cget(1);
-  CHECK_NE(m.peek_lru(),
-           optional<std::pair<int, int>>(std::pair<int, int> { 1, 10 }));
-  m.cget(2);
-  CHECK_NE(m.peek_lru(),
-           optional<std::pair<int, int>>(std::pair<int, int> { 2, 20 }));
+  {
+    int val = 10;
+    CHECK_EQ(m.get(1), optional<int&>(val));
+    CHECK_NE(m.peek_lru(),
+             optional<std::pair<int, int>>(std::pair<int, int> { 1, 10 }));
+  }
+  {
+    int val = 20;
+    CHECK_EQ(m.get(2), optional<int&>(val));
+    CHECK_NE(m.peek_lru(),
+             optional<std::pair<int, int>>(std::pair<int, int> { 2, 20 }));
+  }
+  {
+    int val = 10;
+    CHECK_EQ(m.cget(1), optional<int&>(val));
+    CHECK_NE(m.peek_lru(),
+             optional<std::pair<int, int>>(std::pair<int, int> { 1, 10 }));
+  }
+  {
+    int val = 20;
+    CHECK_EQ(m.cget(2), optional<int&>(val));
+    CHECK_NE(m.peek_lru(),
+             optional<std::pair<int, int>>(std::pair<int, int> { 2, 20 }));
+  }
+  {
+    CHECK_EQ(m.get(0), optional<int&>());
+    CHECK_EQ(m.cget(0), optional<int&>());
+    m.clear();
+    CHECK_EQ(m.peek_lru(), optional<std::pair<int, int>>());
+  }
 }
 
 TEST_CASE("try_assign")
@@ -187,9 +238,17 @@ TEST_CASE("erase iterator")
   }
   {
     lru_map<int, int> m(4, { { 1, 10 }, { 2, 20 }, { 3, 30 }, { 4, 40 } });
+    CHECK_EQ(m.erase(m.begin(), m.begin()), m.begin());
+  }
+  {
+    lru_map<int, int> m(4, { { 1, 10 }, { 2, 20 }, { 3, 30 }, { 4, 40 } });
     auto it = std::next(m.begin(), 1);
     auto it_next = std::next(it, 2);
     CHECK_EQ(m.erase(it, it_next), it_next);
+  }
+  {
+    lru_map<int, int> m(4, { { 1, 10 }, { 2, 20 }, { 3, 30 }, { 4, 40 } });
+    CHECK_EQ(m.erase(m.cbegin(), m.cbegin()), m.cbegin());
   }
   {
     lru_map<int, int> m(4, { { 1, 10 }, { 2, 20 }, { 3, 30 }, { 4, 40 } });
@@ -201,6 +260,24 @@ TEST_CASE("erase iterator")
 
 TEST_CASE("iterator")
 {
+  {
+    lru_map<int, int> m(4, { { 1, 10 }, { 2, 20 }, { 3, 30 }, { 4, 40 } });
+    m.get(3);
+    m.get(1);
+    m.get(4);
+    m.get(2);
+    auto it = m.begin();
+    CHECK_EQ(*it++, std::pair<int, int> { 1, 10 });
+    CHECK_EQ(*it++, std::pair<int, int> { 2, 20 });
+    CHECK_EQ(*it++, std::pair<int, int> { 3, 30 });
+    CHECK_EQ(*it++, std::pair<int, int> { 4, 40 });
+    CHECK_EQ(it, m.end());
+    it--;
+    it--;
+    it--;
+    it--;
+    CHECK_EQ(it, m.begin());
+  }
   {
     std::map<int, int> exp({ { 1, 10 }, { 2, 20 }, { 3, 30 }, { 4, 40 } });
     lru_map<int, int> m(4, { { 1, 10 }, { 2, 20 }, { 3, 30 }, { 4, 40 } });
@@ -363,6 +440,14 @@ TEST_CASE("random test")
     auto key = dist(gen);
     m.try_insert(key, i);
   }
+}
+
+TEST_CASE("key_comp|value_comp")
+{
+  lru_map<int, int> m(1);
+  CHECK(m.key_comp()(0, 1));
+  CHECK(m.value_comp()(typename lru_map<int, int>::value_type { 2, 4 },
+                       typename lru_map<int, int>::value_type { 3, 1 }));
 }
 
 TEST_SUITE_END();

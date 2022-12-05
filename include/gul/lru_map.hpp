@@ -425,7 +425,7 @@ public:
 
   size_type max_size() const noexcept
   {
-    return std::numeric_limits<size_type>::max();
+    return std::min(recently_used_.max_size(), map_.max_size()) / 2;
   }
 
   iterator begin()
