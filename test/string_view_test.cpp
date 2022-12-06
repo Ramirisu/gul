@@ -300,6 +300,11 @@ TEST_CASE("basic")
     auto u32sv = U"hello world!"_sv;
     STATIC_ASSERT_SAME(decltype(u32sv), u32string_view);
     CHECK_EQ(u32sv, u32string_view(U"hello world!"));
+#if defined(GUL_HAS_CXX20) || defined(__cpp_char8_t)
+    auto u8sv = u8"hello world!"_sv;
+    STATIC_ASSERT_SAME(decltype(u8sv), u8string_view);
+    CHECK_EQ(u8sv, u8string_view(u8"hello world!"));
+#endif
   }
   {
     std::string str(s);
@@ -322,6 +327,14 @@ TEST_CASE("basic")
     u32string_view u32sv(u32s);
     CHECK_EQ(std::hash<std::u32string>()(u32str),
              std::hash<u32string_view>()(u32sv));
+
+#if defined(GUL_HAS_CXX20) || defined(__cpp_char8_t)
+    const char8_t* u8s = u8"hello world!";
+    std::u8string u8str(u8s);
+    u8string_view u8sv(u8s);
+    CHECK_EQ(std::hash<std::u8string>()(u8str),
+             std::hash<u8string_view>()(u8sv));
+#endif
   }
 }
 

@@ -756,6 +756,9 @@ using string_view = basic_string_view<char>;
 using wstring_view = basic_string_view<wchar_t>;
 using u16string_view = basic_string_view<char16_t>;
 using u32string_view = basic_string_view<char32_t>;
+#if defined(GUL_HAS_CXX20) || defined(__cpp_char8_t)
+using u8string_view = basic_string_view<char8_t>;
+#endif
 
 inline namespace literals {
 inline namespace string_view_literals {
@@ -782,6 +785,14 @@ inline namespace string_view_literals {
   {
     return u32string_view(str, len);
   }
+
+#if defined(GUL_HAS_CXX20) || defined(__cpp_char8_t)
+  constexpr u8string_view operator"" _sv(const char8_t* str,
+                                         std::size_t len) noexcept
+  {
+    return u8string_view(str, len);
+  }
+#endif
 }
 }
 
@@ -836,4 +847,13 @@ struct hash<gul::u32string_view> {
 #endif
   }
 };
+#if defined(GUL_HAS_CXX20) || defined(__cpp_char8_t)
+template <>
+struct hash<gul::u8string_view> {
+  std::size_t operator()(gul::u8string_view sv) const
+  {
+    return hash<u8string_view>()(u8string_view(sv.data(), sv.size()));
+  }
+};
+#endif
 }
