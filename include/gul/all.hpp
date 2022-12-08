@@ -9,6 +9,8 @@
 
 #include <gul/config.hpp>
 
+#include <gul/functional.hpp>
+#include <gul/type_traits.hpp>
 #include <gul/utility.hpp>
 
 #include <gul/byte.hpp>
@@ -16,6 +18,7 @@
 #include <gul/optional.hpp>
 #include <gul/span.hpp>
 #include <gul/string_view.hpp>
+#include <gul/tuple.hpp>
 
 #include <gul/fifo_map.hpp>
 #include <gul/lru_map.hpp>

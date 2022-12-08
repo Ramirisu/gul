@@ -13,6 +13,51 @@ using namespace gul;
 
 TEST_SUITE_BEGIN("utility");
 
+TEST_CASE("integer_sequence")
+{
+  STATIC_ASSERT_SAME(integer_sequence<char>::value_type, char);
+  STATIC_ASSERT_SAME(integer_sequence<std::size_t>::value_type, std::size_t);
+  STATIC_ASSERT(integer_sequence<std::size_t>::size() == 0);
+  STATIC_ASSERT(integer_sequence<std::size_t, 10>::size() == 1);
+  STATIC_ASSERT(integer_sequence<std::size_t, 10, 9>::size() == 2);
+}
+
+TEST_CASE("index_sequence")
+{
+  STATIC_ASSERT_SAME(index_sequence<>::value_type, std::size_t);
+  STATIC_ASSERT(index_sequence<>::size() == 0);
+  STATIC_ASSERT(index_sequence<10>::size() == 1);
+  STATIC_ASSERT(index_sequence<10, 9>::size() == 2);
+}
+
+TEST_CASE("make_integer_sequence")
+{
+  STATIC_ASSERT_SAME(make_integer_sequence<std::size_t, 0>,
+                     integer_sequence<std::size_t>);
+  STATIC_ASSERT_SAME(make_integer_sequence<std::size_t, 1>,
+                     integer_sequence<std::size_t, 0>);
+  STATIC_ASSERT_SAME(make_integer_sequence<std::size_t, 2>,
+                     integer_sequence<std::size_t, 0, 1>);
+  STATIC_ASSERT_SAME(make_integer_sequence<std::size_t, 7>,
+                     integer_sequence<std::size_t, 0, 1, 2, 3, 4, 5, 6>);
+}
+
+TEST_CASE("make_index_sequence")
+{
+  STATIC_ASSERT_SAME(make_index_sequence<0>, index_sequence<>);
+  STATIC_ASSERT_SAME(make_index_sequence<1>, index_sequence<0>);
+  STATIC_ASSERT_SAME(make_index_sequence<2>, index_sequence<0, 1>);
+  STATIC_ASSERT_SAME(make_index_sequence<7>,
+                     index_sequence<0, 1, 2, 3, 4, 5, 6>);
+}
+
+TEST_CASE("index_sequence_for")
+{
+  STATIC_ASSERT_SAME(
+      index_sequence_for<std::nullptr_t, char, short, int, long, float, double>,
+      index_sequence<0, 1, 2, 3, 4, 5, 6>);
+}
+
 namespace {
 template <bool IsNothrowMoveConstructible, bool IsNothrowMoveAssignable>
 struct movable {

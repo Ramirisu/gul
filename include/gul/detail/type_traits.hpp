@@ -19,6 +19,9 @@ namespace detail {
 
 using std::integral_constant;
 
+template <bool B>
+using bool_constant = integral_constant<bool, B>;
+
 template <typename T>
 struct type_identity {
   using type = T;
@@ -85,7 +88,7 @@ template <typename T>
 using remove_cvref_t = typename remove_cvref<T>::type;
 
 template <typename T>
-struct negation : integral_constant<bool, !static_cast<bool>(T::value)> { };
+struct negation : bool_constant<!static_cast<bool>(T::value)> { };
 
 template <typename T>
 using negation_t = typename negation<T>::type;
@@ -236,9 +239,7 @@ namespace swap_detail {
   template <typename T, typename U>
   struct is_nothrow_swappable_with_helper<T, U, true>
 #if !defined(GUL_CXX_COMPILER_MSVC2015)
-      : integral_constant<bool,
-                          noexcept(
-                              swap(std::declval<T>(), std::declval<U>()))> {
+      : bool_constant<noexcept(swap(std::declval<T>(), std::declval<U>()))> {
   };
 #else
   {
@@ -282,9 +283,8 @@ template <typename From,
           typename To,
           bool = std::is_convertible<From, To>::value>
 struct is_nothrow_convertible
-    : integral_constant<bool,
-                        noexcept(is_nothrow_convertible_helper::test<To>(
-                            std::declval<From>()))> { };
+    : bool_constant<noexcept(
+          is_nothrow_convertible_helper::test<To>(std::declval<From>()))> { };
 
 template <typename From, typename To>
 struct is_nothrow_convertible<From, To, false> : std::false_type { };
@@ -371,16 +371,14 @@ using is_invocable_get_ret_type
 
 template <typename F, typename... Args>
 struct is_invocable_noexcept
-    : integral_constant<bool,
-                        noexcept(is_invocable_get_ret_type_impl<F>::test(
-                            std::declval<F>(), std::declval<Args>()...))> { };
+    : bool_constant<noexcept(is_invocable_get_ret_type_impl<F>::test(
+          std::declval<F>(), std::declval<Args>()...))> { };
 
 #if !defined(_MSC_VER) || _MSC_VER < 1920
 template <typename F>
 struct is_invocable_noexcept<F, void>
-    : integral_constant<bool,
-                        noexcept(is_invocable_get_ret_type_impl<F>::test(
-                            std::declval<F>()))> { };
+    : bool_constant<noexcept(
+          is_invocable_get_ret_type_impl<F>::test(std::declval<F>()))> { };
 #endif
 
 template <typename R, typename NoExcept>

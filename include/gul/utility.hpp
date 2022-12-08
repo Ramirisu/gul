@@ -19,6 +19,16 @@ using detail::in_place_t;
 
 GUL_CXX17_INLINE constexpr in_place_t in_place {};
 
+using detail::integer_sequence;
+
+using detail::index_sequence;
+
+using detail::make_integer_sequence;
+
+using detail::make_index_sequence;
+
+using detail::index_sequence_for;
+
 template <typename T, typename U = T>
 GUL_CXX14_CONSTEXPR T exchange(T& obj, U&& new_value) noexcept(
     std::is_nothrow_move_constructible<T>::value&&

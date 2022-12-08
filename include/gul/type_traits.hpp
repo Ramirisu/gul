@@ -13,6 +13,8 @@
 
 GUL_NAMESPACE_BEGIN
 
+using detail::bool_constant;
+
 using detail::type_identity;
 using detail::type_identity_t;
 
