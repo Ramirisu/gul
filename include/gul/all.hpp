@@ -9,13 +9,15 @@
 
 #include <gul/config.hpp>
 
-#include <gul/functional.hpp>
 #include <gul/type_traits.hpp>
 #include <gul/utility.hpp>
+
+#include <gul/invoke.hpp>
 
 #include <gul/byte.hpp>
 #include <gul/expected.hpp>
 #include <gul/optional.hpp>
+#include <gul/out_ptr.hpp>
 #include <gul/span.hpp>
 #include <gul/string_view.hpp>
 #include <gul/tuple.hpp>

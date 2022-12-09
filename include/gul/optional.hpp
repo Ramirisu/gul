@@ -11,7 +11,7 @@
 
 #include <gul/detail/constructor_base.hpp>
 
-#include <gul/functional.hpp>
+#include <gul/invoke.hpp>
 #include <gul/type_traits.hpp>
 #include <gul/utility.hpp>
 

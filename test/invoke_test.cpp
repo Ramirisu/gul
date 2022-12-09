@@ -7,9 +7,9 @@
 
 #include <gul_test.h>
 
-#include <gul/functional.hpp>
+#include <gul/invoke.hpp>
 
-TEST_SUITE_BEGIN("functional");
+TEST_SUITE_BEGIN("invoke");
 
 TEST_CASE("invoke")
 {

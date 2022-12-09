@@ -9,7 +9,7 @@
 
 #include <gul/config.hpp>
 
-#include <gul/detail/functional.hpp>
+#include <gul/detail/invoke.hpp>
 
 #include <gul/type_traits.hpp>
 

@@ -11,7 +11,7 @@
 
 #include <gul/detail/constructor_base.hpp>
 
-#include <gul/functional.hpp>
+#include <gul/invoke.hpp>
 #include <gul/type_traits.hpp>
 #include <gul/utility.hpp>
 
@@ -937,8 +937,7 @@ class expected : private detail::expected_move_assign_base<T, E>,
             std::is_constructible<unexpected<E>, expected<T2, E2>&>,
             std::is_constructible<unexpected<E>, expected<T2, E2>>,
             std::is_constructible<unexpected<E>, const expected<T2, E2>&>,
-            std::is_constructible<unexpected<E>, const expected<T2, E2>>>> {
-  };
+            std::is_constructible<unexpected<E>, const expected<T2, E2>>>> { };
 
   template <typename Self, typename F>
   static GUL_CXX14_CONSTEXPR auto

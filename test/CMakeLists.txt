@@ -1,4 +1,4 @@
-file(GLOB_RECURSE GUL_TESTS_SOURCE_FILES "*_test.cpp")
+file(GLOB GUL_TESTS_SOURCE_FILES "*_test.cpp")
 
 foreach(file ${GUL_TESTS_SOURCE_FILES})
   get_filename_component(file_name ${file} NAME)
