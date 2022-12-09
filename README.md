@@ -13,12 +13,12 @@ gul is an open-source library providing general utilities for c++11. Many of the
 * Header-only, no external dependencies.
 * Support exceptions disabled with `-fno-exceptions`.
 
-| Utility Class | Description                                                                    |                          From std?                          |
-| :-----------: | :----------------------------------------------------------------------------- | :---------------------------------------------------------: |
-|    `byte`     | A type represents the byte concept.                                            |    [c++17](https://en.cppreference.com/w/cpp/types/byte)    |
-|  `optional`   | A type either holds a value of type `T`, or is in *valueless* state.           | [c++17](https://en.cppreference.com/w/cpp/utility/optional) |
-|  `expected`   | A type either holds a value of type `T`, or an *unexpected* value of type `E`. | [c++23](https://en.cppreference.com/w/cpp/utility/expected) |
-
+|   Utility Class    | Description                                                                    |                              From std?                              |
+| :----------------: | :----------------------------------------------------------------------------- | :-----------------------------------------------------------------: |
+|       `byte`       | A type represents the byte concept.                                            |        [c++17](https://en.cppreference.com/w/cpp/types/byte)        |
+|     `optional`     | A type either holds a value of type `T`, or is in *valueless* state.           |     [c++17](https://en.cppreference.com/w/cpp/utility/optional)     |
+|     `expected`     | A type either holds a value of type `T`, or an *unexpected* value of type `E`. |     [c++23](https://en.cppreference.com/w/cpp/utility/expected)     |
+| `integer_sequence` | A compile-time sequence of integers.                                           | [c++14](https://en.cppreference.com/w/cpp/utility/integer_sequence) |
 
 |                                               Utility Function                                                | Description                                                            |                            From std?                             |
 | :-----------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------- | :--------------------------------------------------------------: |
@@ -26,6 +26,15 @@ gul is an open-source library providing general utilities for c++11. Many of the
 |                                                  `as_const`                                                   | Obtains a reference to const to its argument.                          |   [c++17](https://en.cppreference.com/w/cpp/utility/as_const)    |
 | `cmp_equal`</br>`cmp_not_equal`</br>`cmp_less`</br>`cmp_greater`</br>`cmp_less_equal`</br>`cmp_greater_equal` | Compares two integer values without value change caused by conversion. |    [c++20](https://en.cppreference.com/w/cpp/utility/intcmp)     |
 |                                                `to_underlying`                                                | Converts an enumeration to its underlying type.                        | [c++23](https://en.cppreference.com/w/cpp/utility/to_underlying) |
+
+|       Functional        |                              From std?                               |
+| :---------------------: | :------------------------------------------------------------------: |
+| `invoke`</br>`invoke_r` | [c++17](https://en.cppreference.com/w/cpp/utility/functional/invoke) |
+
+|            Memory             |                           From std?                           |
+| :---------------------------: | :-----------------------------------------------------------: |
+|   `out_ptr`</br>`out_ptr_t`   |  [c++23](https://en.cppreference.com/w/cpp/memory/out_ptr_t)  |
+| `inout_ptr`</br>`inout_ptr_t` | [c++23](https://en.cppreference.com/w/cpp/memory/inout_ptr_t) |
 
 |                                 Container                                  | Description                                                                                                                                                                     |                              From std?                              |
 | :------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :-----------------------------------------------------------------: |
@@ -52,10 +61,6 @@ gul is an open-source library providing general utilities for c++11. Many of the
 |                                `remove_cvref`</br>`remove_cvref_t`                                |    [c++20](https://en.cppreference.com/w/cpp/types/remove_cvref)    |
 |                               `type_identity`</br>`type_identity_t`                               |   [c++20](https://en.cppreference.com/w/cpp/types/type_identity)    |
 |                                         `function_traits`                                         |                                none                                 |
-
-|       Functional        |                              From std?                               |
-| :---------------------: | :------------------------------------------------------------------: |
-| `invoke`</br>`invoke_r` | [c++17](https://en.cppreference.com/w/cpp/utility/functional/invoke) |
 
 ## Integration
 
