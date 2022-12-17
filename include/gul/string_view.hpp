@@ -298,9 +298,13 @@ public:
     return len;
   }
 
-  constexpr basic_string_view substr(size_type index = 0,
-                                     size_type count = npos) const
+  GUL_CXX14_CONSTEXPR basic_string_view substr(size_type index = 0,
+                                               size_type count = npos) const
   {
+    if (index > size()) {
+      throw_out_of_range("[basic_string_view::substr] index out of range");
+    }
+
     return basic_string_view(start_ + index, std::min(count, size_ - index));
   }
 

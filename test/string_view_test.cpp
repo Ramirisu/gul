@@ -84,6 +84,10 @@ TEST_CASE("basic")
     string_view sv(s);
     CHECK_EQ(sv.substr(), sv);
     CHECK_EQ(sv.substr(6), string_view(s + 6));
+    CHECK_EQ(sv.substr(12), string_view(s + 12));
+#if !GUL_NO_EXCEPTIONS
+    CHECK_THROWS_AS(sv.substr(13, 0), std::out_of_range);
+#endif
     CHECK_EQ(sv.substr(0, 6), string_view(s, 6));
     CHECK_EQ(sv.substr(0, 16), string_view(s));
     CHECK_EQ(sv.substr(6, 16), string_view(s + 6));
