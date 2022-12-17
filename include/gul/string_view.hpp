@@ -200,6 +200,12 @@ public:
   {
   }
 
+  constexpr basic_string_view(const std::basic_string<CharT>& str) noexcept
+      : start_(str.data())
+      , size_(str.size())
+  {
+  }
+
   constexpr basic_string_view(std::nullptr_t) = delete;
 
   constexpr basic_string_view(const basic_string_view&) noexcept = default;

@@ -47,6 +47,12 @@ TEST_CASE("basic")
     CHECK_EQ(sv.size(), 6);
   }
   {
+    std::string str(s);
+    string_view sv(str);
+    CHECK_EQ(sv.data(), str.data());
+    CHECK_EQ(sv.size(), str.size());
+  }
+  {
     string_view sv(s);
     sv.remove_prefix(3);
     CHECK_EQ(sv, string_view(s + 3));
