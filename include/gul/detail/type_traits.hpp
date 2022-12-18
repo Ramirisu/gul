@@ -493,10 +493,12 @@ template <typename T>
 struct is_trivially_copy_assignable : std::has_trivial_copy_assign<T> { };
 
 template <typename T>
-struct is_trivially_move_constructible : std::false_type { };
+struct is_trivially_move_constructible
+    : bool_constant<std::is_pointer<T>::value> { };
 
 template <typename T>
-struct is_trivially_move_assignable : std::false_type { };
+struct is_trivially_move_assignable : bool_constant<std::is_pointer<T>::value> {
+};
 
 #else
 
