@@ -20,13 +20,13 @@ GUL_NAMESPACE_BEGIN
 namespace detail {
 template <typename F, typename Tuple, std::size_t... Is>
 constexpr auto apply_impl(F&& f, Tuple&& tuple, index_sequence<Is...>) noexcept(
-    noexcept(invoke(std::forward<F>(f),
-                    std::get<Is>(std::forward<Tuple>(tuple))...)))
-    -> decltype(invoke(std::forward<F>(f),
-                       std::get<Is>(std::forward<Tuple>(tuple))...))
+    noexcept(gul::invoke(std::forward<F>(f),
+                         std::get<Is>(std::forward<Tuple>(tuple))...)))
+    -> decltype(gul::invoke(std::forward<F>(f),
+                            std::get<Is>(std::forward<Tuple>(tuple))...))
 {
-  return invoke(std::forward<F>(f),
-                std::get<Is>(std::forward<Tuple>(tuple))...);
+  return gul::invoke(std::forward<F>(f),
+                     std::get<Is>(std::forward<Tuple>(tuple))...);
 }
 }
 

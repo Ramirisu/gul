@@ -634,11 +634,11 @@ class optional : private detail::optional_move_assign_base<T>,
   template <typename Self, typename F>
   static GUL_CXX14_CONSTEXPR auto
   and_then_impl(std::true_type, Self&& self, F&& f)
-      -> remove_cvref_t<decltype(invoke(std::forward<F>(f)))>
+      -> remove_cvref_t<decltype(gul::invoke(std::forward<F>(f)))>
   {
     using Opt = remove_cvref_t<invoke_result_t<F>>;
     if (self.has_value()) {
-      return Opt(invoke(std::forward<F>(f)));
+      return Opt(gul::invoke(std::forward<F>(f)));
     } else {
       return Opt(nullopt);
     }
@@ -647,13 +647,14 @@ class optional : private detail::optional_move_assign_base<T>,
   template <typename Self, typename F>
   static GUL_CXX14_CONSTEXPR auto
   and_then_impl(std::false_type, Self&& self, F&& f)
-      -> remove_cvref_t<decltype(invoke(std::forward<F>(f),
-                                        std::forward<Self>(self).value()))>
+      -> remove_cvref_t<decltype(gul::invoke(std::forward<F>(f),
+                                             std::forward<Self>(self).value()))>
   {
     using Opt = remove_cvref_t<
         invoke_result_t<F, decltype(std::declval<Self>().value())>>;
     if (self.has_value()) {
-      return Opt(invoke(std::forward<F>(f), std::forward<Self>(self).value()));
+      return Opt(
+          gul::invoke(std::forward<F>(f), std::forward<Self>(self).value()));
     } else {
       return Opt(nullopt);
     }
@@ -662,11 +663,11 @@ class optional : private detail::optional_move_assign_base<T>,
   template <typename Self, typename F>
   static GUL_CXX14_CONSTEXPR auto
   transform_impl(std::true_type, Self&& self, F&& f)
-      -> optional<remove_cvref_t<decltype(invoke(std::forward<F>(f)))>>
+      -> optional<remove_cvref_t<decltype(gul::invoke(std::forward<F>(f)))>>
   {
     using Opt = optional<remove_cvref_t<invoke_result_t<F>>>;
     if (self.has_value()) {
-      return Opt(invoke(std::forward<F>(f)));
+      return Opt(gul::invoke(std::forward<F>(f)));
     } else {
       return Opt(nullopt);
     }
@@ -675,13 +676,14 @@ class optional : private detail::optional_move_assign_base<T>,
   template <typename Self, typename F>
   static GUL_CXX14_CONSTEXPR auto
   transform_impl(std::false_type, Self&& self, F&& f)
-      -> optional<remove_cvref_t<decltype(invoke(
+      -> optional<remove_cvref_t<decltype(gul::invoke(
           std::forward<F>(f), std::forward<Self>(self).value()))>>
   {
     using Opt = optional<remove_cvref_t<
         invoke_result_t<F, decltype(std::declval<Self>().value())>>>;
     if (self.has_value()) {
-      return Opt(invoke(std::forward<F>(f), std::forward<Self>(self).value()));
+      return Opt(
+          gul::invoke(std::forward<F>(f), std::forward<Self>(self).value()));
     } else {
       return Opt(nullopt);
     }
@@ -690,26 +692,26 @@ class optional : private detail::optional_move_assign_base<T>,
   template <typename Self, typename F>
   static GUL_CXX14_CONSTEXPR auto
   or_else_impl(std::true_type, Self&& self, F&& f)
-      -> remove_cvref_t<decltype(invoke(std::forward<F>(f)))>
+      -> remove_cvref_t<decltype(gul::invoke(std::forward<F>(f)))>
   {
     using Opt = remove_cvref_t<Self>;
     if (self.has_value()) {
       return Opt(in_place);
     } else {
-      return Opt(invoke(std::forward<F>(f)));
+      return Opt(gul::invoke(std::forward<F>(f)));
     }
   }
 
   template <typename Self, typename F>
   static GUL_CXX14_CONSTEXPR auto
   or_else_impl(std::false_type, Self&& self, F&& f)
-      -> remove_cvref_t<decltype(invoke(std::forward<F>(f)))>
+      -> remove_cvref_t<decltype(gul::invoke(std::forward<F>(f)))>
   {
     using Opt = remove_cvref_t<Self>;
     if (self.has_value()) {
       return Opt(std::forward<Self>(self).value());
     } else {
-      return Opt(invoke(std::forward<F>(f)));
+      return Opt(gul::invoke(std::forward<F>(f)));
     }
   }
 

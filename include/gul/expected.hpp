@@ -1223,7 +1223,7 @@ class expected : private detail::expected_move_assign_base<T, E>,
   template <typename Self, typename F>
   static GUL_CXX14_CONSTEXPR auto
   and_then_impl(std::true_type, Self&& self, F&& f)
-      -> remove_cvref_t<decltype(invoke(std::forward<F>(f)))>
+      -> remove_cvref_t<decltype(gul::invoke(std::forward<F>(f)))>
   {
     using Err = remove_cvref_t<decltype(std::declval<Self>().error())>;
     using Exp = remove_cvref_t<invoke_result_t<F>>;
@@ -1235,7 +1235,7 @@ class expected : private detail::expected_move_assign_base<T, E>,
         "[expected::and_then] result of `F` must be a specialization of "
         "`expected` whose error type is identical to E");
     if (self.has_value()) {
-      return Exp(invoke(std::forward<F>(f)));
+      return Exp(gul::invoke(std::forward<F>(f)));
     } else {
       return Exp(unexpect, std::forward<Self>(self).error());
     }
@@ -1244,8 +1244,8 @@ class expected : private detail::expected_move_assign_base<T, E>,
   template <typename Self, typename F>
   static GUL_CXX14_CONSTEXPR auto
   and_then_impl(std::false_type, Self&& self, F&& f)
-      -> remove_cvref_t<decltype(invoke(std::forward<F>(f),
-                                        std::forward<Self>(self).value()))>
+      -> remove_cvref_t<decltype(gul::invoke(std::forward<F>(f),
+                                             std::forward<Self>(self).value()))>
   {
     using Val = decltype(std::declval<Self>().value());
     using Err = remove_cvref_t<decltype(std::declval<Self>().error())>;
@@ -1258,7 +1258,8 @@ class expected : private detail::expected_move_assign_base<T, E>,
         "[expected::and_then]result of `F` must be a specialization of "
         "`expected` whose error type is identical to E");
     if (self.has_value()) {
-      return Exp(invoke(std::forward<F>(f), std::forward<Self>(self).value()));
+      return Exp(
+          gul::invoke(std::forward<F>(f), std::forward<Self>(self).value()));
     } else {
       return Exp(unexpect, std::forward<Self>(self).error());
     }
@@ -1267,8 +1268,8 @@ class expected : private detail::expected_move_assign_base<T, E>,
   template <typename Self, typename F>
   static GUL_CXX14_CONSTEXPR auto
   or_else_impl(std::true_type, Self&& self, F&& f)
-      -> remove_cvref_t<decltype(invoke(std::forward<F>(f),
-                                        std::forward<Self>(self).error()))>
+      -> remove_cvref_t<decltype(gul::invoke(std::forward<F>(f),
+                                             std::forward<Self>(self).error()))>
   {
     using Err = decltype(std::declval<Self>().error());
     using Exp = remove_cvref_t<invoke_result_t<F, Err>>;
@@ -1283,15 +1284,16 @@ class expected : private detail::expected_move_assign_base<T, E>,
     if (self.has_value()) {
       return Exp();
     } else {
-      return Exp(invoke(std::forward<F>(f), std::forward<Self>(self).error()));
+      return Exp(
+          gul::invoke(std::forward<F>(f), std::forward<Self>(self).error()));
     }
   }
 
   template <typename Self, typename F>
   static GUL_CXX14_CONSTEXPR auto
   or_else_impl(std::false_type, Self&& self, F&& f)
-      -> remove_cvref_t<decltype(invoke(std::forward<F>(f),
-                                        std::forward<Self>(self).error()))>
+      -> remove_cvref_t<decltype(gul::invoke(std::forward<F>(f),
+                                             std::forward<Self>(self).error()))>
   {
     using Err = decltype(std::declval<Self>().error());
     using Exp = remove_cvref_t<invoke_result_t<F, Err>>;
@@ -1306,21 +1308,22 @@ class expected : private detail::expected_move_assign_base<T, E>,
     if (self.has_value()) {
       return Exp(in_place, std::forward<Self>(self).value());
     } else {
-      return Exp(invoke(std::forward<F>(f), std::forward<Self>(self).error()));
+      return Exp(
+          gul::invoke(std::forward<F>(f), std::forward<Self>(self).error()));
     }
   }
 
   template <typename Self, typename F>
   static GUL_CXX14_CONSTEXPR auto
   transform_impl(std::true_type, Self&& self, F&& f)
-      -> expected<remove_cvref_t<decltype(invoke(std::forward<F>(f)))>,
+      -> expected<remove_cvref_t<decltype(gul::invoke(std::forward<F>(f)))>,
                   remove_cvref_t<decltype(std::forward<Self>(self).error())>>
   {
     using Err = remove_cvref_t<decltype(std::declval<Self>().error())>;
     using T2 = remove_cvref_t<invoke_result_t<F>>;
     using Exp = expected<T2, Err>;
     if (self.has_value()) {
-      return Exp(invoke(std::forward<F>(f)));
+      return Exp(gul::invoke(std::forward<F>(f)));
     } else {
       return Exp(unexpect, std::forward<Self>(self).error());
     }
@@ -1329,7 +1332,7 @@ class expected : private detail::expected_move_assign_base<T, E>,
   template <typename Self, typename F>
   static GUL_CXX14_CONSTEXPR auto
   transform_impl(std::false_type, Self&& self, F&& f)
-      -> expected<remove_cvref_t<decltype(invoke(
+      -> expected<remove_cvref_t<decltype(gul::invoke(
                       std::forward<F>(f), std::forward<Self>(self).value()))>,
                   remove_cvref_t<decltype(std::forward<Self>(self).error())>>
   {
@@ -1338,7 +1341,8 @@ class expected : private detail::expected_move_assign_base<T, E>,
     using Val2 = remove_cvref_t<invoke_result_t<F, Val>>;
     using Exp = expected<Val2, Err>;
     if (self.has_value()) {
-      return Exp(invoke(std::forward<F>(f), std::forward<Self>(self).value()));
+      return Exp(
+          gul::invoke(std::forward<F>(f), std::forward<Self>(self).value()));
     } else {
       return Exp(unexpect, std::forward<Self>(self).error());
     }
@@ -1348,7 +1352,7 @@ class expected : private detail::expected_move_assign_base<T, E>,
   static GUL_CXX14_CONSTEXPR auto
   transform_error_impl(std::true_type, Self&& self, F&& f)
       -> expected<remove_cvref_t<decltype(std::declval<Self>().value())>,
-                  remove_cvref_t<decltype(invoke(
+                  remove_cvref_t<decltype(gul::invoke(
                       std::forward<F>(f), std::forward<Self>(self).error()))>>
   {
     using Val = remove_cvref_t<decltype(std::declval<Self>().value())>;
@@ -1358,8 +1362,9 @@ class expected : private detail::expected_move_assign_base<T, E>,
     if (self.has_value()) {
       return Exp(in_place);
     } else {
-      return Exp(unexpect,
-                 invoke(std::forward<F>(f), std::forward<Self>(self).error()));
+      return Exp(
+          unexpect,
+          gul::invoke(std::forward<F>(f), std::forward<Self>(self).error()));
     }
   }
 
@@ -1367,7 +1372,7 @@ class expected : private detail::expected_move_assign_base<T, E>,
   static GUL_CXX14_CONSTEXPR auto
   transform_error_impl(std::false_type, Self&& self, F&& f)
       -> expected<remove_cvref_t<decltype(std::declval<Self>().value())>,
-                  remove_cvref_t<decltype(invoke(
+                  remove_cvref_t<decltype(gul::invoke(
                       std::forward<F>(f), std::forward<Self>(self).error()))>>
   {
     using Val = remove_cvref_t<decltype(std::declval<Self>().value())>;
@@ -1377,8 +1382,9 @@ class expected : private detail::expected_move_assign_base<T, E>,
     if (self.has_value()) {
       return Exp(in_place, std::forward<Self>(self).value());
     } else {
-      return Exp(unexpect,
-                 invoke(std::forward<F>(f), std::forward<Self>(self).error()));
+      return Exp(
+          unexpect,
+          gul::invoke(std::forward<F>(f), std::forward<Self>(self).error()));
     }
   }
 
