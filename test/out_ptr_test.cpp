@@ -9,8 +9,6 @@
 
 #include <gul/out_ptr.hpp>
 
-using namespace gul;
-
 TEST_SUITE_BEGIN("out_ptr");
 
 namespace {
@@ -66,7 +64,7 @@ TEST_CASE("out_ptr")
         *pptr = new int(10);
       };
 
-      f(out_ptr(sptr));
+      f(gul::out_ptr(sptr));
 
       CHECK_EQ(*reinterpret_cast<int*>(sptr), 10);
       deleter(sptr);
@@ -77,7 +75,7 @@ TEST_CASE("out_ptr")
         *pptr = new int(10);
       };
 
-      f(out_ptr(sptr));
+      f(gul::out_ptr(sptr));
 
       CHECK_EQ(*reinterpret_cast<int*>(sptr), 10);
       deleter(sptr);
@@ -96,7 +94,7 @@ TEST_CASE("out_ptr")
         *pptr = new int(10);
       };
 
-      f(out_ptr(sptr));
+      f(gul::out_ptr(sptr));
 
       CHECK_EQ(*sptr, 10);
       deleter(sptr);
@@ -107,7 +105,7 @@ TEST_CASE("out_ptr")
         *pptr = new int(10);
       };
 
-      f(out_ptr(sptr));
+      f(gul::out_ptr(sptr));
 
       CHECK_EQ(*sptr, 10);
       deleter(sptr);
@@ -127,7 +125,7 @@ TEST_CASE("out_ptr")
         *pptr = new int(10);
       };
 
-      f(out_ptr(sptr));
+      f(gul::out_ptr(sptr));
 
       CHECK_EQ(deleted, 0);
       CHECK_EQ(*sptr, 10);
@@ -138,7 +136,7 @@ TEST_CASE("out_ptr")
         *pptr = new int(20);
       };
 
-      f(out_ptr(sptr));
+      f(gul::out_ptr(sptr));
 
       CHECK_EQ(deleted, 1);
       CHECK_EQ(*sptr, 20);
@@ -158,7 +156,7 @@ TEST_CASE("out_ptr")
         *pptr = new int(10);
       };
 
-      f(out_ptr(sptr, deleter));
+      f(gul::out_ptr(sptr, deleter));
 
       CHECK_EQ(deleted, 0);
       CHECK_EQ(*sptr, 10);
@@ -169,7 +167,7 @@ TEST_CASE("out_ptr")
         *pptr = new int(20);
       };
 
-      f(out_ptr(sptr, deleter));
+      f(gul::out_ptr(sptr, deleter));
 
       CHECK_EQ(deleted, 1);
       CHECK_EQ(*sptr, 20);
@@ -192,7 +190,7 @@ TEST_CASE("inout_ptr")
         *pptr = new int(10);
       };
 
-      f(inout_ptr(sptr));
+      f(gul::inout_ptr(sptr));
 
       CHECK_EQ(*reinterpret_cast<int*>(sptr), 10);
     }
@@ -202,7 +200,7 @@ TEST_CASE("inout_ptr")
         *pptr = new int(10);
       };
 
-      f(inout_ptr(sptr));
+      f(gul::inout_ptr(sptr));
 
       CHECK_EQ(*reinterpret_cast<int*>(sptr), 10);
       deleter(sptr);
@@ -221,7 +219,7 @@ TEST_CASE("inout_ptr")
         *pptr = new int(10);
       };
 
-      f(inout_ptr(sptr));
+      f(gul::inout_ptr(sptr));
 
       CHECK_EQ(*sptr, 10);
     }
@@ -231,7 +229,7 @@ TEST_CASE("inout_ptr")
         *pptr = new int(10);
       };
 
-      f(inout_ptr(sptr));
+      f(gul::inout_ptr(sptr));
 
       CHECK_EQ(*sptr, 10);
       deleter(sptr);
@@ -252,7 +250,7 @@ TEST_CASE("inout_ptr")
         *pptr = new int(10);
       };
 
-      f(inout_ptr(sptr));
+      f(gul::inout_ptr(sptr));
 
       CHECK_EQ(deleted, 0);
       CHECK_EQ(*sptr, 10);
@@ -263,7 +261,7 @@ TEST_CASE("inout_ptr")
         *pptr = new int(20);
       };
 
-      f(inout_ptr(sptr));
+      f(gul::inout_ptr(sptr));
 
       CHECK_EQ(deleted, 0);
       CHECK_EQ(*sptr, 20);
@@ -277,7 +275,7 @@ TEST_CASE("inout_ptr")
         *pptr = new int(10);
       };
 
-      f(inout_ptr(sptr));
+      f(gul::inout_ptr(sptr));
 
       CHECK_EQ(*sptr, 10);
     }
@@ -287,7 +285,7 @@ TEST_CASE("inout_ptr")
         *pptr = new int(20);
       };
 
-      f(inout_ptr(sptr));
+      f(gul::inout_ptr(sptr));
 
       CHECK_EQ(*sptr, 20);
     }
