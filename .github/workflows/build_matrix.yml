@@ -9,7 +9,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [windows-2022, ubuntu-22.04]
-        cxx: [clang++-14, g++-11, cl]
+        cxx: [clang++-14, g++-12, cl]
         std: [11, 14, 17, 20]
         build_type: [Debug]
         generator: [Ninja]
@@ -19,7 +19,7 @@ jobs:
           - os: windows-2022
             cxx: clang++-14
           - os: windows-2022
-            cxx: g++-11
+            cxx: g++-12
           - cxx: cl
             std: 11
           - os: ubuntu-22.04
@@ -50,24 +50,21 @@ jobs:
             build_type: Debug
             generator: Ninja
             install: sudo apt install g++-7
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             cxx: g++-9
             std: 11
             build_type: Debug
             generator: Ninja
-            install: sudo apt install g++-9
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             cxx: g++-10
             std: 11
             build_type: Debug
             generator: Ninja
-            install: sudo apt install g++-10
           - os: ubuntu-22.04
-            cxx: g++-12
+            cxx: g++-11
             std: 11
             build_type: Debug
             generator: Ninja
-            install: sudo apt install g++-12
           - os: ubuntu-20.04
             cxx: clang++-3.5
             std: 11
