@@ -943,8 +943,13 @@ public:
 
   using base_type::reset;
 
+  /// optional<T>::and_then(F) -> optional<T>
+  /// F() -> optional<T>
+  /// where T is void
+  ///
   /// optional<T>::and_then(F) -> optional<U>
   /// F(T) -> optional<U>
+  /// where T is not void
   template <typename F>
   GUL_CXX14_CONSTEXPR auto and_then(F&& f) & -> decltype(and_then_impl(
       std::is_void<T> {}, *this, std::forward<F>(f)))
@@ -953,8 +958,6 @@ public:
     return and_then_impl(std::is_void<T> {}, *this, std::forward<F>(f));
   }
 
-  /// optional<T>::and_then(F) -> optional<U>
-  /// F(T) -> optional<U>
   template <typename F>
   GUL_CXX14_CONSTEXPR auto and_then(F&& f) const& -> decltype(and_then_impl(
       std::is_void<T> {}, *this, std::forward<F>(f)))
@@ -962,8 +965,6 @@ public:
     return and_then_impl(std::is_void<T> {}, *this, std::forward<F>(f));
   }
 
-  /// optional<T>::and_then(F) -> optional<U>
-  /// F(T) -> optional<U>
   template <typename F>
   GUL_CXX14_CONSTEXPR auto and_then(F&& f) && -> decltype(and_then_impl(
       std::is_void<T> {}, std::move(*this), std::forward<F>(f)))
@@ -973,8 +974,6 @@ public:
   }
 
 #if !defined(GUL_CXX_COMPILER_GCC48)
-  /// optional<T>::and_then(F) -> optional<U>
-  /// F(T) -> optional<U>
   template <typename F>
   GUL_CXX14_CONSTEXPR auto and_then(F&& f) const&& -> decltype(and_then_impl(
       std::is_void<T> {}, std::move(*this), std::forward<F>(f)))
@@ -984,8 +983,13 @@ public:
   }
 #endif
 
+  /// optional<T>::transform(F) -> optional<T>
+  /// F() -> T
+  /// where T is void
+  ///
   /// optional<T>::transform(F) -> optional<U>
   /// F(T) -> U
+  /// where T is not void
   template <typename F>
   GUL_CXX14_CONSTEXPR auto transform(F&& f) & -> decltype(transform_impl(
       std::is_void<T> {}, *this, std::forward<F>(f)))
@@ -993,8 +997,6 @@ public:
     return transform_impl(std::is_void<T> {}, *this, std::forward<F>(f));
   }
 
-  /// optional<T>::transform(F) -> optional<U>
-  /// F(T) -> U
   template <typename F>
   GUL_CXX14_CONSTEXPR auto transform(F&& f) const& -> decltype(transform_impl(
       std::is_void<T> {}, *this, std::forward<F>(f)))
@@ -1002,8 +1004,6 @@ public:
     return transform_impl(std::is_void<T> {}, *this, std::forward<F>(f));
   }
 
-  /// optional<T>::transform(F) -> optional<U>
-  /// F(T) -> U
   template <typename F>
   GUL_CXX14_CONSTEXPR auto transform(F&& f) && -> decltype(transform_impl(
       std::is_void<T> {}, std::move(*this), std::forward<F>(f)))
@@ -1013,8 +1013,6 @@ public:
   }
 
 #if !defined(GUL_CXX_COMPILER_GCC48)
-  /// optional<T>::transform(F) -> optional<U>
-  /// F(T) -> U
   template <typename F>
   GUL_CXX14_CONSTEXPR auto transform(F&& f) const&& -> decltype(transform_impl(
       std::is_void<T> {}, std::move(*this), std::forward<F>(f)))
@@ -1036,8 +1034,6 @@ public:
     return or_else_impl(std::is_void<T> {}, *this, std::forward<F>(f));
   }
 
-  /// optional<T>::or_else(F) -> optional<T>
-  /// F() -> optional<T>
   template <typename F,
             GUL_REQUIRES(conjunction<disjunction<std::is_void<T>,
                                                  std::is_move_constructible<T>>,

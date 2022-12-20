@@ -794,84 +794,10 @@ struct expected_storage_base<T, E, true> : expected_destruct_base<T, E> {
     }
   }
 
-  template <bool B = conjunction<
-                detail::is_swappable<T>,
-                detail::is_swappable<E>,
-                std::is_move_constructible<T>,
-                std::is_move_constructible<E>,
-                disjunction<std::is_nothrow_move_constructible<T>,
-                            std::is_nothrow_move_constructible<E>>>::value,
-            GUL_REQUIRES(B)>
-  GUL_CXX14_CONSTEXPR void swap(expected_storage_base& other) noexcept(
-      conjunction<std::is_nothrow_move_constructible<T>,
-                  detail::is_nothrow_swappable<T>,
-                  std::is_nothrow_move_constructible<E>,
-                  detail::is_nothrow_swappable<E>>::value)
+  GUL_CXX14_CONSTEXPR void swap(expected_storage_base&)
   {
-    if (this->has_value()) {
-      if (other.has_value()) {
-        using std::swap;
-        swap(this->value(), other.value());
-      } else {
-        swap_impl(other, std::is_nothrow_move_constructible<T> {},
-                  std::is_nothrow_move_constructible<E> {});
-      }
-    } else {
-      if (other.has_value()) {
-        other.swap(*this);
-      } else {
-        using std::swap;
-        swap(this->get_err(), other.get_err());
-      }
-    }
-  }
-
-private:
-  GUL_CXX14_CONSTEXPR void swap_impl(expected_storage_base& other,
-                                     std::true_type,
-                                     std::true_type) noexcept
-  {
-    auto val = std::move(this->value());
-    this->destroy_val();
-    this->construct_err(std::move(other.get_err()));
-    other.destroy_err();
-    other.construct_val(std::move(val));
-  }
-
-  GUL_CXX20_CONSTEXPR void
-  swap_impl(expected_storage_base& other, std::true_type, std::false_type)
-  {
-    auto val(std::move(this->value()));
-    this->destroy_val();
-    GUL_TRY
-    {
-      this->construct_err(std::move(other.get_err()));
-      other.destroy_err();
-      other.construct_val(std::move(val));
-    }
-    GUL_CATCH(...)
-    {
-      this->construct_val(std::move(val));
-      GUL_RETHROW();
-    }
-  }
-
-  GUL_CXX20_CONSTEXPR void
-  swap_impl(expected_storage_base& other, std::false_type, std::true_type)
-  {
-    auto err(std::move(other.get_err()));
-    other.destroy_err();
-    GUL_TRY
-    {
-      other.construct_val(std::move(this->value()));
-      this->destroy_val();
-      this->construct_err(std::move(err));
-    }
-    GUL_CATCH(...)
-    {
-      other.construct_err(std::move(err));
-      GUL_RETHROW();
-    }
+    static_assert(!std::is_reference<T>::value,
+                  "[expected::swap] T must not be a reference type");
   }
 };
 
@@ -1220,22 +1146,20 @@ class expected : private detail::expected_move_assign_base<T, E>,
             std::is_constructible<unexpected<E>, const expected<T2, E2>&>,
             std::is_constructible<unexpected<E>, const expected<T2, E2>>>> { };
 
+  template <typename G>
+  using rebind_error = expected<T, G>;
+
   template <typename Self, typename F>
   static GUL_CXX14_CONSTEXPR auto
   and_then_impl(std::true_type, Self&& self, F&& f)
       -> remove_cvref_t<decltype(gul::invoke(std::forward<F>(f)))>
   {
-    using Err = remove_cvref_t<decltype(std::declval<Self>().error())>;
+    using SelfE = remove_cvref_t<decltype(std::declval<Self>().error())>;
     using Exp = remove_cvref_t<invoke_result_t<F>>;
-    static_assert(detail::is_specialization_of<Exp, gul::expected>::value,
-                  "[expected::and_then] result of `F` must be a specialization "
-                  "of `expected`");
-    static_assert(
-        std::is_same<typename Exp::error_type, Err>::value,
-        "[expected::and_then] result of `F` must be a specialization of "
-        "`expected` whose error type is identical to E");
+    static_assert(detail::is_specialization_of<Exp, gul::expected>::value, "");
+    static_assert(std::is_same<typename Exp::error_type, SelfE>::value, "");
     if (self.has_value()) {
-      return Exp(gul::invoke(std::forward<F>(f)));
+      return gul::invoke(std::forward<F>(f));
     } else {
       return Exp(unexpect, std::forward<Self>(self).error());
     }
@@ -1247,19 +1171,15 @@ class expected : private detail::expected_move_assign_base<T, E>,
       -> remove_cvref_t<decltype(gul::invoke(std::forward<F>(f),
                                              std::forward<Self>(self).value()))>
   {
-    using Val = decltype(std::declval<Self>().value());
-    using Err = remove_cvref_t<decltype(std::declval<Self>().error())>;
-    using Exp = remove_cvref_t<invoke_result_t<F, Val>>;
-    static_assert(detail::is_specialization_of<Exp, gul::expected>::value,
-                  "[expected::and_then]result of `F` must be a specialization "
-                  "of `expected`");
+    using SelfT = decltype(std::declval<Self>().value());
+    using SelfE = decltype(std::declval<Self>().error());
+    using Exp = remove_cvref_t<invoke_result_t<F, SelfT>>;
+    static_assert(detail::is_specialization_of<Exp, gul::expected>::value, "");
     static_assert(
-        std::is_same<typename Exp::error_type, Err>::value,
-        "[expected::and_then]result of `F` must be a specialization of "
-        "`expected` whose error type is identical to E");
+        std::is_same<typename Exp::error_type, remove_cvref_t<SelfE>>::value,
+        "");
     if (self.has_value()) {
-      return Exp(
-          gul::invoke(std::forward<F>(f), std::forward<Self>(self).value()));
+      return gul::invoke(std::forward<F>(f), std::forward<Self>(self).value());
     } else {
       return Exp(unexpect, std::forward<Self>(self).error());
     }
@@ -1271,21 +1191,15 @@ class expected : private detail::expected_move_assign_base<T, E>,
       -> remove_cvref_t<decltype(gul::invoke(std::forward<F>(f),
                                              std::forward<Self>(self).error()))>
   {
-    using Err = decltype(std::declval<Self>().error());
-    using Exp = remove_cvref_t<invoke_result_t<F, Err>>;
-    using Val = typename Exp::value_type;
-    static_assert(detail::is_specialization_of<Exp, gul::expected>::value,
-                  "[expected::or_else] result of `F` must be a specialization "
-                  "of `expected`");
-    static_assert(
-        std::is_same<typename Exp::value_type, Val>::value,
-        "[expected::or_else] result of `F` must be a specialization of "
-        "`expected` whose value type is identical to T");
+    using SelfE = decltype(std::declval<Self>().error());
+    using Exp = remove_cvref_t<invoke_result_t<F, SelfE>>;
+    using U = typename Exp::value_type;
+    static_assert(detail::is_specialization_of<Exp, gul::expected>::value, "");
+    static_assert(std::is_same<typename Exp::value_type, U>::value, "");
     if (self.has_value()) {
       return Exp();
     } else {
-      return Exp(
-          gul::invoke(std::forward<F>(f), std::forward<Self>(self).error()));
+      return gul::invoke(std::forward<F>(f), std::forward<Self>(self).error());
     }
   }
 
@@ -1295,33 +1209,27 @@ class expected : private detail::expected_move_assign_base<T, E>,
       -> remove_cvref_t<decltype(gul::invoke(std::forward<F>(f),
                                              std::forward<Self>(self).error()))>
   {
-    using Err = decltype(std::declval<Self>().error());
-    using Exp = remove_cvref_t<invoke_result_t<F, Err>>;
-    using Val = typename Exp::value_type;
-    static_assert(detail::is_specialization_of<Exp, gul::expected>::value,
-                  "[expected::or_else] result of `F` must be a specialization "
-                  "of `expected`");
-    static_assert(
-        std::is_same<typename Exp::value_type, Val>::value,
-        "[expected::or_else] result of `F` must be a specialization of "
-        "`expected` whose value type is identical to T");
+    using SelfE = decltype(std::declval<Self>().error());
+    using Exp = remove_cvref_t<invoke_result_t<F, SelfE>>;
+    using U = typename Exp::value_type;
+    static_assert(detail::is_specialization_of<Exp, gul::expected>::value, "");
+    static_assert(std::is_same<typename Exp::value_type, U>::value, "");
     if (self.has_value()) {
       return Exp(in_place, std::forward<Self>(self).value());
     } else {
-      return Exp(
-          gul::invoke(std::forward<F>(f), std::forward<Self>(self).error()));
+      return gul::invoke(std::forward<F>(f), std::forward<Self>(self).error());
     }
   }
 
   template <typename Self, typename F>
   static GUL_CXX14_CONSTEXPR auto
-  transform_impl(std::true_type, Self&& self, F&& f)
-      -> expected<remove_cvref_t<decltype(gul::invoke(std::forward<F>(f)))>,
-                  remove_cvref_t<decltype(std::forward<Self>(self).error())>>
+  transform_impl(std::true_type, Self&& self, F&& f) ->
+      typename remove_cvref_t<Self>::template rebind<
+          remove_cv_t<decltype(gul::invoke(std::forward<F>(f)))>>
   {
-    using Err = remove_cvref_t<decltype(std::declval<Self>().error())>;
-    using T2 = remove_cvref_t<invoke_result_t<F>>;
-    using Exp = expected<T2, Err>;
+    using U = remove_cv_t<invoke_result_t<F>>;
+    using Exp = typename remove_cvref_t<Self>::template rebind<U>;
+    static_assert(!std::is_void<U>::value, "");
     if (self.has_value()) {
       return Exp(gul::invoke(std::forward<F>(f)));
     } else {
@@ -1331,15 +1239,15 @@ class expected : private detail::expected_move_assign_base<T, E>,
 
   template <typename Self, typename F>
   static GUL_CXX14_CONSTEXPR auto
-  transform_impl(std::false_type, Self&& self, F&& f)
-      -> expected<remove_cvref_t<decltype(gul::invoke(
-                      std::forward<F>(f), std::forward<Self>(self).value()))>,
-                  remove_cvref_t<decltype(std::forward<Self>(self).error())>>
+  transform_impl(std::false_type, Self&& self, F&& f) ->
+      typename remove_cvref_t<Self>::template rebind<
+          remove_cv_t<decltype(gul::invoke(std::forward<F>(f),
+                                           std::forward<Self>(self).value()))>>
   {
-    using Val = decltype(std::declval<Self>().value());
-    using Err = remove_cvref_t<decltype(std::declval<Self>().error())>;
-    using Val2 = remove_cvref_t<invoke_result_t<F, Val>>;
-    using Exp = expected<Val2, Err>;
+    using SelfT = decltype(std::declval<Self>().value());
+    using U = remove_cv_t<invoke_result_t<F, SelfT>>;
+    using Exp = typename remove_cvref_t<Self>::template rebind<U>;
+    static_assert(!std::is_void<U>::value, "");
     if (self.has_value()) {
       return Exp(
           gul::invoke(std::forward<F>(f), std::forward<Self>(self).value()));
@@ -1350,15 +1258,14 @@ class expected : private detail::expected_move_assign_base<T, E>,
 
   template <typename Self, typename F>
   static GUL_CXX14_CONSTEXPR auto
-  transform_error_impl(std::true_type, Self&& self, F&& f)
-      -> expected<remove_cvref_t<decltype(std::declval<Self>().value())>,
-                  remove_cvref_t<decltype(gul::invoke(
-                      std::forward<F>(f), std::forward<Self>(self).error()))>>
+  transform_error_impl(std::true_type, Self&& self, F&& f) ->
+      typename remove_cvref_t<Self>::template rebind_error<
+          remove_cv_t<decltype(gul::invoke(std::forward<F>(f),
+                                           std::forward<Self>(self).error()))>>
   {
-    using Val = remove_cvref_t<decltype(std::declval<Self>().value())>;
-    using Err = remove_cvref_t<decltype(std::declval<Self>().error())>;
-    using Err2 = remove_cvref_t<invoke_result_t<F, Err>>;
-    using Exp = expected<Val, Err2>;
+    using SelfE = decltype(std::declval<Self>().error());
+    using G = remove_cv_t<invoke_result_t<F, SelfE>>;
+    using Exp = typename remove_cvref_t<Self>::template rebind_error<G>;
     if (self.has_value()) {
       return Exp(in_place);
     } else {
@@ -1370,15 +1277,14 @@ class expected : private detail::expected_move_assign_base<T, E>,
 
   template <typename Self, typename F>
   static GUL_CXX14_CONSTEXPR auto
-  transform_error_impl(std::false_type, Self&& self, F&& f)
-      -> expected<remove_cvref_t<decltype(std::declval<Self>().value())>,
-                  remove_cvref_t<decltype(gul::invoke(
-                      std::forward<F>(f), std::forward<Self>(self).error()))>>
+  transform_error_impl(std::false_type, Self&& self, F&& f) ->
+      typename remove_cvref_t<Self>::template rebind_error<
+          remove_cv_t<decltype(gul::invoke(std::forward<F>(f),
+                                           std::forward<Self>(self).error()))>>
   {
-    using Val = remove_cvref_t<decltype(std::declval<Self>().value())>;
-    using Err = remove_cvref_t<decltype(std::declval<Self>().error())>;
-    using Err2 = remove_cvref_t<invoke_result_t<F, Err>>;
-    using Exp = expected<Val, Err2>;
+    using SelfE = decltype(std::declval<Self>().error());
+    using G = remove_cv_t<invoke_result_t<F, SelfE>>;
+    using Exp = typename remove_cvref_t<Self>::template rebind_error<G>;
     if (self.has_value()) {
       return Exp(in_place, std::forward<Self>(self).value());
     } else {
@@ -1783,6 +1689,13 @@ public:
     return (*this).construct_val(init, std::forward<Args>(args)...);
   }
 
+  /// expected<T, E>::and_then(F) -> expected<T, E>
+  /// F() -> expected<T, E>
+  /// where T is void
+  ///
+  /// expected<T, E>::and_then(F) -> expected<U, E>
+  /// F(T) -> expected<U, E>
+  /// where T is not void
   template <typename F, GUL_REQUIRES(std::is_copy_constructible<E>::value)>
   GUL_CXX14_CONSTEXPR auto and_then(F&& f) & -> decltype(and_then_impl(
       std::is_void<T> {}, *this, std::forward<F>(f)))
@@ -1815,6 +1728,8 @@ public:
   }
 #endif
 
+  /// expected<T, E>::or_else(F) -> expected<T, G>
+  /// F(E) -> expected<T, G>
   template <typename F,
             bool B = disjunction<std::is_void<T>,
                                  std::is_copy_constructible<T>>::value,
@@ -1859,6 +1774,13 @@ public:
   }
 #endif
 
+  /// expected<T, E>::transform(F) -> expected<U, E>
+  /// F() -> U
+  /// where T is void
+  ///
+  /// expected<T, E>::transform(F) -> expected<U, E>
+  /// F(T) -> U
+  /// where T is not void
   template <typename F, GUL_REQUIRES(std::is_copy_constructible<E>::value)>
   GUL_CXX14_CONSTEXPR auto transform(F&& f) & -> decltype(transform_impl(
       std::is_void<T> {}, *this, std::forward<F>(f)))
@@ -1891,6 +1813,8 @@ public:
   }
 #endif
 
+  /// expected<T, E>::transform_error(F) -> expected<T, G>
+  /// F(E) -> G
   template <typename F,
             bool B = disjunction<std::is_void<T>,
                                  std::is_copy_constructible<T>>::value,

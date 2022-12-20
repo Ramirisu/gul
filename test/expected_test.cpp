@@ -54,6 +54,30 @@ using fn_value = decltype(std::declval<Exp>().value());
 template <typename Exp>
 using fn_error = decltype(std::declval<Exp>().error());
 
+template <typename F>
+struct fn_and_then {
+  template <typename Exp>
+  using fn = decltype(std::declval<Exp>().and_then(std::declval<F>()));
+};
+
+template <typename F>
+struct fn_or_else {
+  template <typename Exp>
+  using fn = decltype(std::declval<Exp>().or_else(std::declval<F>()));
+};
+
+template <typename F>
+struct fn_transform {
+  template <typename Exp>
+  using fn = decltype(std::declval<Exp>().transform(std::declval<F>()));
+};
+
+template <typename F>
+struct fn_transform_error {
+  template <typename Exp>
+  using fn = decltype(std::declval<Exp>().transform_error(std::declval<F>()));
+};
+
 template <template <typename...> class Op, typename Test, typename Expected>
 struct assert_is_same {
   STATIC_ASSERT(std::is_same<Op<Test>, Expected>::value);
@@ -1326,58 +1350,174 @@ TEST_CASE("emplace")
 TEST_CASE("and_then")
 {
   {
-    auto f = []() -> expected<std::string, int> { return "1"; };
+    int val = 0;
+    auto f = [&]() -> expected<void, int> {
+      val = 1;
+      return expected<void, int>();
+    };
+    using ft = decltype(f);
+    assert_is_same<fn_and_then<ft>::fn, expected<void, int>&,
+                   expected<void, int>>();
+    assert_is_same<fn_and_then<ft>::fn, const expected<void, int>&,
+                   expected<void, int>>();
+    assert_is_same<fn_and_then<ft>::fn, expected<void, int>,
+                   expected<void, int>>();
+    assert_is_same<fn_and_then<ft>::fn, const expected<void, int>,
+                   expected<void, int>>();
+    SUBCASE("")
     {
-      auto u = expected<void, int>(unexpect, 0);
-      CHECK_EQ(u.and_then(f).error(), 0);
+      auto e = expected<void, int>(unexpect, 1);
+      CHECK_EQ(e.and_then(f).error(), 1);
+      CHECK_EQ(val, 0);
+    }
+    SUBCASE("")
+    {
       auto e = expected<void, int>();
-      CHECK_EQ(e.and_then(f).value(), "1");
+      CHECK(e.and_then(f));
+      CHECK_EQ(val, 1);
     }
+    SUBCASE("")
     {
-      const auto u = expected<void, int>(unexpect, 0);
-      CHECK_EQ(u.and_then(f).error(), 0);
+      const auto e = expected<void, int>(unexpect, 1);
+      CHECK_EQ(e.and_then(f).error(), 1);
+      CHECK_EQ(val, 0);
+    }
+    SUBCASE("")
+    {
       const auto e = expected<void, int>();
-      CHECK_EQ(e.and_then(f).value(), "1");
+      CHECK(e.and_then(f));
+      CHECK_EQ(val, 1);
     }
+    SUBCASE("")
     {
-      auto u = expected<void, int>(unexpect, 0);
-      CHECK_EQ(std::move(u).and_then(f).error(), 0);
+      auto e = expected<void, int>(unexpect, 1);
+      CHECK_EQ(std::move(e).and_then(f).error(), 1);
+      CHECK_EQ(val, 0);
+    }
+    SUBCASE("")
+    {
       auto e = expected<void, int>();
-      CHECK_EQ(std::move(e).and_then(f).value(), "1");
+      CHECK(std::move(e).and_then(f));
+      CHECK_EQ(val, 1);
     }
+    SUBCASE("")
     {
-      const auto u = expected<void, int>(unexpect, 0);
-      CHECK_EQ(std::move(u).and_then(f).error(), 0);
+      const auto e = expected<void, int>(unexpect, 1);
+      CHECK_EQ(std::move(e).and_then(f).error(), 1);
+      CHECK_EQ(val, 0);
+    }
+    SUBCASE("")
+    {
       const auto e = expected<void, int>();
-      CHECK_EQ(std::move(e).and_then(f).value(), "1");
+      CHECK(std::move(e).and_then(f));
+      CHECK_EQ(val, 1);
     }
   }
   {
     auto f
         = [](int i) -> expected<std::string, int> { return std::to_string(i); };
+    using ft = decltype(f);
+    assert_is_same<fn_and_then<ft>::fn, expected<int, int>&,
+                   expected<std::string, int>>();
+    assert_is_same<fn_and_then<ft>::fn, const expected<int, int>&,
+                   expected<std::string, int>>();
+    assert_is_same<fn_and_then<ft>::fn, expected<int, int>,
+                   expected<std::string, int>>();
+    assert_is_same<fn_and_then<ft>::fn, const expected<int, int>,
+                   expected<std::string, int>>();
     {
-      auto u = expected<int, int>(unexpect, 0);
-      CHECK_EQ(u.and_then(f).error(), 0);
-      auto e = expected<int, int>(1);
-      CHECK_EQ(e.and_then(f).value(), "1");
+      auto e = expected<int, int>(unexpect, 1);
+      CHECK_EQ(e.and_then(f).error(), 1);
     }
     {
-      const auto u = expected<int, int>(unexpect, 0);
-      CHECK_EQ(u.and_then(f).error(), 0);
-      const auto e = expected<int, int>(1);
-      CHECK_EQ(e.and_then(f).value(), "1");
+      auto e = expected<int, int>();
+      CHECK_EQ(e.and_then(f).value(), "0");
     }
     {
-      auto u = expected<int, int>(unexpect, 0);
-      CHECK_EQ(std::move(u).and_then(f).error(), 0);
-      auto e = expected<int, int>(1);
-      CHECK_EQ(std::move(e).and_then(f).value(), "1");
+      const auto e = expected<int, int>(unexpect, 1);
+      CHECK_EQ(e.and_then(f).error(), 1);
     }
     {
-      const auto u = expected<int, int>(unexpect, 0);
-      CHECK_EQ(std::move(u).and_then(f).error(), 0);
-      const auto e = expected<int, int>(1);
-      CHECK_EQ(std::move(e).and_then(f).value(), "1");
+      const auto e = expected<int, int>();
+      CHECK_EQ(e.and_then(f).value(), "0");
+    }
+    {
+      auto e = expected<int, int>(unexpect, 1);
+      CHECK_EQ(std::move(e).and_then(f).error(), 1);
+    }
+    {
+      auto e = expected<int, int>();
+      CHECK_EQ(std::move(e).and_then(f).value(), "0");
+    }
+    {
+      const auto e = expected<int, int>(unexpect, 1);
+      CHECK_EQ(std::move(e).and_then(f).error(), 1);
+    }
+    {
+      const auto e = expected<int, int>();
+      CHECK_EQ(std::move(e).and_then(f).value(), "0");
+    }
+  }
+  {
+    int val = 0;
+    auto f
+        = [](int& i) -> expected<int&, int> { return expected<int&, int>(i); };
+    using ft = decltype(f);
+    assert_is_same<fn_and_then<ft>::fn, expected<int&, int>&,
+                   expected<int&, int>>();
+    assert_is_same<fn_and_then<ft>::fn, const expected<int&, int>&,
+                   expected<int&, int>>();
+    assert_is_same<fn_and_then<ft>::fn, expected<int&, int>,
+                   expected<int&, int>>();
+    assert_is_same<fn_and_then<ft>::fn, const expected<int&, int>,
+                   expected<int&, int>>();
+    SUBCASE("")
+    {
+      auto e = expected<int&, int>(unexpect, 1);
+      CHECK_EQ(e.and_then(f).error(), 1);
+      CHECK_EQ(val, 0);
+    }
+    SUBCASE("")
+    {
+      auto e = expected<int&, int>(val);
+      CHECK_EQ(++e.and_then(f).value(), 1);
+      CHECK_EQ(val, 1);
+    }
+    SUBCASE("")
+    {
+      const auto e = expected<int&, int>(unexpect, 1);
+      CHECK_EQ(e.and_then(f).error(), 1);
+      CHECK_EQ(val, 0);
+    }
+    SUBCASE("")
+    {
+      const auto e = expected<int&, int>(val);
+      CHECK_EQ(++e.and_then(f).value(), 1);
+      CHECK_EQ(val, 1);
+    }
+    SUBCASE("")
+    {
+      auto e = expected<int&, int>(unexpect, 1);
+      CHECK_EQ(std::move(e).and_then(f).error(), 1);
+      CHECK_EQ(val, 0);
+    }
+    SUBCASE("")
+    {
+      auto e = expected<int&, int>(val);
+      CHECK_EQ(++std::move(e).and_then(f).value(), 1);
+      CHECK_EQ(val, 1);
+    }
+    SUBCASE("")
+    {
+      const auto e = expected<int&, int>(unexpect, 1);
+      CHECK_EQ(std::move(e).and_then(f).error(), 1);
+      CHECK_EQ(val, 0);
+    }
+    SUBCASE("")
+    {
+      const auto e = expected<int&, int>(val);
+      CHECK_EQ(++std::move(e).and_then(f).value(), 1);
+      CHECK_EQ(val, 1);
     }
   }
 }
@@ -1385,61 +1525,166 @@ TEST_CASE("and_then")
 TEST_CASE("or_else")
 {
   {
-    auto f = [](int i) -> expected<void, std::string> {
-      return gul::unexpected<std::string>(std::to_string(i));
+    auto f = [](int i) -> expected<void, int> {
+      return expected<void, int>(unexpect, i + 1);
     };
+    using ft = decltype(f);
+    assert_is_same<fn_or_else<ft>::fn, expected<void, int>&,
+                   expected<void, int>>();
+    assert_is_same<fn_or_else<ft>::fn, const expected<void, int>&,
+                   expected<void, int>>();
+    assert_is_same<fn_or_else<ft>::fn, expected<void, int>,
+                   expected<void, int>>();
+    assert_is_same<fn_or_else<ft>::fn, const expected<void, int>,
+                   expected<void, int>>();
     {
-      auto u = expected<void, int>(unexpect);
-      CHECK_EQ(u.or_else(f).error(), "0");
-      auto e = expected<void, int>(in_place);
+      auto e = expected<void, int>(unexpect, 1);
+      CHECK_EQ(e.or_else(f).error(), 2);
+    }
+    {
+      auto e = expected<void, int>();
       CHECK(e.or_else(f));
     }
     {
-      const auto u = expected<void, int>(unexpect);
-      CHECK_EQ(u.or_else(f).error(), "0");
-      const auto e = expected<void, int>(in_place);
+      const auto e = expected<void, int>(unexpect, 1);
+      CHECK_EQ(e.or_else(f).error(), 2);
+    }
+    {
+      const auto e = expected<void, int>();
       CHECK(e.or_else(f));
     }
     {
-      auto u = expected<void, int>(unexpect);
-      CHECK_EQ(std::move(u).or_else(f).error(), "0");
-      auto e = expected<void, int>(in_place);
+      auto e = expected<void, int>(unexpect, 1);
+      CHECK_EQ(std::move(e).or_else(f).error(), 2);
+    }
+    {
+      auto e = expected<void, int>();
       CHECK(std::move(e).or_else(f));
     }
     {
-      const auto u = expected<void, int>(unexpect);
-      CHECK_EQ(std::move(u).or_else(f).error(), "0");
-      const auto e = expected<void, int>(in_place);
+      const auto e = expected<void, int>(unexpect, 1);
+      CHECK_EQ(std::move(e).or_else(f).error(), 2);
+    }
+    {
+      const auto e = expected<void, int>();
       CHECK(std::move(e).or_else(f));
     }
   }
   {
     auto f = [](int i) -> expected<int, std::string> {
-      return gul::unexpected<std::string>(std::to_string(i));
+      return expected<int, std::string>(unexpect, std::to_string(i));
     };
+    using ft = decltype(f);
+    assert_is_same<fn_or_else<ft>::fn, expected<int, int>&,
+                   expected<int, std::string>>();
+    assert_is_same<fn_or_else<ft>::fn, const expected<int, int>&,
+                   expected<int, std::string>>();
+    assert_is_same<fn_or_else<ft>::fn, expected<int, int>,
+                   expected<int, std::string>>();
+    assert_is_same<fn_or_else<ft>::fn, const expected<int, int>,
+                   expected<int, std::string>>();
     {
-      auto u = expected<int, int>(unexpect);
-      CHECK_EQ(u.or_else(f).error(), "0");
-      auto e = expected<int, int>(1);
-      CHECK_EQ(e.or_else(f).value(), 1);
+      auto e = expected<int, int>(unexpect, 1);
+      CHECK_EQ(e.or_else(f).error(), "1");
     }
     {
-      const auto u = expected<int, int>(unexpect);
-      CHECK_EQ(u.or_else(f).error(), "0");
-      const auto e = expected<int, int>(1);
-      CHECK_EQ(e.or_else(f).value(), 1);
+      auto e = expected<int, int>();
+      CHECK_EQ(e.or_else(f), 0);
     }
     {
-      auto u = expected<int, int>(unexpect);
-      CHECK_EQ(std::move(u).or_else(f).error(), "0");
-      auto e = expected<int, int>(1);
-      CHECK_EQ(std::move(e).or_else(f).value(), 1);
+      const auto e = expected<int, int>(unexpect, 1);
+      CHECK_EQ(e.or_else(f).error(), "1");
     }
     {
-      const auto u = expected<int, int>(unexpect);
-      CHECK_EQ(std::move(u).or_else(f).error(), "0");
-      const auto e = expected<int, int>(1);
-      CHECK_EQ(std::move(e).or_else(f).value(), 1);
+      const auto e = expected<int, int>();
+      CHECK_EQ(e.or_else(f), 0);
+    }
+    {
+      auto e = expected<int, int>(unexpect, 1);
+      CHECK_EQ(std::move(e).or_else(f).error(), "1");
+    }
+    {
+      auto e = expected<int, int>();
+      CHECK_EQ(std::move(e).or_else(f), 0);
+    }
+    {
+      const auto e = expected<int, int>(unexpect, 1);
+      CHECK_EQ(std::move(e).or_else(f).error(), "1");
+    }
+    {
+      const auto e = expected<int, int>();
+      CHECK_EQ(std::move(e).or_else(f), 0);
+    }
+  }
+  {
+    int val = 0;
+    int val2 = 10;
+    auto f
+        = [&](int) -> expected<int&, int> { return expected<int&, int>(val2); };
+    using ft = decltype(f);
+    assert_is_same<fn_or_else<ft>::fn, expected<int&, int>&,
+                   expected<int&, int>>();
+    assert_is_same<fn_or_else<ft>::fn, const expected<int&, int>&,
+                   expected<int&, int>>();
+    assert_is_same<fn_or_else<ft>::fn, expected<int&, int>,
+                   expected<int&, int>>();
+    assert_is_same<fn_or_else<ft>::fn, const expected<int&, int>,
+                   expected<int&, int>>();
+    SUBCASE("")
+    {
+      auto e = expected<int&, int>(unexpect, 1);
+      CHECK_EQ(++e.or_else(f).value(), 11);
+      CHECK_EQ(val, 0);
+      CHECK_EQ(val2, 11);
+    }
+    SUBCASE("")
+    {
+      auto e = expected<int&, int>(val);
+      CHECK_EQ(++e.or_else(f).value(), 1);
+      CHECK_EQ(val, 1);
+      CHECK_EQ(val2, 10);
+    }
+    SUBCASE("")
+    {
+      const auto e = expected<int&, int>(unexpect, 1);
+      CHECK_EQ(++e.or_else(f).value(), 11);
+      CHECK_EQ(val, 0);
+      CHECK_EQ(val2, 11);
+    }
+    SUBCASE("")
+    {
+      const auto e = expected<int&, int>(val);
+      CHECK_EQ(++e.or_else(f).value(), 1);
+      CHECK_EQ(val, 1);
+      CHECK_EQ(val2, 10);
+    }
+    SUBCASE("")
+    {
+      auto e = expected<int&, int>(unexpect, 1);
+      CHECK_EQ(++std::move(e).or_else(f).value(), 11);
+      CHECK_EQ(val, 0);
+      CHECK_EQ(val2, 11);
+    }
+    SUBCASE("")
+    {
+      auto e = expected<int&, int>(val);
+      CHECK_EQ(++std::move(e).or_else(f).value(), 1);
+      CHECK_EQ(val, 1);
+      CHECK_EQ(val2, 10);
+    }
+    SUBCASE("")
+    {
+      const auto e = expected<int&, int>(unexpect, 1);
+      CHECK_EQ(++std::move(e).or_else(f).value(), 11);
+      CHECK_EQ(val, 0);
+      CHECK_EQ(val2, 11);
+    }
+    SUBCASE("")
+    {
+      const auto e = expected<int&, int>(val);
+      CHECK_EQ(++std::move(e).or_else(f).value(), 1);
+      CHECK_EQ(val, 1);
+      CHECK_EQ(val2, 10);
     }
   }
 }
@@ -1447,111 +1692,279 @@ TEST_CASE("or_else")
 TEST_CASE("transform")
 {
   {
-    auto f = []() -> std::string { return "1"; };
+    int val = 0;
+    auto f = [&]() -> int { return ++val; };
+    using ft = decltype(f);
+    assert_is_same<fn_transform<ft>::fn, expected<void, int>&,
+                   expected<int, int>>();
+    assert_is_same<fn_transform<ft>::fn, const expected<void, int>&,
+                   expected<int, int>>();
+    assert_is_same<fn_transform<ft>::fn, expected<void, int>,
+                   expected<int, int>>();
+    assert_is_same<fn_transform<ft>::fn, const expected<void, int>,
+                   expected<int, int>>();
+    SUBCASE("")
     {
-      auto u = expected<void, int>(unexpect);
-      CHECK_EQ(u.transform(f).error(), 0);
+      auto e = expected<void, int>(unexpect, 1);
+      CHECK_EQ(e.transform(f).error(), 1);
+      CHECK_EQ(val, 0);
+    }
+    SUBCASE("")
+    {
       auto e = expected<void, int>();
-      CHECK_EQ(e.transform(f).value(), "1");
+      CHECK_EQ(e.transform(f).value(), 1);
+      CHECK_EQ(val, 1);
     }
+    SUBCASE("")
     {
-      const auto u = expected<void, int>(unexpect);
-      CHECK_EQ(u.transform(f).error(), 0);
+      const auto e = expected<void, int>(unexpect, 1);
+      CHECK_EQ(e.transform(f).error(), 1);
+      CHECK_EQ(val, 0);
+    }
+    SUBCASE("")
+    {
       const auto e = expected<void, int>();
-      CHECK_EQ(e.transform(f).value(), "1");
+      CHECK_EQ(e.transform(f).value(), 1);
+      CHECK_EQ(val, 1);
     }
+    SUBCASE("")
     {
-      auto u = expected<void, int>(unexpect);
-      CHECK_EQ(std::move(u).transform(f).error(), 0);
+      auto e = expected<void, int>(unexpect, 1);
+      CHECK_EQ(std::move(e).transform(f).error(), 1);
+      CHECK_EQ(val, 0);
+    }
+    SUBCASE("")
+    {
       auto e = expected<void, int>();
-      CHECK_EQ(std::move(e).transform(f).value(), "1");
+      CHECK_EQ(std::move(e).transform(f).value(), 1);
+      CHECK_EQ(val, 1);
     }
+    SUBCASE("")
     {
-      const auto u = expected<void, int>(unexpect);
-      CHECK_EQ(std::move(u).transform(f).error(), 0);
+      const auto e = expected<void, int>(unexpect, 1);
+      CHECK_EQ(std::move(e).transform(f).error(), 1);
+      CHECK_EQ(val, 0);
+    }
+    SUBCASE("")
+    {
       const auto e = expected<void, int>();
-      CHECK_EQ(std::move(e).transform(f).value(), "1");
+      CHECK_EQ(std::move(e).transform(f).value(), 1);
+      CHECK_EQ(val, 1);
     }
   }
   {
     auto f = [](int i) -> std::string { return std::to_string(i); };
+    using ft = decltype(f);
+    assert_is_same<fn_transform<ft>::fn, expected<int, int>&,
+                   expected<std::string, int>>();
+    assert_is_same<fn_transform<ft>::fn, const expected<int, int>&,
+                   expected<std::string, int>>();
+    assert_is_same<fn_transform<ft>::fn, expected<int, int>,
+                   expected<std::string, int>>();
+    assert_is_same<fn_transform<ft>::fn, const expected<int, int>,
+                   expected<std::string, int>>();
     {
-      auto u = expected<int, int>(unexpect);
-      CHECK_EQ(u.transform(f).error(), 0);
-      auto e = expected<int, int>(1);
-      CHECK_EQ(e.transform(f).value(), "1");
+      auto e = expected<int, int>(unexpect, 1);
+      CHECK_EQ(e.transform(f).error(), 1);
     }
     {
-      const auto u = expected<int, int>(unexpect);
-      CHECK_EQ(u.transform(f).error(), 0);
-      const auto e = expected<int, int>(1);
-      CHECK_EQ(e.transform(f).value(), "1");
+      auto e = expected<int, int>();
+      CHECK_EQ(e.transform(f).value(), "0");
     }
     {
-      auto u = expected<int, int>(unexpect);
-      CHECK_EQ(std::move(u).transform(f).error(), 0);
-      auto e = expected<int, int>(1);
-      CHECK_EQ(std::move(e).transform(f).value(), "1");
+      const auto e = expected<int, int>(unexpect, 1);
+      CHECK_EQ(e.transform(f).error(), 1);
     }
     {
-      const auto u = expected<int, int>(unexpect);
-      CHECK_EQ(std::move(u).transform(f).error(), 0);
-      const auto e = expected<int, int>(1);
-      CHECK_EQ(std::move(e).transform(f).value(), "1");
+      const auto e = expected<int, int>();
+      CHECK_EQ(e.transform(f).value(), "0");
+    }
+    {
+      auto e = expected<int, int>(unexpect, 1);
+      CHECK_EQ(std::move(e).transform(f).error(), 1);
+    }
+    {
+      auto e = expected<int, int>();
+      CHECK_EQ(std::move(e).transform(f).value(), "0");
+    }
+    {
+      const auto e = expected<int, int>(unexpect, 1);
+      CHECK_EQ(std::move(e).transform(f).error(), 1);
+    }
+    {
+      const auto e = expected<int, int>();
+      CHECK_EQ(std::move(e).transform(f).value(), "0");
+    }
+  }
+  {
+    int val = 0;
+    auto f = [](int& i) -> int& { return i; };
+    using ft = decltype(f);
+    assert_is_same<fn_transform<ft>::fn, expected<int&, int>&,
+                   expected<int&, int>>();
+    assert_is_same<fn_transform<ft>::fn, const expected<int&, int>&,
+                   expected<int&, int>>();
+    assert_is_same<fn_transform<ft>::fn, expected<int&, int>,
+                   expected<int&, int>>();
+    assert_is_same<fn_transform<ft>::fn, const expected<int&, int>,
+                   expected<int&, int>>();
+    SUBCASE("")
+    {
+      auto e = expected<int&, int>(unexpect, 1);
+      CHECK_EQ(e.transform(f).error(), 1);
+      CHECK_EQ(val, 0);
+    }
+    SUBCASE("")
+    {
+      auto e = expected<int&, int>(val);
+      CHECK_EQ(++e.transform(f).value(), 1);
+      CHECK_EQ(val, 1);
+    }
+    SUBCASE("")
+    {
+      const auto e = expected<int&, int>(unexpect, 1);
+      CHECK_EQ(e.transform(f).error(), 1);
+      CHECK_EQ(val, 0);
+    }
+    SUBCASE("")
+    {
+      const auto e = expected<int&, int>(val);
+      CHECK_EQ(++e.transform(f).value(), 1);
+      CHECK_EQ(val, 1);
+    }
+    SUBCASE("")
+    {
+      auto e = expected<int&, int>(unexpect, 1);
+      CHECK_EQ(std::move(e).transform(f).error(), 1);
+      CHECK_EQ(val, 0);
+    }
+    SUBCASE("")
+    {
+      auto e = expected<int&, int>(val);
+      CHECK_EQ(++std::move(e).transform(f).value(), 1);
+      CHECK_EQ(val, 1);
+    }
+    SUBCASE("")
+    {
+      const auto e = expected<int&, int>(unexpect, 1);
+      CHECK_EQ(std::move(e).transform(f).error(), 1);
+      CHECK_EQ(val, 0);
+    }
+    SUBCASE("")
+    {
+      const auto e = expected<int&, int>(val);
+      CHECK_EQ(++std::move(e).transform(f).value(), 1);
+      CHECK_EQ(val, 1);
     }
   }
 }
 
 TEST_CASE("transform_error")
 {
-  auto f = [](int i) -> std::string { return std::to_string(i); };
   {
-    auto u = expected<void, int>(unexpect);
-    CHECK_EQ(u.transform_error(f).error(), "0");
-    auto e = expected<void, int>(in_place);
-    CHECK(e.transform_error(f));
+    auto f = [](int i) -> std::string { return std::to_string(i); };
+    using ft = decltype(f);
+    assert_is_same<fn_transform_error<ft>::fn, expected<void, int>&,
+                   expected<void, std::string>>();
+    assert_is_same<fn_transform_error<ft>::fn, const expected<void, int>&,
+                   expected<void, std::string>>();
+    assert_is_same<fn_transform_error<ft>::fn, expected<void, int>,
+                   expected<void, std::string>>();
+    assert_is_same<fn_transform_error<ft>::fn, const expected<void, int>,
+                   expected<void, std::string>>();
+    {
+      auto e = expected<void, int>(unexpect, 1);
+      CHECK_EQ(e.transform_error(f).error(), "1");
+    }
+    {
+      auto e = expected<void, int>();
+      CHECK(e.transform_error(f));
+    }
+    {
+      const auto e = expected<void, int>(unexpect, 1);
+      CHECK_EQ(e.transform_error(f).error(), "1");
+    }
+    {
+      const auto e = expected<void, int>();
+      CHECK(e.transform_error(f));
+    }
+    {
+      auto e = expected<void, int>(unexpect, 1);
+      CHECK_EQ(std::move(e).transform_error(f).error(), "1");
+    }
+    {
+      auto e = expected<void, int>();
+      CHECK(std::move(e).transform_error(f));
+    }
+    {
+      const auto e = expected<void, int>(unexpect, 1);
+      CHECK_EQ(std::move(e).transform_error(f).error(), "1");
+    }
+    {
+      const auto e = expected<void, int>();
+      CHECK(std::move(e).transform_error(f));
+    }
   }
   {
-    const auto u = expected<void, int>(unexpect);
-    CHECK_EQ(u.transform_error(f).error(), "0");
-    const auto e = expected<void, int>(in_place);
-    CHECK(e.transform_error(f));
-  }
-  {
-    auto u = expected<void, int>(unexpect);
-    CHECK_EQ(std::move(u).transform_error(f).error(), "0");
-    auto e = expected<void, int>(in_place);
-    CHECK(std::move(e).transform_error(f));
-  }
-  {
-    const auto u = expected<void, int>(unexpect);
-    CHECK_EQ(std::move(u).transform_error(f).error(), "0");
-    const auto e = expected<void, int>(in_place);
-    CHECK(std::move(e).transform_error(f));
-  }
-  {
-    auto u = expected<int, int>(unexpect);
-    CHECK_EQ(u.transform_error(f).error(), "0");
-    auto e = expected<int, int>(1);
-    CHECK_EQ(e.transform_error(f).value(), 1);
-  }
-  {
-    const auto u = expected<int, int>(unexpect);
-    CHECK_EQ(u.transform_error(f).error(), "0");
-    const auto e = expected<int, int>(1);
-    CHECK_EQ(e.transform_error(f).value(), 1);
-  }
-  {
-    auto u = expected<int, int>(unexpect);
-    CHECK_EQ(std::move(u).transform_error(f).error(), "0");
-    auto e = expected<int, int>(1);
-    CHECK_EQ(std::move(e).transform_error(f).value(), 1);
-  }
-  {
-    const auto u = expected<int, int>(unexpect);
-    CHECK_EQ(std::move(u).transform_error(f).error(), "0");
-    const auto e = expected<int, int>(1);
-    CHECK_EQ(std::move(e).transform_error(f).value(), 1);
+    int val = 0;
+    auto f = [&](int i) -> std::string { return std::to_string(i); };
+    using ft = decltype(f);
+    assert_is_same<fn_transform_error<ft>::fn, expected<int&, int>&,
+                   expected<int&, std::string>>();
+    assert_is_same<fn_transform_error<ft>::fn, const expected<int&, int>&,
+                   expected<int&, std::string>>();
+    assert_is_same<fn_transform_error<ft>::fn, expected<int&, int>,
+                   expected<int&, std::string>>();
+    assert_is_same<fn_transform_error<ft>::fn, const expected<int&, int>,
+                   expected<int&, std::string>>();
+    SUBCASE("")
+    {
+      auto e = expected<int&, int>(unexpect, 1);
+      CHECK_EQ(e.transform_error(f).error(), "1");
+      CHECK_EQ(val, 0);
+    }
+    SUBCASE("")
+    {
+      auto e = expected<int&, int>(val);
+      CHECK_EQ(++e.transform_error(f).value(), 1);
+      CHECK_EQ(val, 1);
+    }
+    SUBCASE("")
+    {
+      const auto e = expected<int&, int>(unexpect, 1);
+      CHECK_EQ(e.transform_error(f).error(), "1");
+      CHECK_EQ(val, 0);
+    }
+    SUBCASE("")
+    {
+      const auto e = expected<int&, int>(val);
+      CHECK_EQ(++e.transform_error(f).value(), 1);
+      CHECK_EQ(val, 1);
+    }
+    SUBCASE("")
+    {
+      auto e = expected<int&, int>(unexpect, 1);
+      CHECK_EQ(std::move(e).transform_error(f).error(), "1");
+      CHECK_EQ(val, 0);
+    }
+    SUBCASE("")
+    {
+      auto e = expected<int&, int>(val);
+      CHECK_EQ(++std::move(e).transform_error(f).value(), 1);
+      CHECK_EQ(val, 1);
+    }
+    SUBCASE("")
+    {
+      const auto e = expected<int&, int>(unexpect, 1);
+      CHECK_EQ(std::move(e).transform_error(f).error(), "1");
+      CHECK_EQ(val, 0);
+    }
+    SUBCASE("")
+    {
+      const auto e = expected<int&, int>(val);
+      CHECK_EQ(++std::move(e).transform_error(f).value(), 1);
+      CHECK_EQ(val, 1);
+    }
   }
 }
 
