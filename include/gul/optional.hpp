@@ -11,6 +11,7 @@
 
 #include <gul/detail/constructor_base.hpp>
 
+#include <gul/fwd.hpp>
 #include <gul/invoke.hpp>
 #include <gul/type_traits.hpp>
 #include <gul/utility.hpp>
@@ -1045,6 +1046,26 @@ public:
                         std::forward<F>(f));
   }
 
+  /// optional<T>::to_expected_or(E) -> expected<T, E>
+  /// !!!experimental non-std extension!!!
+  template <typename E>
+  GUL_CXX14_CONSTEXPR auto
+  to_expected_or(E&& default_error) & -> expected<T, E>;
+
+  template <typename E>
+  GUL_CXX14_CONSTEXPR auto
+  to_expected_or(E&& default_error) const& -> expected<T, E>;
+
+  template <typename E>
+  GUL_CXX14_CONSTEXPR auto
+  to_expected_or(E&& default_error) && -> expected<T, E>;
+
+#if !defined(GUL_CXX_COMPILER_GCC48)
+  template <typename E>
+  GUL_CXX14_CONSTEXPR auto
+  to_expected_or(E&& default_error) const&& -> expected<T, E>;
+#endif
+
   using base_type::swap;
 
   friend GUL_CXX14_CONSTEXPR void
@@ -1400,3 +1421,7 @@ constexpr optional<T> make_optional(std::initializer_list<U> init,
 }
 
 GUL_NAMESPACE_END
+
+#include <gul/expected.hpp>
+
+#include <gul/impl/optional.ipp>

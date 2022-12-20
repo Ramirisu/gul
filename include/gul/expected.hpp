@@ -11,6 +11,8 @@
 
 #include <gul/detail/constructor_base.hpp>
 
+#include <gul/fwd.hpp>
+
 #include <gul/invoke.hpp>
 #include <gul/type_traits.hpp>
 #include <gul/utility.hpp>
@@ -1864,6 +1866,30 @@ public:
   }
 #endif
 
+  /// expected<T, E>::value_to_optional() -> optional<T>
+  /// !!!experimental non-std extension!!!
+  GUL_CXX14_CONSTEXPR auto value_to_optional() & -> optional<T>;
+
+  GUL_CXX14_CONSTEXPR auto value_to_optional() const& -> optional<T>;
+
+  GUL_CXX14_CONSTEXPR auto value_to_optional() && -> optional<T>;
+
+#if !defined(GUL_CXX_COMPILER_GCC48)
+  GUL_CXX14_CONSTEXPR auto value_to_optional() const&& -> optional<T>;
+#endif
+
+  /// expected<T, E>::error_to_optional() -> optional<E>
+  /// !!!experimental non-std extension!!!
+  GUL_CXX14_CONSTEXPR auto error_to_optional() & -> optional<E>;
+
+  GUL_CXX14_CONSTEXPR auto error_to_optional() const& -> optional<E>;
+
+  GUL_CXX14_CONSTEXPR auto error_to_optional() && -> optional<E>;
+
+#if !defined(GUL_CXX_COMPILER_GCC48)
+  GUL_CXX14_CONSTEXPR auto error_to_optional() const&& -> optional<E>;
+#endif
+
   using base_type::swap;
 
   friend GUL_CXX14_CONSTEXPR void
@@ -1975,3 +2001,7 @@ GUL_CXX14_CONSTEXPR bool operator!=(const expected<T1, E1>& lhs,
 }
 
 GUL_NAMESPACE_END
+
+#include <gul/optional.hpp>
+
+#include <gul/impl/expected.ipp>

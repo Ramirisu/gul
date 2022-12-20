@@ -1968,6 +1968,142 @@ TEST_CASE("transform_error")
   }
 }
 
+TEST_CASE("value_to_optional")
+{
+  {
+    auto e = expected<void, int>(unexpect);
+    CHECK_EQ(e.value_to_optional(), optional<void>());
+  }
+  {
+    auto e = expected<void, int>();
+    CHECK_EQ(e.value_to_optional(), optional<void>(in_place));
+  }
+  {
+    const auto e = expected<void, int>(unexpect);
+    CHECK_EQ(e.value_to_optional(), optional<void>());
+  }
+  {
+    const auto e = expected<void, int>();
+    CHECK_EQ(e.value_to_optional(), optional<void>(in_place));
+  }
+  {
+    auto e = expected<void, int>(unexpect);
+    CHECK_EQ(std::move(e).value_to_optional(), optional<void>());
+  }
+  {
+    auto e = expected<void, int>();
+    CHECK_EQ(std::move(e).value_to_optional(), optional<void>(in_place));
+  }
+  {
+    const auto e = expected<void, int>(unexpect);
+    CHECK_EQ(std::move(e).value_to_optional(), optional<void>());
+  }
+  {
+    const auto e = expected<void, int>();
+    CHECK_EQ(std::move(e).value_to_optional(), optional<void>(in_place));
+  }
+  {
+    auto e = expected<int, int>(unexpect);
+    CHECK_EQ(e.value_to_optional(), optional<int>());
+  }
+  {
+    auto e = expected<int, int>(1);
+    CHECK_EQ(e.value_to_optional(), optional<int>(1));
+  }
+  {
+    const auto e = expected<int, int>(unexpect);
+    CHECK_EQ(e.value_to_optional(), optional<int>());
+  }
+  {
+    const auto e = expected<int, int>(1);
+    CHECK_EQ(e.value_to_optional(), optional<int>(1));
+  }
+  {
+    auto e = expected<int, int>(unexpect);
+    CHECK_EQ(std::move(e).value_to_optional(), optional<int>());
+  }
+  {
+    auto e = expected<int, int>(1);
+    CHECK_EQ(std::move(e).value_to_optional(), optional<int>(1));
+  }
+  {
+    const auto e = expected<int, int>(unexpect);
+    CHECK_EQ(std::move(e).value_to_optional(), optional<int>());
+  }
+  {
+    const auto e = expected<int, int>(1);
+    CHECK_EQ(std::move(e).value_to_optional(), optional<int>(1));
+  }
+}
+
+TEST_CASE("error_to_optional")
+{
+  {
+    auto e = expected<void, int>(unexpect, 1);
+    CHECK_EQ(e.error_to_optional(), optional<int>(1));
+  }
+  {
+    auto e = expected<void, int>();
+    CHECK_EQ(e.error_to_optional(), optional<int>());
+  }
+  {
+    const auto e = expected<void, int>(unexpect, 1);
+    CHECK_EQ(e.error_to_optional(), optional<int>(1));
+  }
+  {
+    const auto e = expected<void, int>();
+    CHECK_EQ(e.error_to_optional(), optional<int>());
+  }
+  {
+    auto e = expected<void, int>(unexpect, 1);
+    CHECK_EQ(std::move(e).error_to_optional(), optional<int>(1));
+  }
+  {
+    auto e = expected<void, int>();
+    CHECK_EQ(std::move(e).error_to_optional(), optional<int>());
+  }
+  {
+    const auto e = expected<void, int>(unexpect, 1);
+    CHECK_EQ(std::move(e).error_to_optional(), optional<int>(1));
+  }
+  {
+    const auto e = expected<void, int>();
+    CHECK_EQ(std::move(e).error_to_optional(), optional<int>());
+  }
+  {
+    auto e = expected<int, int>(unexpect);
+    CHECK_EQ(e.error_to_optional(), optional<int>(0));
+  }
+  {
+    auto e = expected<int, int>(1);
+    CHECK_EQ(e.error_to_optional(), optional<int>());
+  }
+  {
+    const auto e = expected<int, int>(unexpect);
+    CHECK_EQ(e.error_to_optional(), optional<int>(0));
+  }
+  {
+    const auto e = expected<int, int>(1);
+    CHECK_EQ(e.error_to_optional(), optional<int>());
+  }
+  {
+    auto e = expected<int, int>(unexpect);
+    CHECK_EQ(std::move(e).error_to_optional(), optional<int>(0));
+  }
+  {
+    auto e = expected<int, int>(1);
+    CHECK_EQ(std::move(e).error_to_optional(), optional<int>());
+  }
+  {
+    const auto e = expected<int, int>(unexpect);
+    CHECK_EQ(std::move(e).error_to_optional(), optional<int>(0));
+  }
+  {
+    const auto e = expected<int, int>(1);
+    CHECK_EQ(std::move(e).error_to_optional(), optional<int>());
+  }
+}
+
 TEST_CASE("swap")
 {
   {
