@@ -920,170 +920,434 @@ TEST_CASE("reset")
 
 TEST_CASE("and_then")
 {
-  auto v_to_s = []() -> optional<std::string> { return "1"; };
   {
-    auto n = optional<void>();
-    CHECK(!n.and_then(v_to_s));
-    auto v = optional<void>(in_place);
-    CHECK_EQ(v.and_then(v_to_s).value(), "1");
+    int val = 0;
+    auto f = [&]() -> optional<void> {
+      val = 1;
+      return optional<void>(in_place);
+    };
+    SUBCASE("")
+    {
+      auto o = optional<void>();
+      CHECK(!o.and_then(f));
+      CHECK_EQ(val, 0);
+    }
+    SUBCASE("")
+    {
+      auto o = optional<void>(in_place);
+      CHECK(o.and_then(f));
+      CHECK_EQ(val, 1);
+    }
+    SUBCASE("")
+    {
+      const auto o = optional<void>();
+      CHECK(!o.and_then(f));
+      CHECK_EQ(val, 0);
+    }
+    SUBCASE("")
+    {
+      const auto o = optional<void>(in_place);
+      CHECK(o.and_then(f));
+      CHECK_EQ(val, 1);
+    }
+    SUBCASE("")
+    {
+      auto o = optional<void>();
+      CHECK(!std::move(o).and_then(f));
+      CHECK_EQ(val, 0);
+    }
+    SUBCASE("")
+    {
+      auto o = optional<void>(in_place);
+      CHECK(std::move(o).and_then(f));
+      CHECK_EQ(val, 1);
+    }
+    SUBCASE("")
+    {
+      const auto o = optional<void>();
+      CHECK(!std::move(o).and_then(f));
+      CHECK_EQ(val, 0);
+    }
+    SUBCASE("")
+    {
+      const auto o = optional<void>(in_place);
+      CHECK(std::move(o).and_then(f));
+      CHECK_EQ(val, 1);
+    }
   }
   {
-    const auto n = optional<void>();
-    CHECK(!n.and_then(v_to_s));
-    const auto v = optional<void>(in_place);
-    CHECK_EQ(v.and_then(v_to_s).value(), "1");
+    auto f = [](int i) -> optional<std::string> { return std::to_string(i); };
+    {
+      auto o = optional<int>();
+      CHECK(!o.and_then(f));
+    }
+    {
+      auto o = optional<int>(1);
+      CHECK_EQ(o.and_then(f), "1");
+    }
+    {
+      const auto o = optional<int>();
+      CHECK(!o.and_then(f));
+    }
+    {
+      const auto o = optional<int>(1);
+      CHECK_EQ(o.and_then(f), "1");
+    }
+    {
+      auto o = optional<int>();
+      CHECK(!std::move(o).and_then(f));
+    }
+    {
+      auto o = optional<int>(1);
+      CHECK_EQ(std::move(o).and_then(f), "1");
+    }
+    {
+      const auto o = optional<int>();
+      CHECK(!std::move(o).and_then(f));
+    }
+    {
+      const auto o = optional<int>(1);
+      CHECK_EQ(std::move(o).and_then(f), "1");
+    }
   }
   {
-    auto n = optional<void>();
-    CHECK(!std::move(n).and_then(v_to_s));
-    auto v = optional<void>(in_place);
-    CHECK_EQ(std::move(v).and_then(v_to_s).value(), "1");
-  }
-  {
-    const auto n = optional<void>();
-    CHECK(!std::move(n).and_then(v_to_s));
-    const auto v = optional<void>(in_place);
-    CHECK_EQ(std::move(v).and_then(v_to_s).value(), "1");
-  }
-  auto i_to_s
-      = [](int i) -> optional<std::string> { return std::to_string(i); };
-  {
-    auto n = optional<int>();
-    CHECK(!n.and_then(i_to_s));
-    auto v = optional<int>(1);
-    CHECK_EQ(v.and_then(i_to_s).value(), "1");
-  }
-  {
-    const auto n = optional<int>();
-    CHECK(!n.and_then(i_to_s));
-    const auto v = optional<int>(1);
-    CHECK_EQ(v.and_then(i_to_s).value(), "1");
-  }
-  {
-    auto n = optional<int>();
-    CHECK(!std::move(n).and_then(i_to_s));
-    auto v = optional<int>(1);
-    CHECK_EQ(std::move(v).and_then(i_to_s).value(), "1");
-  }
-  {
-    const auto n = optional<int>();
-    CHECK(!std::move(n).and_then(i_to_s));
-    const auto v = optional<int>(1);
-    CHECK_EQ(std::move(v).and_then(i_to_s).value(), "1");
+    int val = 0;
+    auto f = [](int& i) -> optional<int&> { return ++i; };
+    SUBCASE("")
+    {
+      auto o = optional<int&>();
+      CHECK(!o.and_then(f));
+      CHECK_EQ(val, 0);
+    }
+    SUBCASE("")
+    {
+      auto o = optional<int&>(val);
+      CHECK_EQ(o.and_then(f), 1);
+      CHECK_EQ(val, 1);
+    }
+    SUBCASE("")
+    {
+      const auto o = optional<int&>();
+      CHECK(!o.and_then(f));
+      CHECK_EQ(val, 0);
+    }
+    SUBCASE("")
+    {
+      const auto o = optional<int&>(val);
+      CHECK_EQ(o.and_then(f), 1);
+      CHECK_EQ(val, 1);
+    }
+    SUBCASE("")
+    {
+      auto o = optional<int&>();
+      CHECK(!std::move(o).and_then(f));
+      CHECK_EQ(val, 0);
+    }
+    SUBCASE("")
+    {
+      auto o = optional<int&>(val);
+      CHECK_EQ(std::move(o).and_then(f), 1);
+      CHECK_EQ(val, 1);
+    }
+    SUBCASE("")
+    {
+      const auto o = optional<int&>();
+      CHECK(!std::move(o).and_then(f));
+      CHECK_EQ(val, 0);
+    }
+    SUBCASE("")
+    {
+      const auto o = optional<int&>(val);
+      CHECK_EQ(std::move(o).and_then(f), 1);
+      CHECK_EQ(val, 1);
+    }
   }
 }
 
 TEST_CASE("transform")
 {
-  auto v_to_s = []() -> optional<std::string> { return "1"; };
   {
-    auto n = optional<void>();
-    CHECK(!n.transform(v_to_s));
-    auto v = optional<void>(in_place);
-    CHECK_EQ(v.transform(v_to_s).value(), "1");
+    int val = 0;
+    auto f = [&]() { val = 1; };
+    SUBCASE("")
+    {
+      auto o = optional<void>();
+      CHECK(!o.transform(f));
+      CHECK_EQ(val, 0);
+    }
+    SUBCASE("")
+    {
+      auto o = optional<void>(in_place);
+      CHECK(o.transform(f));
+      CHECK_EQ(val, 1);
+    }
+    SUBCASE("")
+    {
+      const auto o = optional<void>();
+      CHECK(!o.transform(f));
+      CHECK_EQ(val, 0);
+    }
+    SUBCASE("")
+    {
+      const auto o = optional<void>(in_place);
+      CHECK(o.transform(f));
+      CHECK_EQ(val, 1);
+    }
+    SUBCASE("")
+    {
+      auto o = optional<void>();
+      CHECK(!std::move(o).transform(f));
+      CHECK_EQ(val, 0);
+    }
+    SUBCASE("")
+    {
+      auto o = optional<void>(in_place);
+      CHECK(std::move(o).transform(f));
+      CHECK_EQ(val, 1);
+    }
+    SUBCASE("")
+    {
+      const auto o = optional<void>();
+      CHECK(!std::move(o).transform(f));
+      CHECK_EQ(val, 0);
+    }
+    SUBCASE("")
+    {
+      const auto o = optional<void>(in_place);
+      CHECK(std::move(o).transform(f));
+      CHECK_EQ(val, 1);
+    }
   }
   {
-    const auto n = optional<void>();
-    CHECK(!n.transform(v_to_s));
-    const auto v = optional<void>(in_place);
-    CHECK_EQ(v.transform(v_to_s).value(), "1");
+    auto f = [](int i) -> std::string { return std::to_string(i); };
+    {
+      auto o = optional<int>();
+      CHECK(!o.transform(f));
+    }
+    {
+      auto o = optional<int>(1);
+      CHECK_EQ(o.transform(f), "1");
+    }
+    {
+      const auto o = optional<int>();
+      CHECK(!o.transform(f));
+    }
+    {
+      const auto o = optional<int>(1);
+      CHECK_EQ(o.transform(f), "1");
+    }
+    {
+      auto o = optional<int>();
+      CHECK(!std::move(o).transform(f));
+    }
+    {
+      auto o = optional<int>(1);
+      CHECK_EQ(std::move(o).transform(f), "1");
+    }
+    {
+      const auto o = optional<int>();
+      CHECK(!std::move(o).transform(f));
+    }
+    {
+      const auto o = optional<int>(1);
+      CHECK_EQ(std::move(o).transform(f), "1");
+    }
   }
   {
-    auto n = optional<void>();
-    CHECK(!std::move(n).transform(v_to_s));
-    auto v = optional<void>(in_place);
-    CHECK_EQ(std::move(v).transform(v_to_s).value(), "1");
-  }
-  {
-    const auto n = optional<void>();
-    CHECK(!std::move(n).transform(v_to_s));
-    const auto v = optional<void>(in_place);
-    CHECK_EQ(std::move(v).transform(v_to_s).value(), "1");
-  }
-  auto i_to_s
-      = [](int i) -> optional<std::string> { return std::to_string(i); };
-  {
-    auto n = optional<int>();
-    CHECK(!n.transform(i_to_s));
-    auto v = optional<int>(1);
-    CHECK_EQ(v.transform(i_to_s).value(), "1");
-  }
-  {
-    const auto n = optional<int>();
-    CHECK(!n.transform(i_to_s));
-    const auto v = optional<int>(1);
-    CHECK_EQ(v.transform(i_to_s).value(), "1");
-  }
-  {
-    auto n = optional<int>();
-    CHECK(!std::move(n).transform(i_to_s));
-    auto v = optional<int>(1);
-    CHECK_EQ(std::move(v).transform(i_to_s).value(), "1");
-  }
-  {
-    const auto n = optional<int>();
-    CHECK(!std::move(n).transform(i_to_s));
-    const auto v = optional<int>(1);
-    CHECK_EQ(std::move(v).transform(i_to_s).value(), "1");
+    int val = 0;
+    auto f = [](int& i) -> int& { return ++i; };
+    SUBCASE("")
+    {
+      auto o = optional<int&>();
+      CHECK(!o.transform(f));
+      CHECK_EQ(val, 0);
+    }
+    SUBCASE("")
+    {
+      auto o = optional<int&>(val);
+      CHECK_EQ(o.transform(f), 1);
+      CHECK_EQ(val, 1);
+    }
+    SUBCASE("")
+    {
+      const auto o = optional<int&>();
+      CHECK(!o.transform(f));
+      CHECK_EQ(val, 0);
+    }
+    SUBCASE("")
+    {
+      const auto o = optional<int&>(val);
+      CHECK_EQ(o.transform(f), 1);
+      CHECK_EQ(val, 1);
+    }
+    SUBCASE("")
+    {
+      auto o = optional<int&>();
+      CHECK(!std::move(o).transform(f));
+      CHECK_EQ(val, 0);
+    }
+    SUBCASE("")
+    {
+      auto o = optional<int&>(val);
+      CHECK_EQ(std::move(o).transform(f), 1);
+      CHECK_EQ(val, 1);
+    }
+    SUBCASE("")
+    {
+      const auto o = optional<int&>();
+      CHECK(!std::move(o).transform(f));
+      CHECK_EQ(val, 0);
+    }
+    SUBCASE("")
+    {
+      const auto o = optional<int&>(val);
+      CHECK_EQ(std::move(o).transform(f), 1);
+      CHECK_EQ(val, 1);
+    }
   }
 }
 
 TEST_CASE("or_else")
 {
-  auto fv = []() -> optional<void> { return optional<void>(in_place); };
   {
-    auto n = optional<void>();
-    CHECK(n.or_else(fv));
-    auto v = optional<void>(in_place);
-    CHECK(v.or_else(fv));
+    auto f = []() -> optional<void> { return optional<void>(in_place); };
+    {
+      auto o = optional<void>();
+      CHECK(o.or_else(f));
+    }
+    {
+      auto o = optional<void>(in_place);
+      CHECK(o.or_else(f));
+    }
+    {
+      const auto o = optional<void>();
+      CHECK(o.or_else(f));
+    }
+    {
+      const auto o = optional<void>(in_place);
+      CHECK(o.or_else(f));
+    }
+    {
+      auto o = optional<void>();
+      CHECK(std::move(o).or_else(f));
+    }
+    {
+      auto o = optional<void>(in_place);
+      CHECK(std::move(o).or_else(f));
+    }
+    {
+      const auto o = optional<void>();
+      CHECK(std::move(o).or_else(f));
+    }
+    {
+      const auto o = optional<void>(in_place);
+      CHECK(std::move(o).or_else(f));
+    }
   }
   {
-    const auto n = optional<void>();
-    CHECK(n.or_else(fv));
-    const auto v = optional<void>(in_place);
-    CHECK(v.or_else(fv));
+    auto f = []() -> optional<int> { return optional<int>(2); };
+    {
+      auto o = optional<int>();
+      CHECK_EQ(o.or_else(f), 2);
+    }
+    {
+      auto o = optional<int>(1);
+      CHECK_EQ(o.or_else(f), 1);
+    }
+    {
+      const auto o = optional<int>();
+      CHECK_EQ(o.or_else(f), 2);
+    }
+    {
+      const auto o = optional<int>(1);
+      CHECK_EQ(o.or_else(f), 1);
+    }
+    {
+      auto o = optional<int>();
+      CHECK_EQ(std::move(o).or_else(f), 2);
+    }
+    {
+      auto o = optional<int>(1);
+      CHECK_EQ(std::move(o).or_else(f), 1);
+    }
+    {
+      const auto o = optional<int>();
+      CHECK_EQ(std::move(o).or_else(f), 2);
+    }
+    {
+      const auto o = optional<int>(1);
+      CHECK_EQ(std::move(o).or_else(f), 1);
+    }
   }
   {
-    auto n = optional<void>();
-    CHECK(std::move(n).or_else(fv));
-    auto v = optional<void>(in_place);
-    CHECK(std::move(v).or_else(fv));
-  }
-  {
-    const auto n = optional<void>();
-    CHECK(std::move(n).or_else(fv));
-    const auto v = optional<void>(in_place);
-    CHECK(std::move(v).or_else(fv));
-  }
-  auto fi = []() -> optional<int> { return 2; };
-  {
-    auto n = optional<int>();
-    CHECK_EQ(n.or_else(fi).value(), 2);
-    auto v = optional<int>(1);
-    CHECK_EQ(v.or_else(fi).value(), 1);
-  }
-  {
-    const auto n = optional<int>();
-    CHECK_EQ(n.or_else(fi).value(), 2);
-    const auto v = optional<int>(1);
-    CHECK_EQ(v.or_else(fi).value(), 1);
-  }
-  {
-    auto n = optional<int>();
-    CHECK_EQ(std::move(n).or_else(fi).value(), 2);
-    auto v = optional<int>(1);
-    CHECK_EQ(std::move(v).or_else(fi).value(), 1);
-  }
-  {
-    const auto n = optional<int>();
-    CHECK_EQ(std::move(n).or_else(fi).value(), 2);
-    const auto v = optional<int>(1);
-    CHECK_EQ(std::move(v).or_else(fi).value(), 1);
+    int val = 1;
+    int val2 = 2;
+    auto f = [&]() -> optional<int&> { return optional<int&>(val2); };
+    {
+      auto o = optional<int&>();
+      CHECK_EQ(o.or_else(f), 2);
+    }
+    {
+      auto o = optional<int&>(val);
+      CHECK_EQ(o.or_else(f), 1);
+    }
+    {
+      const auto o = optional<int&>();
+      CHECK_EQ(o.or_else(f), 2);
+    }
+    {
+      const auto o = optional<int&>(val);
+      CHECK_EQ(o.or_else(f), 1);
+    }
+    {
+      auto o = optional<int&>();
+      CHECK_EQ(std::move(o).or_else(f), 2);
+    }
+    {
+      auto o = optional<int&>(val);
+      CHECK_EQ(std::move(o).or_else(f), 1);
+    }
+    {
+      const auto o = optional<int&>();
+      CHECK_EQ(std::move(o).or_else(f), 2);
+    }
+    {
+      const auto o = optional<int&>(val);
+      CHECK_EQ(std::move(o).or_else(f), 1);
+    }
   }
 }
 
 TEST_CASE("swap")
 {
+  {
+    auto a = optional<void>();
+    auto b = optional<void>();
+    swap(a, b);
+    CHECK(!a);
+    CHECK(!b);
+  }
+  {
+    auto a = optional<void>();
+    auto b = optional<void>(in_place);
+    swap(a, b);
+    CHECK(a);
+    CHECK(!b);
+  }
+  {
+    auto a = optional<void>(in_place);
+    auto b = optional<void>();
+    swap(a, b);
+    CHECK(!a);
+    CHECK(b);
+  }
+  {
+    auto a = optional<void>(in_place);
+    auto b = optional<void>(in_place);
+    swap(a, b);
+    CHECK(a);
+    CHECK(b);
+  }
   {
     auto a = optional<int>();
     auto b = optional<int>();

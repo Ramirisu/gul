@@ -250,6 +250,30 @@ struct optional_storage_base : optional_destruct_base<T> {
       }
     }
   }
+
+  GUL_CXX14_CONSTEXPR void swap(optional_storage_base& other) noexcept(
+      conjunction<std::is_nothrow_move_constructible<T>,
+                  detail::is_nothrow_swappable<T>>::value)
+  {
+    if (this->has_value()) {
+      if (other.has_value()) {
+        using std::swap;
+        swap(value(), other.value());
+      } else {
+        other.construct(std::move(value()));
+        (*this).destroy();
+        (*this).has_ = false;
+        other.has_ = true;
+      }
+    } else {
+      if (other.has_value()) {
+        (*this).construct(std::move(other.value()));
+        other.destroy();
+        (*this).has_ = true;
+        other.has_ = false;
+      }
+    }
+  }
 };
 
 template <typename T>
@@ -349,6 +373,12 @@ struct optional_storage_base<T, true> : optional_throw_base {
       }
     }
   }
+
+  GUL_CXX14_CONSTEXPR void swap(optional_storage_base&)
+  {
+    static_assert(!std::is_reference<T>::value,
+                  "[optional::swap] T must not be a reference type");
+  }
 };
 
 template <bool B>
@@ -440,6 +470,11 @@ struct optional_storage_base<void, B> : optional_throw_base {
   GUL_CXX14_CONSTEXPR void construct() noexcept
   {
     has_ = true;
+  }
+
+  GUL_CXX14_CONSTEXPR void swap(optional_storage_base& other) noexcept
+  {
+    std::swap(has_, other.has_);
   }
 };
 
@@ -634,13 +669,14 @@ class optional : private detail::optional_move_assign_base<T>,
   template <typename Self, typename F>
   static GUL_CXX14_CONSTEXPR auto
   and_then_impl(std::true_type, Self&& self, F&& f)
-      -> remove_cvref_t<decltype(gul::invoke(std::forward<F>(f)))>
+      -> remove_cvref_t<invoke_result_t<F>>
   {
     using Opt = remove_cvref_t<invoke_result_t<F>>;
+    static_assert(is_specialization_of<Opt, gul::optional>::value, "");
     if (self.has_value()) {
-      return Opt(gul::invoke(std::forward<F>(f)));
+      return gul::invoke(std::forward<F>(f));
     } else {
-      return Opt(nullopt);
+      return nullopt;
     }
   }
 
@@ -650,68 +686,71 @@ class optional : private detail::optional_move_assign_base<T>,
       -> remove_cvref_t<decltype(gul::invoke(std::forward<F>(f),
                                              std::forward<Self>(self).value()))>
   {
-    using Opt = remove_cvref_t<
-        invoke_result_t<F, decltype(std::declval<Self>().value())>>;
+    using SelfT = decltype(std::forward<Self>(self).value());
+    using Opt = remove_cvref_t<invoke_result_t<F, SelfT>>;
+    static_assert(is_specialization_of<Opt, gul::optional>::value, "");
     if (self.has_value()) {
-      return Opt(
-          gul::invoke(std::forward<F>(f), std::forward<Self>(self).value()));
+      return gul::invoke(std::forward<F>(f), std::forward<Self>(self).value());
     } else {
-      return Opt(nullopt);
+      return nullopt;
     }
   }
 
   template <typename Self, typename F>
   static GUL_CXX14_CONSTEXPR auto
   transform_impl(std::true_type, Self&& self, F&& f)
-      -> optional<remove_cvref_t<decltype(gul::invoke(std::forward<F>(f)))>>
+      -> optional<remove_cv_t<invoke_result_t<F>>>
   {
-    using Opt = optional<remove_cvref_t<invoke_result_t<F>>>;
+    static_assert(std::is_void<remove_cv_t<invoke_result_t<F>>>::value, "");
     if (self.has_value()) {
-      return Opt(gul::invoke(std::forward<F>(f)));
+      gul::invoke(std::forward<F>(f));
+      return optional(in_place);
     } else {
-      return Opt(nullopt);
+      return nullopt;
     }
   }
 
   template <typename Self, typename F>
   static GUL_CXX14_CONSTEXPR auto
   transform_impl(std::false_type, Self&& self, F&& f)
-      -> optional<remove_cvref_t<decltype(gul::invoke(
+      -> optional<remove_cv_t<decltype(gul::invoke(
           std::forward<F>(f), std::forward<Self>(self).value()))>>
   {
-    using Opt = optional<remove_cvref_t<
-        invoke_result_t<F, decltype(std::declval<Self>().value())>>>;
+    using SelfT = decltype(std::forward<Self>(self).value());
+    using T2 = remove_cv_t<invoke_result_t<F, SelfT>>;
+    static_assert(
+        std::is_constructible<optional<T2>, invoke_result_t<F, SelfT>>::value,
+        "");
     if (self.has_value()) {
-      return Opt(
-          gul::invoke(std::forward<F>(f), std::forward<Self>(self).value()));
+      return gul::invoke(std::forward<F>(f), std::forward<Self>(self).value());
     } else {
-      return Opt(nullopt);
+      return nullopt;
     }
   }
 
   template <typename Self, typename F>
   static GUL_CXX14_CONSTEXPR auto
-  or_else_impl(std::true_type, Self&& self, F&& f)
-      -> remove_cvref_t<decltype(gul::invoke(std::forward<F>(f)))>
+  or_else_impl(std::true_type, Self&& self, F&& f) -> optional
   {
-    using Opt = remove_cvref_t<Self>;
+    static_assert(
+        std::is_same<remove_cvref_t<invoke_result_t<F>>, optional>::value, "");
     if (self.has_value()) {
-      return Opt(in_place);
+      return optional(in_place);
     } else {
-      return Opt(gul::invoke(std::forward<F>(f)));
+      return gul::invoke(std::forward<F>(f));
     }
   }
 
   template <typename Self, typename F>
   static GUL_CXX14_CONSTEXPR auto
-  or_else_impl(std::false_type, Self&& self, F&& f)
-      -> remove_cvref_t<decltype(gul::invoke(std::forward<F>(f)))>
+  or_else_impl(std::false_type, Self&& self, F&& f) -> optional
   {
-    using Opt = remove_cvref_t<Self>;
+    static_assert(
+        std::is_same<remove_cvref_t<invoke_result_t<F>>, optional>::value, "");
     if (self.has_value()) {
-      return Opt(std::forward<Self>(self).value());
+      return std::forward<Self>(self).value();
     } else {
-      return Opt(gul::invoke(std::forward<F>(f)));
+      return gul::invoke(std::forward<F>(f));
     }
   }
 
@@ -903,6 +942,8 @@ public:
 
   using base_type::reset;
 
+  /// optional<T>::and_then(F) -> optional<U>
+  /// F(T) -> optional<U>
   template <typename F>
   GUL_CXX14_CONSTEXPR auto and_then(F&& f) & -> decltype(and_then_impl(
       std::is_void<T> {}, *this, std::forward<F>(f)))
@@ -911,6 +952,8 @@ public:
     return and_then_impl(std::is_void<T> {}, *this, std::forward<F>(f));
   }
 
+  /// optional<T>::and_then(F) -> optional<U>
+  /// F(T) -> optional<U>
   template <typename F>
   GUL_CXX14_CONSTEXPR auto and_then(F&& f) const& -> decltype(and_then_impl(
       std::is_void<T> {}, *this, std::forward<F>(f)))
@@ -918,6 +961,8 @@ public:
     return and_then_impl(std::is_void<T> {}, *this, std::forward<F>(f));
   }
 
+  /// optional<T>::and_then(F) -> optional<U>
+  /// F(T) -> optional<U>
   template <typename F>
   GUL_CXX14_CONSTEXPR auto and_then(F&& f) && -> decltype(and_then_impl(
       std::is_void<T> {}, std::move(*this), std::forward<F>(f)))
@@ -927,6 +972,8 @@ public:
   }
 
 #if !defined(GUL_CXX_COMPILER_GCC48)
+  /// optional<T>::and_then(F) -> optional<U>
+  /// F(T) -> optional<U>
   template <typename F>
   GUL_CXX14_CONSTEXPR auto and_then(F&& f) const&& -> decltype(and_then_impl(
       std::is_void<T> {}, std::move(*this), std::forward<F>(f)))
@@ -936,6 +983,8 @@ public:
   }
 #endif
 
+  /// optional<T>::transform(F) -> optional<U>
+  /// F(T) -> U
   template <typename F>
   GUL_CXX14_CONSTEXPR auto transform(F&& f) & -> decltype(transform_impl(
       std::is_void<T> {}, *this, std::forward<F>(f)))
@@ -943,6 +992,8 @@ public:
     return transform_impl(std::is_void<T> {}, *this, std::forward<F>(f));
   }
 
+  /// optional<T>::transform(F) -> optional<U>
+  /// F(T) -> U
   template <typename F>
   GUL_CXX14_CONSTEXPR auto transform(F&& f) const& -> decltype(transform_impl(
       std::is_void<T> {}, *this, std::forward<F>(f)))
@@ -950,6 +1001,8 @@ public:
     return transform_impl(std::is_void<T> {}, *this, std::forward<F>(f));
   }
 
+  /// optional<T>::transform(F) -> optional<U>
+  /// F(T) -> U
   template <typename F>
   GUL_CXX14_CONSTEXPR auto transform(F&& f) && -> decltype(transform_impl(
       std::is_void<T> {}, std::move(*this), std::forward<F>(f)))
@@ -959,6 +1012,8 @@ public:
   }
 
 #if !defined(GUL_CXX_COMPILER_GCC48)
+  /// optional<T>::transform(F) -> optional<U>
+  /// F(T) -> U
   template <typename F>
   GUL_CXX14_CONSTEXPR auto transform(F&& f) const&& -> decltype(transform_impl(
       std::is_void<T> {}, std::move(*this), std::forward<F>(f)))
@@ -968,21 +1023,24 @@ public:
   }
 #endif
 
-  template <typename F>
-  GUL_CXX14_CONSTEXPR auto or_else(F&& f) & -> decltype(or_else_impl(
-      std::is_void<T> {}, *this, std::forward<F>(f)))
-  {
-    return or_else_impl(std::is_void<T> {}, *this, std::forward<F>(f));
-  }
-
-  template <typename F>
+  /// optional<T>::or_else(F) -> optional<T>
+  /// F() -> optional<T>
+  template <typename F,
+            GUL_REQUIRES(conjunction<disjunction<std::is_void<T>,
+                                                 std::is_copy_constructible<T>>,
+                                     is_invocable<F>>::value)>
   GUL_CXX14_CONSTEXPR auto or_else(F&& f) const& -> decltype(or_else_impl(
       std::is_void<T> {}, *this, std::forward<F>(f)))
   {
     return or_else_impl(std::is_void<T> {}, *this, std::forward<F>(f));
   }
 
-  template <typename F>
+  /// optional<T>::or_else(F) -> optional<T>
+  /// F() -> optional<T>
+  template <typename F,
+            GUL_REQUIRES(conjunction<disjunction<std::is_void<T>,
+                                                 std::is_move_constructible<T>>,
+                                     is_invocable<F>>::value)>
   GUL_CXX14_CONSTEXPR auto or_else(F&& f) && -> decltype(or_else_impl(
       std::is_void<T> {}, std::move(*this), std::forward<F>(f)))
   {
@@ -990,39 +1048,7 @@ public:
                         std::forward<F>(f));
   }
 
-#if !defined(GUL_CXX_COMPILER_GCC48)
-  template <typename F>
-  GUL_CXX14_CONSTEXPR auto or_else(F&& f) const&& -> decltype(or_else_impl(
-      std::is_void<T> {}, std::move(*this), std::forward<F>(f)))
-  {
-    return or_else_impl(std::is_void<T> {}, std::move(*this),
-                        std::forward<F>(f));
-  }
-#endif
-
-  GUL_CXX14_CONSTEXPR void swap(optional& other) noexcept(
-      conjunction<std::is_nothrow_move_constructible<T>,
-                  detail::is_nothrow_swappable<T>>::value)
-  {
-    if (has_value()) {
-      if (other) {
-        using std::swap;
-        swap(value(), other.value());
-      } else {
-        other.construct(std::move(value()));
-        (*this).destroy();
-        (*this).has_ = false;
-        other.has_ = true;
-      }
-    } else {
-      if (other) {
-        (*this).construct(std::move(other.value()));
-        other.destroy();
-        (*this).has_ = true;
-        other.has_ = false;
-      }
-    }
-  }
+  using base_type::swap;
 
   friend GUL_CXX14_CONSTEXPR void
   swap(optional& lhs, optional& rhs) noexcept(noexcept(lhs.swap(rhs)))
