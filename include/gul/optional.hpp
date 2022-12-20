@@ -301,14 +301,13 @@ struct optional_storage_base<T, true> : optional_throw_base {
     valptr_ = nullptr;
   }
 
-  GUL_CXX14_CONSTEXPR add_pointer_t<remove_reference_t<T>> operator->() noexcept
+  GUL_CXX14_CONSTEXPR add_pointer_t<T> operator->() noexcept
   {
     GUL_ASSERT(has_value());
     return valptr_;
   }
 
-  GUL_CXX14_CONSTEXPR add_pointer_t<const remove_reference_t<T>>
-  operator->() const noexcept
+  GUL_CXX14_CONSTEXPR add_pointer_t<const T> operator->() const noexcept
   {
     GUL_ASSERT(has_value());
     return valptr_;
@@ -320,11 +319,13 @@ struct optional_storage_base<T, true> : optional_throw_base {
     return *valptr_;
   }
 
-  GUL_CXX14_CONSTEXPR T&& operator*() && noexcept
+#if !defined(GUL_CXX_COMPILER_GCC48)
+  GUL_CXX14_CONSTEXPR T&& operator*() const&& noexcept
   {
     GUL_ASSERT(has_value());
     return std::forward<T>(*valptr_);
   }
+#endif
 
   GUL_CXX14_CONSTEXPR const T& value() const&
   {

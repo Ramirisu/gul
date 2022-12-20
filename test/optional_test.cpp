@@ -15,41 +15,23 @@ TEST_SUITE_BEGIN("optional");
 
 namespace {
 template <typename T>
-class default_constructible : public std::vector<T> {
-  using base_type = std::vector<T>;
-
+class dc : public std::vector<T> {
 public:
-  default_constructible() = default;
+  using std::vector<T>::vector;
 
-  default_constructible(int value)
-      : base_type({ value })
+  dc() = default;
+
+  dc(T val)
+      : std::vector<T>({ val })
   {
   }
-
-  default_constructible(std::initializer_list<T> init)
-      : base_type(std::move(init))
-  {
-  }
-
-  default_constructible(base_type init)
-      : base_type(std::move(init))
-  {
-  }
-
-  default_constructible(const default_constructible&) = default;
-
-  default_constructible(default_constructible&&) = default;
-
-  default_constructible& operator=(const default_constructible&) = default;
-
-  default_constructible& operator=(default_constructible&&) = default;
 };
 
-template <typename T>
-using dc = default_constructible<T>;
+template <typename Exp>
+using memof_op = decltype(std::declval<Exp>().operator->());
 
 template <typename Exp>
-using deref_op = decltype(*std::declval<Exp>());
+using deref_op = decltype(std::declval<Exp>().operator*());
 
 template <typename Exp>
 using fn_value = decltype(std::declval<Exp>().value());
@@ -58,6 +40,7 @@ template <template <typename...> class Op, typename Test, typename Expected>
 struct assert_is_same {
   STATIC_ASSERT(std::is_same<Op<Test>, Expected>::value);
 };
+
 }
 
 TEST_CASE("type assertion")
@@ -277,26 +260,26 @@ TEST_CASE("move constructor")
 TEST_CASE("converting constructor")
 {
   {
-    auto s = optional<std::vector<int>>();
-    auto d = optional<dc<int>>(s);
+    auto s = optional<dc<int>>();
+    auto d = optional<std::vector<int>>(s);
     CHECK(!s);
     CHECK(!d);
   }
   {
-    auto s = optional<std::vector<int>>(in_place, { 0, 1, 2 });
-    auto d = optional<dc<int>>(s);
+    auto s = optional<dc<int>>(in_place, { 0, 1, 2 });
+    auto d = optional<std::vector<int>>(s);
     CHECK(s);
     CHECK_EQ(d.value(), dc<int> { 0, 1, 2 });
   }
   {
-    auto s = optional<std::vector<int>>();
-    auto d = optional<dc<int>>(std::move(s));
+    auto s = optional<dc<int>>();
+    auto d = optional<std::vector<int>>(std::move(s));
     CHECK(!s);
     CHECK(!d);
   }
   {
-    auto s = optional<std::vector<int>>(in_place, { 0, 1, 2 });
-    auto d = optional<dc<int>>(std::move(s));
+    auto s = optional<dc<int>>(in_place, { 0, 1, 2 });
+    auto d = optional<std::vector<int>>(std::move(s));
     CHECK(s);
     CHECK_EQ(d.value(), dc<int> { 0, 1, 2 });
   }
@@ -522,29 +505,29 @@ TEST_CASE("move assignment operator")
 TEST_CASE("converting assignment operator")
 {
   {
-    auto s = optional<std::vector<int>>();
-    auto d = optional<dc<int>>();
+    auto s = optional<dc<int>>();
+    auto d = optional<std::vector<int>>();
     d = s;
     CHECK(!s);
     CHECK(!d);
   }
   {
-    auto s = optional<std::vector<int>>(in_place, { 0, 1, 2 });
-    auto d = optional<dc<int>>();
+    auto s = optional<dc<int>>(in_place, { 0, 1, 2 });
+    auto d = optional<std::vector<int>>();
     d = s;
     CHECK(s);
     CHECK_EQ(d.value(), dc<int> { 0, 1, 2 });
   }
   {
-    auto s = optional<std::vector<int>>();
-    auto d = optional<dc<int>>();
+    auto s = optional<dc<int>>();
+    auto d = optional<std::vector<int>>();
     d = std::move(s);
     CHECK(!s);
     CHECK(!d);
   }
   {
-    auto s = optional<std::vector<int>>(in_place, { 0, 1, 2 });
-    auto d = optional<dc<int>>();
+    auto s = optional<dc<int>>(in_place, { 0, 1, 2 });
+    auto d = optional<std::vector<int>>();
     d = std::move(s);
     CHECK(s);
     CHECK_EQ(d.value(), dc<int> { 0, 1, 2 });
@@ -583,6 +566,18 @@ TEST_CASE("converting assignment operator")
 
 TEST_CASE("operator->")
 {
+  assert_is_same<memof_op, optional<void>&, void>();
+  assert_is_same<memof_op, const optional<void>&, void>();
+  assert_is_same<memof_op, optional<void>, void>();
+  assert_is_same<memof_op, const optional<void>, void>();
+  assert_is_same<memof_op, optional<int>&, int*>();
+  assert_is_same<memof_op, const optional<int>&, const int*>();
+  assert_is_same<memof_op, optional<int>, int*>();
+  assert_is_same<memof_op, const optional<int>, const int*>();
+  assert_is_same<memof_op, optional<int&>&, int*>();
+  assert_is_same<memof_op, const optional<int&>&, int*>();
+  assert_is_same<memof_op, optional<int&>, int*>();
+  assert_is_same<memof_op, const optional<int&>, int*>();
   {
     int val = 1;
     auto exp = optional<int&>(val);
