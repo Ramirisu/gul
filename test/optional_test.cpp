@@ -1315,71 +1315,74 @@ TEST_CASE("or_else")
 
 TEST_CASE("to_expected_or")
 {
+  const int err = 1;
   {
     auto o = optional<void>();
-    CHECK_EQ(o.to_expected_or(1), expected<void, int>(unexpect, 1));
+    CHECK_EQ(o.to_expected_or(err), expected<void, int>(unexpect, 1));
   }
   {
     auto o = optional<void>(in_place);
-    CHECK_EQ(o.to_expected_or(1), expected<void, int>());
+    CHECK_EQ(o.to_expected_or(err), expected<void, int>());
   }
   {
     const auto o = optional<void>();
-    CHECK_EQ(o.to_expected_or(1), expected<void, int>(unexpect, 1));
+    CHECK_EQ(o.to_expected_or(err), expected<void, int>(unexpect, 1));
   }
   {
     const auto o = optional<void>(in_place);
-    CHECK_EQ(o.to_expected_or(1), expected<void, int>());
+    CHECK_EQ(o.to_expected_or(err), expected<void, int>());
   }
   {
     auto o = optional<void>();
-    CHECK_EQ(std::move(o).to_expected_or(1), expected<void, int>(unexpect, 1));
+    CHECK_EQ(std::move(o).to_expected_or(err),
+             expected<void, int>(unexpect, 1));
   }
   {
     auto o = optional<void>(in_place);
-    CHECK_EQ(std::move(o).to_expected_or(1), expected<void, int>());
+    CHECK_EQ(std::move(o).to_expected_or(err), expected<void, int>());
   }
   {
     const auto o = optional<void>();
-    CHECK_EQ(std::move(o).to_expected_or(1), expected<void, int>(unexpect, 1));
+    CHECK_EQ(std::move(o).to_expected_or(err),
+             expected<void, int>(unexpect, 1));
   }
   {
     const auto o = optional<void>(in_place);
-    CHECK_EQ(std::move(o).to_expected_or(1), expected<void, int>());
+    CHECK_EQ(std::move(o).to_expected_or(err), expected<void, int>());
   }
   {
     auto o = optional<std::string>();
-    CHECK_EQ(o.to_expected_or(1), expected<std::string, int>(unexpect, 1));
+    CHECK_EQ(o.to_expected_or(err), expected<std::string, int>(unexpect, 1));
   }
   {
     auto o = optional<std::string>("0");
-    CHECK_EQ(o.to_expected_or(1), expected<std::string, int>("0"));
+    CHECK_EQ(o.to_expected_or(err), expected<std::string, int>("0"));
   }
   {
     const auto o = optional<std::string>();
-    CHECK_EQ(o.to_expected_or(1), expected<std::string, int>(unexpect, 1));
+    CHECK_EQ(o.to_expected_or(err), expected<std::string, int>(unexpect, 1));
   }
   {
     const auto o = optional<std::string>("0");
-    CHECK_EQ(o.to_expected_or(1), expected<std::string, int>("0"));
+    CHECK_EQ(o.to_expected_or(err), expected<std::string, int>("0"));
   }
   {
     auto o = optional<std::string>();
-    CHECK_EQ(std::move(o).to_expected_or(1),
+    CHECK_EQ(std::move(o).to_expected_or(err),
              expected<std::string, int>(unexpect, 1));
   }
   {
     auto o = optional<std::string>("0");
-    CHECK_EQ(std::move(o).to_expected_or(1), expected<std::string, int>("0"));
+    CHECK_EQ(std::move(o).to_expected_or(err), expected<std::string, int>("0"));
   }
   {
     const auto o = optional<std::string>();
-    CHECK_EQ(std::move(o).to_expected_or(1),
+    CHECK_EQ(std::move(o).to_expected_or(err),
              expected<std::string, int>(unexpect, 1));
   }
   {
     const auto o = optional<std::string>("0");
-    CHECK_EQ(std::move(o).to_expected_or(1), expected<std::string, int>("0"));
+    CHECK_EQ(std::move(o).to_expected_or(err), expected<std::string, int>("0"));
   }
 }
 

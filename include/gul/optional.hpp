@@ -1050,20 +1050,20 @@ public:
   /// !!!experimental non-std extension!!!
   template <typename E>
   GUL_CXX14_CONSTEXPR auto
-  to_expected_or(E&& default_error) & -> expected<T, E>;
+  to_expected_or(E&& default_error) & -> expected<T, remove_cvref_t<E>>;
 
   template <typename E>
   GUL_CXX14_CONSTEXPR auto
-  to_expected_or(E&& default_error) const& -> expected<T, E>;
+  to_expected_or(E&& default_error) const& -> expected<T, remove_cvref_t<E>>;
 
   template <typename E>
   GUL_CXX14_CONSTEXPR auto
-  to_expected_or(E&& default_error) && -> expected<T, E>;
+  to_expected_or(E&& default_error) && -> expected<T, remove_cvref_t<E>>;
 
 #if !defined(GUL_CXX_COMPILER_GCC48)
   template <typename E>
   GUL_CXX14_CONSTEXPR auto
-  to_expected_or(E&& default_error) const&& -> expected<T, E>;
+  to_expected_or(E&& default_error) const&& -> expected<T, remove_cvref_t<E>>;
 #endif
 
   using base_type::swap;

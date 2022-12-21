@@ -20,26 +20,29 @@ namespace detail {
 template <typename Self, typename E>
 GUL_CXX14_CONSTEXPR auto
 optional_to_expected_or_impl(std::true_type, Self&& self, E&& default_error)
-    -> expected<typename remove_cvref_t<Self>::value_type, E>
+    -> expected<typename remove_cvref_t<Self>::value_type, remove_cvref_t<E>>
 {
   using SelfT = typename remove_cvref_t<Self>::value_type;
   if (self.has_value()) {
-    return expected<SelfT, E>(in_place);
+    return expected<SelfT, remove_cvref_t<E>>(in_place);
   } else {
-    return expected<SelfT, E>(unexpect, std::forward<E>(default_error));
+    return expected<SelfT, remove_cvref_t<E>>(unexpect,
+                                              std::forward<E>(default_error));
   }
 }
 
 template <typename Self, typename E>
 GUL_CXX14_CONSTEXPR auto
 optional_to_expected_or_impl(std::false_type, Self&& self, E&& default_error)
-    -> expected<typename remove_cvref_t<Self>::value_type, E>
+    -> expected<typename remove_cvref_t<Self>::value_type, remove_cvref_t<E>>
 {
   using SelfT = typename remove_cvref_t<Self>::value_type;
   if (self.has_value()) {
-    return expected<SelfT, E>(in_place, std::forward<Self>(self).value());
+    return expected<SelfT, remove_cvref_t<E>>(in_place,
+                                              std::forward<Self>(self).value());
   } else {
-    return expected<SelfT, E>(unexpect, std::forward<E>(default_error));
+    return expected<SelfT, remove_cvref_t<E>>(unexpect,
+                                              std::forward<E>(default_error));
   }
 }
 
@@ -47,8 +50,8 @@ optional_to_expected_or_impl(std::false_type, Self&& self, E&& default_error)
 
 template <typename T>
 template <typename E>
-GUL_CXX14_CONSTEXPR auto
-optional<T>::to_expected_or(E&& default_error) & -> expected<T, E>
+GUL_CXX14_CONSTEXPR auto optional<T>::to_expected_or(
+    E&& default_error) & -> expected<T, remove_cvref_t<E>>
 {
   return detail::optional_to_expected_or_impl(std::is_void<T> {}, *this,
                                               std::forward<E>(default_error));
@@ -56,8 +59,8 @@ optional<T>::to_expected_or(E&& default_error) & -> expected<T, E>
 
 template <typename T>
 template <typename E>
-GUL_CXX14_CONSTEXPR auto
-optional<T>::to_expected_or(E&& default_error) const& -> expected<T, E>
+GUL_CXX14_CONSTEXPR auto optional<T>::to_expected_or(
+    E&& default_error) const& -> expected<T, remove_cvref_t<E>>
 {
   return detail::optional_to_expected_or_impl(std::is_void<T> {}, *this,
                                               std::forward<E>(default_error));
@@ -65,8 +68,8 @@ optional<T>::to_expected_or(E&& default_error) const& -> expected<T, E>
 
 template <typename T>
 template <typename E>
-GUL_CXX14_CONSTEXPR auto
-optional<T>::to_expected_or(E&& default_error) && -> expected<T, E>
+GUL_CXX14_CONSTEXPR auto optional<T>::to_expected_or(
+    E&& default_error) && -> expected<T, remove_cvref_t<E>>
 {
   return detail::optional_to_expected_or_impl(
       std::is_void<T> {}, std::move(*this), std::forward<E>(default_error));
@@ -75,8 +78,8 @@ optional<T>::to_expected_or(E&& default_error) && -> expected<T, E>
 #if !defined(GUL_CXX_COMPILER_GCC48)
 template <typename T>
 template <typename E>
-GUL_CXX14_CONSTEXPR auto
-optional<T>::to_expected_or(E&& default_error) const&& -> expected<T, E>
+GUL_CXX14_CONSTEXPR auto optional<T>::to_expected_or(
+    E&& default_error) const&& -> expected<T, remove_cvref_t<E>>
 {
   return detail::optional_to_expected_or_impl(
       std::is_void<T> {}, std::move(*this), std::forward<E>(default_error));
