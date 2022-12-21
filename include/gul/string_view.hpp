@@ -15,6 +15,10 @@
 #include <cstddef>
 #include <string>
 
+#ifdef GUL_HAS_CXX17
+#include <string_view>
+#endif
+
 GUL_NAMESPACE_BEGIN
 
 template <typename CharT, typename Traits = std::char_traits<CharT>>
@@ -698,6 +702,13 @@ public:
     return const_reverse_iterator(cbegin());
   }
 
+#ifdef GUL_HAS_CXX17
+  constexpr operator std::basic_string_view<CharT, Traits>() const noexcept
+  {
+    return std::basic_string_view<CharT, Traits>(start_, size_);
+  }
+#endif
+
   constexpr explicit operator std::basic_string<CharT, Traits>() const
   {
     return std::basic_string<CharT, Traits>(start_, size_);
@@ -807,10 +818,6 @@ inline namespace string_view_literals {
 }
 
 GUL_NAMESPACE_END
-
-#ifdef GUL_HAS_CXX17
-#include <string_view>
-#endif
 
 namespace std {
 template <>
