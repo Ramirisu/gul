@@ -732,43 +732,49 @@ swap(basic_string_view<CharT, Traits>& lhs,
 }
 
 template <class CharT, class Traits>
-constexpr bool operator==(basic_string_view<CharT, Traits> lhs,
-                          basic_string_view<CharT, Traits> rhs) noexcept
+constexpr bool operator==(
+    const basic_string_view<CharT, Traits>& lhs,
+    const type_identity_t<basic_string_view<CharT, Traits>>& rhs) noexcept
 {
   return lhs.compare(rhs) == 0;
 }
 
 template <class CharT, class Traits>
-constexpr bool operator!=(basic_string_view<CharT, Traits> lhs,
-                          basic_string_view<CharT, Traits> rhs) noexcept
+constexpr bool operator!=(
+    const basic_string_view<CharT, Traits>& lhs,
+    const type_identity_t<basic_string_view<CharT, Traits>>& rhs) noexcept
 {
   return lhs.compare(rhs) != 0;
 }
 
 template <class CharT, class Traits>
-constexpr bool operator<(basic_string_view<CharT, Traits> lhs,
-                         basic_string_view<CharT, Traits> rhs) noexcept
+constexpr bool
+operator<(const basic_string_view<CharT, Traits>& lhs,
+          const type_identity_t<basic_string_view<CharT, Traits>>& rhs) noexcept
 {
   return lhs.compare(rhs) < 0;
 }
 
 template <class CharT, class Traits>
-constexpr bool operator<=(basic_string_view<CharT, Traits> lhs,
-                          basic_string_view<CharT, Traits> rhs) noexcept
+constexpr bool operator<=(
+    const basic_string_view<CharT, Traits>& lhs,
+    const type_identity_t<basic_string_view<CharT, Traits>>& rhs) noexcept
 {
   return lhs.compare(rhs) <= 0;
 }
 
 template <class CharT, class Traits>
-constexpr bool operator>(basic_string_view<CharT, Traits> lhs,
-                         basic_string_view<CharT, Traits> rhs) noexcept
+constexpr bool
+operator>(const basic_string_view<CharT, Traits>& lhs,
+          const type_identity_t<basic_string_view<CharT, Traits>>& rhs) noexcept
 {
   return lhs.compare(rhs) > 0;
 }
 
 template <class CharT, class Traits>
-constexpr bool operator>=(basic_string_view<CharT, Traits> lhs,
-                          basic_string_view<CharT, Traits> rhs) noexcept
+constexpr bool operator>=(
+    const basic_string_view<CharT, Traits>& lhs,
+    const type_identity_t<basic_string_view<CharT, Traits>>& rhs) noexcept
 {
   return lhs.compare(rhs) >= 0;
 }

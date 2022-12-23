@@ -348,6 +348,23 @@ TEST_CASE("comparator")
   CHECK(!(string_view() >= string_view("1")));
   CHECK(string_view("1") >= string_view("1"));
   CHECK(string_view("1") >= string_view());
+
+  CHECK(string_view() == "");
+  CHECK(!(string_view() == "1"));
+  CHECK(!(string_view() != ""));
+  CHECK(string_view() != "1");
+  CHECK(string_view() < "1");
+  CHECK(!(string_view("1") < "1"));
+  CHECK(!(string_view("1") < ""));
+  CHECK(string_view() <= "1");
+  CHECK(string_view("1") <= "1");
+  CHECK(!(string_view("1") <= ""));
+  CHECK(!(string_view() > "1"));
+  CHECK(!(string_view("1") > "1"));
+  CHECK(string_view("1") > "");
+  CHECK(!(string_view() >= "1"));
+  CHECK(string_view("1") >= "1");
+  CHECK(string_view("1") >= "");
 }
 
 TEST_CASE("user-defined literals")
