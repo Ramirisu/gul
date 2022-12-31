@@ -320,6 +320,12 @@ TEST_CASE("perfect forwarding assignment operator")
     CHECK_EQ(o.value(), dc<int>(1));
   }
   {
+    auto o = optional<dc<int>>(0);
+    CHECK(o);
+    o = dc<int>(1);
+    CHECK_EQ(o.value(), dc<int>(1));
+  }
+  {
     auto o = optional<dc<int>&>();
     CHECK(!o);
     auto val = dc<int>(1);
@@ -328,7 +334,7 @@ TEST_CASE("perfect forwarding assignment operator")
     auto val2 = dc<int>({ 0, 1, 2 });
     o = val2;
     CHECK_EQ(o.value(), dc<int>({ 0, 1, 2 }));
-    CHECK_EQ(val, val2);
+    CHECK_NE(val, val2);
   }
 }
 

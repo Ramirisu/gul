@@ -235,6 +235,19 @@ struct optional_storage_base : optional_destruct_base<T> {
     }
   }
 
+  template <typename U>
+  GUL_CXX14_CONSTEXPR T& assign(U&& u)
+  {
+    if (this->has_) {
+      this->val_ = std::forward<U>(u);
+    } else {
+      ::new (std::addressof(this->val_)) T(std::forward<U>(u));
+    }
+
+    this->has_ = true;
+    return this->val_;
+  }
+
   template <typename Other>
   GUL_CXX14_CONSTEXPR void assign_from(Other&& other)
   {
@@ -345,9 +358,8 @@ struct optional_storage_base<T, true> : optional_throw_base {
   }
 
   template <typename U>
-  GUL_CXX14_CONSTEXPR T& construct(U&& u)
+  GUL_CXX14_CONSTEXPR T& construct(U& u)
   {
-    GUL_ASSERT(!has_value());
     valptr_ = std::addressof(u);
     return *valptr_;
   }
@@ -358,6 +370,13 @@ struct optional_storage_base<T, true> : optional_throw_base {
     if (other.has_value()) {
       construct(std::forward<Other>(other).value());
     }
+  }
+
+  template <typename U>
+  GUL_CXX14_CONSTEXPR T& assign(U& u)
+  {
+    valptr_ = std::addressof(u);
+    return *valptr_;
   }
 
   template <typename Other>
@@ -847,11 +866,8 @@ public:
                                negation<std::is_same<decay_t<U>, T>>>>::value)>
   GUL_CXX14_CONSTEXPR optional& operator=(U&& u)
   {
-    if (has_value()) {
-      (*this).value() = std::forward<U>(u);
-    } else {
-      (*this).construct(std::forward<U>(u));
-    }
+    (*this).assign(std::forward<U>(u));
+
     return *this;
   }
 
